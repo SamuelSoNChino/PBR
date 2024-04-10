@@ -10,15 +10,16 @@ public class PuzzleGenerator : MonoBehaviour
     public GameObject Grid;
     public SortingLayer TileLayer;
     public SortingLayer GridLayer;
+    public 
 
     void Start()
     {
-        generateGridTiles();
+        generateTiles();
         adjustCamera();
         shuffleTiles();
     }
 
-    void generateGridTiles()
+    void generateTiles()
     {
         int tileWidth = skin.width / pieces;
         int tileHeight = skin.height / pieces;
@@ -42,6 +43,10 @@ public class PuzzleGenerator : MonoBehaviour
                 SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
                 spriteRenderer.sprite = tileSprite;
                 spriteRenderer.sortingLayerName = "Tiles";
+                tile.AddComponent<PuzzleTile>();
+                
+                BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
+                collider.size = new Vector2(tileWidth, tileHeight);
 
 
                 GameObject gridTile = new GameObject();
