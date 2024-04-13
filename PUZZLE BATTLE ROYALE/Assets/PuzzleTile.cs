@@ -46,6 +46,20 @@ public class PuzzleTile : MonoBehaviour
     private void OnMouseUp()
     {
         isDragging = false;
+        SpriteRenderer tileSRenderer = GetComponent<SpriteRenderer>();
+        Transform grid = transform.parent.parent.Find("Grid");
+        float grid_z = grid.GetChild(0).position.z;
+        Vector3 center = new Vector3(tileSRenderer.bounds.center.x, tileSRenderer.bounds.center.y, grid_z);
+        for (int i = 0; i < grid.childCount; i++)
+        {
+            Transform child = grid.GetChild(i);
+            SpriteRenderer gridSRenderer = child.GetComponent<SpriteRenderer>();
+            if (gridSRenderer.bounds.Contains(center))
+            {
+                print("peter");
+                transform.position = new Vector3(child.position.x, child.position.y, transform.position.z);
+            }
+        }
     }
 
 
