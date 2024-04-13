@@ -7,11 +7,20 @@ public class PuzzleTile : MonoBehaviour
     private Vector3 offset;
     private bool isDragging = false;
 
-    void Start()
+    private void PutOnTop()
     {
-
-    }
-
+        float z_value = transform.position.z;
+        for (int i = 0; i < transform.parent.childCount; i++)
+        {
+            Vector3 childPos = transform.parent.GetChild(i).transform.position;
+            if (childPos.z < z_value)
+            {
+                childPos = new Vector3(childPos.x, childPos.y, childPos.z + 1);
+                transform.parent.GetChild(i).transform.position = childPos;
+            }
+        }
+        transform.position = new Vector3(transform.position.x, transform.position.y, 1f);
+    }   
     private Vector3 GetMouseWorldPosition()
     {
         Vector3 mousePosition = Input.mousePosition;
@@ -21,14 +30,9 @@ public class PuzzleTile : MonoBehaviour
 
     private void OnMouseDown()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
-
-    if (hit.collider != null && hit.collider.gameObject == gameObject)
-    {
+        PutOnTop();
         offset = transform.position - GetMouseWorldPosition();
         isDragging = true;
-    }
     }
 
     private void OnMouseDrag()
@@ -44,8 +48,5 @@ public class PuzzleTile : MonoBehaviour
         isDragging = false;
     }
 
-    void Update()
-    {
-        
-    }
+
 }

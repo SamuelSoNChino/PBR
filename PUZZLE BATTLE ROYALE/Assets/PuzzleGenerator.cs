@@ -42,7 +42,6 @@ public class PuzzleGenerator : MonoBehaviour
                 Sprite tileSprite = Sprite.Create(tileSkin, new Rect(0, 0, tileWidth, tileHeight), Vector2.zero, 1);
                 SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
                 spriteRenderer.sprite = tileSprite;
-                spriteRenderer.sortingLayerName = "Tiles";
                 tile.AddComponent<PuzzleTile>();
                 
                 BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
@@ -50,18 +49,16 @@ public class PuzzleGenerator : MonoBehaviour
 
 
                 GameObject gridTile = new GameObject();
-                gridTile.transform.position = new Vector3(startW, startH, 0);
+                gridTile.transform.position = new Vector3(startW, startH, pieces * pieces + 1);
                 gridTile.name = "Grid-" + i.ToString() + "-" + j.ToString();
                 gridTile.transform.parent = Grid.transform;
                 
-
                 Texture2D gridSkin = new Texture2D(tileWidth, tileHeight);
                 gridSkin.SetPixels(pad.GetPixels(startW, startH, tileWidth, tileHeight));
                 gridSkin.Apply();
                 Sprite gridSprite = Sprite.Create(gridSkin, new Rect(0, 0, tileWidth, tileHeight), Vector2.zero, 1);
                 spriteRenderer = gridTile.AddComponent<SpriteRenderer>();
                 spriteRenderer.sprite = gridSprite;
-                spriteRenderer.sortingLayerName = "Grid";
             }
         }
     }
@@ -83,7 +80,7 @@ public class PuzzleGenerator : MonoBehaviour
         for (int i = 0; i < numberOfTiles; i++)
         {
             Transform tile = Tiles.transform.GetChild(i);
-            tile.position = new Vector3(Random.Range(minX, maxX), Random.Range(minY, maxY), 1);
+            tile.position = new Vector3(Random.Range(minX, maxX), Random.Range(minY, maxY), i + 1);
         }
     }
 }
