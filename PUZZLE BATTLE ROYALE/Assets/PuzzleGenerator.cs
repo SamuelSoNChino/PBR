@@ -36,14 +36,18 @@ public class PuzzleGenerator : MonoBehaviour
                 tile.name = "Tile-" + i.ToString() + "-" + j.ToString();
                 tile.transform.parent = Tiles.transform;
 
+                PuzzleTile puzzleTileC = tile.AddComponent<PuzzleTile>();
+                puzzleTileC.x = i;
+                puzzleTileC.y = j;
+
                 Texture2D tileSkin  = new Texture2D(tileWidth, tileHeight);
                 tileSkin.SetPixels(skin.GetPixels(startW, startH, tileWidth, tileHeight));
                 tileSkin.Apply();
                 Sprite tileSprite = Sprite.Create(tileSkin, new Rect(0, 0, tileWidth, tileHeight), Vector2.zero, 1);
                 SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
                 spriteRenderer.sprite = tileSprite;
-                tile.AddComponent<PuzzleTile>();
-                
+
+                // Collider has to be added after the sprite for some reason
                 BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
                 collider.size = new Vector2(tileWidth, tileHeight);
 
@@ -52,6 +56,10 @@ public class PuzzleGenerator : MonoBehaviour
                 gridTile.transform.position = new Vector3(startW, startH, pieces * pieces + 1);
                 gridTile.name = "Grid-" + i.ToString() + "-" + j.ToString();
                 gridTile.transform.parent = Grid.transform;
+
+                GridTile gridTileC = gridTile.AddComponent<GridTile>();
+                gridTileC.x = i;
+                gridTileC.y = j;
                 
                 Texture2D gridSkin = new Texture2D(tileWidth, tileHeight);
                 gridSkin.SetPixels(pad.GetPixels(startW, startH, tileWidth, tileHeight));
