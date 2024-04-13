@@ -8,6 +8,7 @@ public class PuzzleTile : MonoBehaviour
     private bool isDragging = false;
     public int x;
     public int y;
+    public GridTile snappedTo;
 
     private void PutOnTop()
     {
@@ -38,6 +39,7 @@ public class PuzzleTile : MonoBehaviour
             {
                 transform.position = new Vector3(child.position.x, child.position.y, transform.position.z);
                 currentTile.UpdateStatus(x, y);
+                snappedTo = currentTile;
             }
         }
     }
@@ -53,6 +55,11 @@ public class PuzzleTile : MonoBehaviour
         PutOnTop();
         offset = transform.position - GetMouseWorldPosition();
         isDragging = true;
+        if (snappedTo)
+        {
+            snappedTo.status = 0;
+            snappedTo = null;
+        }
     }
 
     private void OnMouseDrag()

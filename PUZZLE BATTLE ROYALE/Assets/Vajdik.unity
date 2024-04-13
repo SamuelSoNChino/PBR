@@ -217,7 +217,7 @@ MonoBehaviour:
   main_camera: {fileID: 1595168186}
   skin: {fileID: 2800000, guid: fcb4d6bea571cfa4dbe7249686993a76, type: 3}
   pad: {fileID: 2800000, guid: ab6856c69fd38314cbcfb5152b97629f, type: 3}
-  pieces: 5
+  pieces: 4
   Tiles: {fileID: 559649354}
   Grid: {fileID: 85862680}
 --- !u!4 &1084766614
