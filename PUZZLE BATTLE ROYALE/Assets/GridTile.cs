@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class GridTile : MonoBehaviour
 {
-    public int status;
+    public int status;  // 0 - unoccupied, 1 - occupied, not correct, 2 - occupied, correct
     public int x;
     public int y;
     void Start()
     {
-        status = 0; // 0 - unoccupied, 1 - occupied, not correct, 2 - occupied, correct
+        status = 0;
     }
     public void UpdateStatus(int x2, int y2)
     {
