@@ -1,1 +1,5 @@
-- Check for completeness
+- Reset
+- Mobil
+- Random Vajdik
+- Menu
+- Klany
