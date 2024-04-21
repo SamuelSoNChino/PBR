@@ -9,14 +9,23 @@ public class GameState : MonoBehaviour
     void Start()
     {
         gameActive = true;
+        PlayerPrefs.SetInt("LastTime", 0);
+        PlayerPrefs.SetInt("BestTime", 0);
     }
 
     public void EndGame()
     {
-        gameActive = false;
+        int finalTime = GameObject.Find("Timer").GetComponent<Timer>().seconds;
+        PlayerPrefs.SetInt("LastTime", finalTime);
+        if (finalTime < PlayerPrefs.GetInt("BestTime") || PlayerPrefs.GetInt("BestTime") == 0)
+        {
+            PlayerPrefs.SetInt("BestTime", finalTime);
+        }
+
+        SceneManager.LoadScene("EndScreen");
     }
-    public void RestartGame()
+    public void BackToMenu()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene("Menu");
     }
 }

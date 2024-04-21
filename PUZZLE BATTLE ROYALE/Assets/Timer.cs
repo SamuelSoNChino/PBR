@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class Timer : MonoBehaviour
 {
     public float time;
+    public int seconds;
     // Start is called before the first frame update
     void Start()
     {
@@ -18,7 +19,8 @@ public class Timer : MonoBehaviour
         if (GameObject.FindGameObjectWithTag("Puzzle").GetComponent<GameState>().gameActive)
         {
             time += Time.deltaTime;
-            GetComponent<Text>().text = "Time: " + ((int) time).ToString();
+            seconds = (int) time;
+            GetComponent<Text>().text = "Time: " + seconds.ToString();
         }
     }
 }

@@ -1,5 +1,12 @@
-- Reset (HOTOVO)
-- Mobil (HOTOVO)
-- Menu
-- Random Vajdik
+ZAKLAD:
+- Jednoduche menu (Play, nastavenie poctu tiles, quit)
+- End Screen s casom
+- Ulozit najlepsi cas
+- Zoom a ohranicenie kamery
+- Opravit rozlisenia
+
+VELKE VECI:
+- Nahodne generovanie obrazkov
+- Multiplyer
+- Graficke zveladenie
 - Klany

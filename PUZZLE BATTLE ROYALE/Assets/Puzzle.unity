@@ -262,6 +262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   time: 0
+  seconds: 0
 --- !u!1 &559649354
 GameObject:
   m_ObjectHideFlags: 0
@@ -326,7 +327,7 @@ MonoBehaviour:
   main_camera: {fileID: 1595168186}
   skin: {fileID: 2800000, guid: fcb4d6bea571cfa4dbe7249686993a76, type: 3}
   pad: {fileID: 2800000, guid: ab6856c69fd38314cbcfb5152b97629f, type: 3}
-  pieces: 4
+  pieces: 2
   Tiles: {fileID: 559649354}
   Grid: {fileID: 85862680}
 --- !u!4 &1084766614
@@ -521,7 +522,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: RESET
+  m_Text: MENU
 --- !u!222 &1648159908
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -543,7 +544,7 @@ GameObject:
   - component: {fileID: 2030324715}
   - component: {fileID: 2030324714}
   m_Layer: 5
-  m_Name: ResetB
+  m_Name: MenuB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -615,7 +616,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1084766615}
         m_TargetAssemblyTypeName: GameState, Assembly-CSharp
-        m_MethodName: RestartGame
+        m_MethodName: BackToMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -678,7 +679,7 @@ GameObject:
   - component: {fileID: 2094483723}
   - component: {fileID: 2094483722}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
