@@ -1,7 +1,5 @@
 ZAKLAD:
-- Jednoduche menu (Play, nastavenie poctu tiles, quit)
-- End Screen s casom
-- Ulozit najlepsi cas
+- Dorobit nastavenia v menu
 - Zoom a ohranicenie kamery
 - Opravit rozlisenia
 

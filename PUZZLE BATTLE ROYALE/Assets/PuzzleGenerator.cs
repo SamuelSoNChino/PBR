@@ -14,6 +14,7 @@ public class PuzzleGenerator : MonoBehaviour
 
     void Start()
     {
+        pieces = PlayerPrefs.GetInt("Tiles");
         generateTiles();
         adjustCamera();
         shuffleTiles();

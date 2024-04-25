@@ -9,8 +9,6 @@ public class GameState : MonoBehaviour
     void Start()
     {
         gameActive = true;
-        PlayerPrefs.SetInt("LastTime", 0);
-        PlayerPrefs.SetInt("BestTime", 0);
     }
 
     public void EndGame()
