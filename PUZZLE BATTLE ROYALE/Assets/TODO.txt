@@ -1,5 +1,4 @@
 ZAKLAD:
-- Dorobit nastavenia v menu
 - Zoom a ohranicenie kamery
 - Opravit rozlisenia
 

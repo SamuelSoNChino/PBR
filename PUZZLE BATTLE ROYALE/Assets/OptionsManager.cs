@@ -1,18 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class OptionsManager : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public GameObject text;
+    public GameObject slider;
     void Start()
     {
-        
+        slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("Tiles");
+        UpdateSliderText();
+    }
+    public void ReturnToMenu()
+    {
+        SceneManager.LoadScene("Menu");
     }
 
     // Update is called once per frame
-    void Update()
+    public void UpdateSliderText()
     {
-        
+        PlayerPrefs.SetInt("Tiles", (int) slider.GetComponent<Slider>().value);
+        text.GetComponent<Text>().text = "Tiles " + PlayerPrefs.GetInt("Tiles").ToString();
     }
 }

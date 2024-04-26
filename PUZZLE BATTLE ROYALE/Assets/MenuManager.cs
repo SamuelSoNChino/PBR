@@ -6,11 +6,22 @@ using UnityEngine.SceneManagement;
 public class MenuManager : MonoBehaviour
 {
     // Start is called before the first frame update
-    public void startGame()
+    void Start()
+    {
+        if (!PlayerPrefs.HasKey("Tiles"))
+        {
+            PlayerPrefs.SetInt("Tiles", 5);
+        }
+        if (!PlayerPrefs.HasKey("BestTime"))
+        {
+            PlayerPrefs.SetInt("BestTime", -1);
+        }
+    }
+    public void StartGame()
     {
         SceneManager.LoadScene("Puzzle");
     }
-    public void goToOptions()
+    public void GoToOptions()
     {
         SceneManager.LoadScene("Options");
     }
