@@ -1,6 +1,6 @@
 ZAKLAD:
-- Zoom a ohranicenie kamery
-- Opravit rozlisenia
+- Zafixovat pozicie aj pri generovani puzzle
+- Urobit UI scaling
 
 VELKE VECI:
 - Nahodne generovanie obrazkov

@@ -48,7 +48,7 @@ public class PuzzleGenerator : MonoBehaviour
                 SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
                 spriteRenderer.sprite = tileSprite;
 
-                // Collider has to be added after the sprite for some reason
+
                 BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
                 collider.size = new Vector2(tileWidth, tileHeight);
 

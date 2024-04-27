@@ -52,11 +52,12 @@ public class PuzzleTile : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (transform.parent.parent.GetComponent<GameState>().gameActive)
+        if (Input.touchCount == 1)
         {
             PutOnTop();
             offset = transform.position - GetMouseWorldPosition();
             isDragging = true;
+            GameObject.Find("Main Camera").GetComponent<PanZoom>().tileDragging = true;
             if (snappedTo)
             {
                 snappedTo.status = 0;
@@ -76,6 +77,7 @@ public class PuzzleTile : MonoBehaviour
     private void OnMouseUp()
     {
         isDragging = false;
+        GameObject.Find("Main Camera").GetComponent<PanZoom>().tileDragging = false;
         SnapToGrid();
         if (transform.parent.parent.Find("Grid").GetComponent<Grid>().CheckComplete())
         {
