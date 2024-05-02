@@ -12,8 +12,12 @@ public class PanZoom : MonoBehaviour
     public GameObject background;
     Vector3 boundLD;
     Vector3 boundRU;
+    public int startingZoom;
+    public Vector3 startingPos;
     void Start()
     {
+        Camera.main.orthographicSize = startingZoom;
+        Camera.main.transform.position = startingPos;
         boundLD = background.GetComponent<SpriteRenderer>().bounds.min;
         boundRU = background.GetComponent<SpriteRenderer>().bounds.max;
     }
@@ -39,6 +43,7 @@ public class PanZoom : MonoBehaviour
         }
         else if (Input.GetMouseButton(0) && !tileDragging)
         {
+            print(tileDragging);
             Vector3 direction = touchStart - Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3 newPosition = Camera.main.transform.position + direction;
             float cameraHalfHeight = Camera.main.orthographicSize;

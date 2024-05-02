@@ -43,12 +43,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Default
-    uniqueID: 0
-    locked: 0
-  - name: Grid
+  - name: Background
     uniqueID: 1745083587
     locked: 0
-  - name: Tiles
-    uniqueID: 824669769
+  - name: Default
+    uniqueID: 0
     locked: 0

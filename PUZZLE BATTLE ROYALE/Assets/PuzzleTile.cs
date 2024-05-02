@@ -52,7 +52,7 @@ public class PuzzleTile : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (Input.touchCount == 1)
+        if (Input.touchCount == 1 || Input.GetMouseButtonDown(0))
         {
             PutOnTop();
             offset = transform.position - GetMouseWorldPosition();

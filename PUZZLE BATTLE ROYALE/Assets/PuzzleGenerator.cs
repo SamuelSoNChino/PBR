@@ -10,28 +10,32 @@ public class PuzzleGenerator : MonoBehaviour
     public GameObject Grid;
     public SortingLayer TileLayer;
     public SortingLayer GridLayer;
-    public 
+    public int PuzzleWidth;
+    public int PuzzleHeight;
 
     void Start()
     {
-        pieces = PlayerPrefs.GetInt("Tiles");
-        generateTiles();
-        adjustCamera();
-        shuffleTiles();
+        if (PuzzleWidth != skin.width || PuzzleHeight != skin.height || PuzzleHeight != pad.height || PuzzleWidth != pad.width)
+        {
+            print("IMAGES HAVE WRONG DIMENSIONS");
+        } else {
+            pieces = PlayerPrefs.GetInt("Tiles");
+            generateTiles();
+            shuffleTiles();
+        }
+        
     }
 
     void generateTiles()
     {
-        int tileWidth = skin.width / pieces;
-        int tileHeight = skin.height / pieces;
+        int tileWidth = PuzzleWidth / pieces;
+        int tileHeight = PuzzleHeight / pieces;
         for (int i = 0; i < pieces; i++)
         {
             for (int j = 0; j < pieces; j++)
-            {
-                int startW = i * tileWidth;
-                int startH = j * tileHeight;
-                
-
+            {   
+                int startW = tileWidth * i;
+                int startH = tileHeight * j;
                 GameObject tile = new GameObject();
                 tile.transform.position = new Vector3(startW, startH, 0);
                 tile.name = "Tile-" + i.ToString() + "-" + j.ToString();
@@ -63,7 +67,7 @@ public class PuzzleGenerator : MonoBehaviour
                 gridTileC.y = j;
                 
                 Texture2D gridSkin = new Texture2D(tileWidth, tileHeight);
-                gridSkin.SetPixels(pad.GetPixels(startW, startH, tileWidth, tileHeight));
+                gridSkin.SetPixels(pad.GetPixels(startW ,startH, tileWidth, tileHeight));
                 gridSkin.Apply();
                 Sprite gridSprite = Sprite.Create(gridSkin, new Rect(0, 0, tileWidth, tileHeight), Vector2.zero, 1);
                 spriteRenderer = gridTile.AddComponent<SpriteRenderer>();
@@ -72,19 +76,14 @@ public class PuzzleGenerator : MonoBehaviour
         }
     }
     
-    void adjustCamera()
-    {
-        Camera.main.orthographicSize = skin.height;
-        Camera.main.transform.position = new Vector3(skin.width / 2, 0, -1);
-    }
-    
     void shuffleTiles()
     {
-        int tileWidth = skin.width / pieces;
+        int tileWidth = PuzzleWidth / pieces;
+        int tileHeight = PuzzleHeight / pieces;
         float minX = 0;
-        float maxX = skin.width - tileWidth;
-        float minY = -skin.height;
-        float maxY = 0 - tileWidth;
+        float maxX = PuzzleWidth - tileWidth;
+        float minY = -PuzzleHeight;
+        float maxY = 0 - tileHeight;
         float numberOfTiles = Tiles.transform.childCount;
         for (int i = 0; i < numberOfTiles; i++)
         {

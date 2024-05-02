@@ -182,7 +182,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!212 &324129106
 SpriteRenderer:
@@ -222,15 +222,15 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1745083587
+  m_SortingLayer: -1
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 1dff2222626b2b84cbfd7cfb283e97ec, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 42.56, y: 28.324844}
+  m_Size: {x: 238.3075, y: 158.60023}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -245,8 +245,8 @@ Transform:
   m_GameObject: {fileID: 324129105}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 100, y: 0, z: 100}
-  m_LocalScale: {x: 14.115289, y: 14.193956, z: 0.83493865}
+  m_LocalPosition: {x: 500, y: -100, z: 100}
+  m_LocalScale: {x: 80, y: 80, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -409,11 +409,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   main_camera: {fileID: 1595168186}
-  skin: {fileID: 2800000, guid: fcb4d6bea571cfa4dbe7249686993a76, type: 3}
-  pad: {fileID: 2800000, guid: ab6856c69fd38314cbcfb5152b97629f, type: 3}
+  skin: {fileID: 2800000, guid: 8157bc3a71933b34ca433ac37cfb7004, type: 3}
+  pad: {fileID: 2800000, guid: 411e383262c53a14984e164f1d396d00, type: 3}
   pieces: 0
   Tiles: {fileID: 559649354}
   Grid: {fileID: 85862680}
+  PuzzleWidth: 1000
+  PuzzleHeight: 1000
 --- !u!4 &1084766614
 Transform:
   m_ObjectHideFlags: 0
@@ -550,10 +552,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tileDragging: 0
-  maxZoom: 250
-  minZoom: 20
+  maxZoom: 1250
+  minZoom: 750
   incrementScale: 0.1
   background: {fileID: 324129105}
+  startingZoom: 1000
+  startingPos: {x: 500, y: 0, z: 0}
 --- !u!1 &1648159905
 GameObject:
   m_ObjectHideFlags: 0
@@ -645,8 +649,6 @@ GameObject:
   - component: {fileID: 2030324716}
   - component: {fileID: 2030324715}
   - component: {fileID: 2030324714}
-  - component: {fileID: 2030324718}
-  - component: {fileID: 2030324717}
   m_Layer: 5
   m_Name: MenuB
   m_TagString: Untagged
@@ -768,41 +770,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2030324712}
   m_CullTransparentMesh: 1
---- !u!114 &2030324717
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2030324712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
---- !u!114 &2030324718
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2030324712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_FirstSelected: {fileID: 0}
-  m_sendNavigationEvents: 1
-  m_DragThreshold: 10
 --- !u!1 &2094483717
 GameObject:
   m_ObjectHideFlags: 0
@@ -853,10 +820,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1080, y: 2160}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -947,7 +914,7 @@ MonoBehaviour:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1595168189}
   - {fileID: 324129107}
+  - {fileID: 1595168189}
   - {fileID: 1084766614}
   - {fileID: 2094483721}

@@ -1,7 +1,3 @@
-ZAKLAD:
-- Zafixovat pozicie aj pri generovani puzzle
-- Urobit UI scaling
-
 VELKE VECI:
 - Nahodne generovanie obrazkov
 - Multiplyer
