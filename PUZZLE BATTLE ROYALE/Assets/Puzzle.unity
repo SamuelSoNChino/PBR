@@ -409,8 +409,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   main_camera: {fileID: 1595168186}
-  skin: {fileID: 2800000, guid: 8157bc3a71933b34ca433ac37cfb7004, type: 3}
-  pad: {fileID: 2800000, guid: 411e383262c53a14984e164f1d396d00, type: 3}
+  skin: {fileID: 2800000, guid: f9e34b394fb6f524383d9d925e1067fc, type: 3}
+  pad: {fileID: 2800000, guid: 4462a183a99c40f46a95e72ae2ed18aa, type: 3}
   pieces: 0
   Tiles: {fileID: 559649354}
   Grid: {fileID: 85862680}
@@ -556,7 +556,7 @@ MonoBehaviour:
   minZoom: 750
   incrementScale: 0.1
   background: {fileID: 324129105}
-  startingZoom: 1000
+  startingZoom: 1100
   startingPos: {x: 500, y: 0, z: 0}
 --- !u!1 &1648159905
 GameObject:

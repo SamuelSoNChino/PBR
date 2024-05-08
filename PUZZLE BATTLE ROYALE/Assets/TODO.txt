@@ -1,5 +1,7 @@
-VELKE VECI:
-- Nahodne generovanie obrazkov
+- Pridat hromadne presuvanie skupiny tiles
 - Multiplyer
 - Graficke zveladenie
 - Klany
+
+IMAGE GENERATOR:
+- opravit grid, aby tam tiles pekne pasovali

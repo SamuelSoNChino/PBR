@@ -28,16 +28,18 @@ public class PuzzleGenerator : MonoBehaviour
 
     void generateTiles()
     {
-        int tileWidth = PuzzleWidth / pieces;
-        int tileHeight = PuzzleHeight / pieces;
         for (int i = 0; i < pieces; i++)
         {
             for (int j = 0; j < pieces; j++)
-            {   
-                int startW = tileWidth * i;
-                int startH = tileHeight * j;
+            { 
+                int x = (PuzzleWidth * i) / pieces;
+                int y = (PuzzleHeight * j) / pieces;
+                int nextX = (PuzzleWidth * (i + 1)) / pieces;
+                int nextY = (PuzzleHeight * (j + 1)) / pieces;
+                int tileWidth = nextX - x;
+                int tileHeight = nextY - y;
                 GameObject tile = new GameObject();
-                tile.transform.position = new Vector3(startW, startH, 0);
+                tile.transform.position = new Vector3(x, y, 0);
                 tile.name = "Tile-" + i.ToString() + "-" + j.ToString();
                 tile.transform.parent = Tiles.transform;
 
@@ -46,7 +48,7 @@ public class PuzzleGenerator : MonoBehaviour
                 puzzleTileC.y = j;
 
                 Texture2D tileSkin  = new Texture2D(tileWidth, tileHeight);
-                tileSkin.SetPixels(skin.GetPixels(startW, startH, tileWidth, tileHeight));
+                tileSkin.SetPixels(skin.GetPixels(x, y, tileWidth, tileHeight));
                 tileSkin.Apply();
                 Sprite tileSprite = Sprite.Create(tileSkin, new Rect(0, 0, tileWidth, tileHeight), Vector2.zero, 1);
                 SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
@@ -58,7 +60,7 @@ public class PuzzleGenerator : MonoBehaviour
 
 
                 GameObject gridTile = new GameObject();
-                gridTile.transform.position = new Vector3(startW, startH, pieces * pieces + 1);
+                gridTile.transform.position = new Vector3(x, y, pieces * pieces + 1);
                 gridTile.name = "Grid-" + i.ToString() + "-" + j.ToString();
                 gridTile.transform.parent = Grid.transform;
 
@@ -67,7 +69,7 @@ public class PuzzleGenerator : MonoBehaviour
                 gridTileC.y = j;
                 
                 Texture2D gridSkin = new Texture2D(tileWidth, tileHeight);
-                gridSkin.SetPixels(pad.GetPixels(startW ,startH, tileWidth, tileHeight));
+                gridSkin.SetPixels(pad.GetPixels(x ,y, tileWidth, tileHeight));
                 gridSkin.Apply();
                 Sprite gridSprite = Sprite.Create(gridSkin, new Rect(0, 0, tileWidth, tileHeight), Vector2.zero, 1);
                 spriteRenderer = gridTile.AddComponent<SpriteRenderer>();
