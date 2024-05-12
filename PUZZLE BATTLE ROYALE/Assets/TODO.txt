@@ -1,7 +1,7 @@
-- Pridat hromadne presuvanie skupiny tiles
+- Pridat hromadne presuvanie skupiny tiles (Vymysliet tileDragging a Pan)
+
+DALSIE:
 - Multiplyer
+- Novy typ obrazkov
 - Graficke zveladenie
 - Klany
-
-IMAGE GENERATOR:
-- opravit grid, aby tam tiles pekne pasovali

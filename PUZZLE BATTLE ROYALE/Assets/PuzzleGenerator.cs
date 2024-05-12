@@ -1,41 +1,71 @@
+using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class PuzzleGenerator : MonoBehaviour
 {
     public GameObject main_camera;
-    public Texture2D skin;
-    public Texture2D pad;
+    Texture2D skin;
+    Texture2D pad;
     public int pieces;
     public GameObject Tiles;
     public GameObject Grid;
     public SortingLayer TileLayer;
     public SortingLayer GridLayer;
-    public int PuzzleWidth;
-    public int PuzzleHeight;
+    public int PuzzleSize;
 
     void Start()
     {
-        if (PuzzleWidth != skin.width || PuzzleHeight != skin.height || PuzzleHeight != pad.height || PuzzleWidth != pad.width)
-        {
-            print("IMAGES HAVE WRONG DIMENSIONS");
-        } else {
-            pieces = PlayerPrefs.GetInt("Tiles");
-            generateTiles();
-            shuffleTiles();
-        }
+        pieces = PlayerPrefs.GetInt("Tiles");
+        StartCoroutine(RequestImages());
         
     }
+    IEnumerator RequestImages()
+    {
+        string url = "SamuelSoNChino.eu.pythonanywhere.com";
+        string skinUrl = url + "/generate_image?image_size=" + PuzzleSize.ToString() + "&pieces=" + pieces.ToString();
+        UnityWebRequest skinRequest = UnityWebRequestTexture.GetTexture(skinUrl);
+        yield return skinRequest.SendWebRequest();
 
+        if (skinRequest.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError("Failed to download skin image: " + skinRequest.error);
+            yield break;
+        }
+        skin = DownloadHandlerTexture.GetContent(skinRequest);
+
+        string padUrl = url + "/generate_grid?image_size=" + PuzzleSize.ToString() + "&pieces=" + pieces.ToString();
+        UnityWebRequest padRequest = UnityWebRequestTexture.GetTexture(padUrl);
+        yield return padRequest.SendWebRequest();
+
+        if (padRequest.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError("Failed to download pad image: " + padRequest.error);
+            yield break;
+        }
+        pad = DownloadHandlerTexture.GetContent(padRequest);
+        
+
+        if (PuzzleSize != skin.width || PuzzleSize != skin.height || PuzzleSize != pad.height || PuzzleSize != pad.width)
+        {
+            Debug.LogError("IMAGES HAVE WRONG DIMENSIONS");
+            yield break;
+        }
+        generateTiles();
+        shuffleTiles();
+        
+    }
     void generateTiles()
     {
         for (int i = 0; i < pieces; i++)
         {
             for (int j = 0; j < pieces; j++)
             { 
-                int x = (PuzzleWidth * i) / pieces;
-                int y = (PuzzleHeight * j) / pieces;
-                int nextX = (PuzzleWidth * (i + 1)) / pieces;
-                int nextY = (PuzzleHeight * (j + 1)) / pieces;
+                int x = (PuzzleSize * i) / pieces;
+                int y = (PuzzleSize * j) / pieces;
+                int nextX = (PuzzleSize * (i + 1)) / pieces;
+                int nextY = (PuzzleSize * (j + 1)) / pieces;
                 int tileWidth = nextX - x;
                 int tileHeight = nextY - y;
                 GameObject tile = new GameObject();
@@ -44,8 +74,8 @@ public class PuzzleGenerator : MonoBehaviour
                 tile.transform.parent = Tiles.transform;
 
                 PuzzleTile puzzleTileC = tile.AddComponent<PuzzleTile>();
-                puzzleTileC.x = i;
-                puzzleTileC.y = j;
+                puzzleTileC.correctX = i;
+                puzzleTileC.correctY = j;
 
                 Texture2D tileSkin  = new Texture2D(tileWidth, tileHeight);
                 tileSkin.SetPixels(skin.GetPixels(x, y, tileWidth, tileHeight));
@@ -80,17 +110,17 @@ public class PuzzleGenerator : MonoBehaviour
     
     void shuffleTiles()
     {
-        int tileWidth = PuzzleWidth / pieces;
-        int tileHeight = PuzzleHeight / pieces;
+        int tileWidth = PuzzleSize / pieces;
+        int tileHeight = PuzzleSize / pieces;
         float minX = 0;
-        float maxX = PuzzleWidth - tileWidth;
-        float minY = -PuzzleHeight;
+        float maxX = PuzzleSize - tileWidth;
+        float minY = -PuzzleSize;
         float maxY = 0 - tileHeight;
         float numberOfTiles = Tiles.transform.childCount;
         for (int i = 0; i < numberOfTiles; i++)
         {
             Transform tile = Tiles.transform.GetChild(i);
-            tile.position = new Vector3(Random.Range(minX, maxX), Random.Range(minY, maxY), i + 1);
+            tile.position = new Vector3(UnityEngine.Random.Range(minX, maxX), UnityEngine.Random.Range(minY, maxY), i + 1);
         }
     }
 }

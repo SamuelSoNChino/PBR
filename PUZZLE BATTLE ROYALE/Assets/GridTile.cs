@@ -11,9 +11,9 @@ public class GridTile : MonoBehaviour
     {
         status = 0;
     }
-    public void UpdateStatus(int x2, int y2)
+    public void UpdateStatus(int tileX, int tileY)
     {
-        if (x == x2 && y == y2)
+        if (x == tileX && y == tileY)
         {
             status = 2;
         } else

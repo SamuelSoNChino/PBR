@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class PuzzleTile : MonoBehaviour
 {
-    private Vector3 offset;
-    private bool isDragging = false;
-    public int x;
-    public int y;
+    public Vector3 offset;
+    private Vector3 originalPosition;
+    public bool isDragging = false;
+    public bool isSelected = false;
+    public int correctX;
+    public int correctY;
     public GridTile snappedTo;
 
     private void PutOnTop()
@@ -38,26 +40,25 @@ public class PuzzleTile : MonoBehaviour
             if (gridSRenderer.bounds.Contains(center) && currentTile.status == 0)
             {
                 transform.position = new Vector3(child.position.x, child.position.y, transform.position.z);
-                currentTile.UpdateStatus(x, y);
+                currentTile.UpdateStatus(correctX, correctY);
                 snappedTo = currentTile;
             }
         }
     }
-    private Vector3 GetMouseWorldPosition()
-    {
-        Vector3 mousePosition = Input.mousePosition;
-        mousePosition.z = Camera.main.nearClipPlane;
-        return Camera.main.ScreenToWorldPoint(mousePosition);
-    }
-
+    
     private void OnMouseDown()
     {
-        if (Input.touchCount == 1 || Input.GetMouseButtonDown(0))
+        if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition for PC testing
         {
             PutOnTop();
-            offset = transform.position - GetMouseWorldPosition();
+            originalPosition = transform.position;
+
+            offset = transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            isSelected = true;
             isDragging = true;
             GameObject.Find("Main Camera").GetComponent<PanZoom>().tileDragging = true;
+
             if (snappedTo)
             {
                 snappedTo.status = 0;
@@ -68,9 +69,9 @@ public class PuzzleTile : MonoBehaviour
 
     private void OnMouseDrag()
     {
-        if (isDragging)
+        if (isDragging && Input.touchCount < 2) // For PC debugging, on touch device should be == 1
         {
-            transform.position = GetMouseWorldPosition() + offset;
+            transform.parent.GetComponent<TilesManager>().MoveSelected();
         }
     }
 
@@ -78,8 +79,15 @@ public class PuzzleTile : MonoBehaviour
     {
         isDragging = false;
         GameObject.Find("Main Camera").GetComponent<PanZoom>().tileDragging = false;
+
+        if (transform.position == originalPosition)
+        {
+            isSelected = true;
+            offset = transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        }
+
         SnapToGrid();
-        if (transform.parent.parent.Find("Grid").GetComponent<Grid>().CheckComplete())
+        if (transform.parent.parent.Find("Grid").GetComponent<GridManager>().CheckComplete())
         {
             transform.parent.parent.GetComponent<GameState>().EndGame();
         }
