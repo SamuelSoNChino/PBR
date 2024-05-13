@@ -5,15 +5,15 @@ using UnityEngine;
 public class GridTile : MonoBehaviour
 {
     public int status;  // 0 - unoccupied, 1 - occupied, not correct, 2 - occupied, correct
-    public int x;
-    public int y;
+    public int indexX;
+    public int indexY;
     void Start()
     {
         status = 0;
     }
-    public void UpdateStatus(int tileX, int tileY)
+    public void UpdateStatus(int tileIndexX, int tileIndexY)
     {
-        if (x == tileX && y == tileY)
+        if (indexX == tileIndexX && indexY == tileIndexY)
         {
             status = 2;
         } else

@@ -74,8 +74,8 @@ public class PuzzleGenerator : MonoBehaviour
                 tile.transform.parent = Tiles.transform;
 
                 PuzzleTile puzzleTileC = tile.AddComponent<PuzzleTile>();
-                puzzleTileC.correctX = i;
-                puzzleTileC.correctY = j;
+                puzzleTileC.indexX = i; // Stores correct index
+                puzzleTileC.indexY = j; // Stores correct index
 
                 Texture2D tileSkin  = new Texture2D(tileWidth, tileHeight);
                 tileSkin.SetPixels(skin.GetPixels(x, y, tileWidth, tileHeight));
@@ -95,8 +95,8 @@ public class PuzzleGenerator : MonoBehaviour
                 gridTile.transform.parent = Grid.transform;
 
                 GridTile gridTileC = gridTile.AddComponent<GridTile>();
-                gridTileC.x = i;
-                gridTileC.y = j;
+                gridTileC.indexX = i; // Stores index
+                gridTileC.indexY = j; // Stores index
                 
                 Texture2D gridSkin = new Texture2D(tileWidth, tileHeight);
                 gridSkin.SetPixels(pad.GetPixels(x ,y, tileWidth, tileHeight));
