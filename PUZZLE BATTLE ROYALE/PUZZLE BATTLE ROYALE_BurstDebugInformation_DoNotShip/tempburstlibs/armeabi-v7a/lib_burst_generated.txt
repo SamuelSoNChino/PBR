@@ -10,6 +10,7 @@ Library: C:\Users\samko\Documents\Projekty\PBR\PUZZLE BATTLE ROYALE\Temp\BurstOu
 --assembly-defines=UnityEngine;
 --assembly-defines=Assembly-CSharp;
 --assembly-defines=Unity.2D.IK.Runtime;
+--assembly-defines=Unity.Postprocessing.Runtime;
 --assembly-defines=Unity.VisualScripting.Flow;
 --assembly-defines=Unity.Collections;
 --assembly-defines=Unity.AdaptivePerformance.Google.Android;
@@ -57,6 +58,7 @@ Library: C:\Users\samko\Documents\Projekty\PBR\PUZZLE BATTLE ROYALE\Temp\BurstOu
 --assembly-defines=mscorlib;
 --generate-link-xml=Temp\burst.link.xml
 --temp-folder=C:\Users\samko\Documents\Projekty\PBR\PUZZLE BATTLE ROYALE\Temp\Burst
+--debug=Full
 --key-folder=C:/Program Files/Unity/Hub/Editor/2022.3.23f1/Editor/Data/PlaybackEngines/AndroidPlayer
 --decode-folder=C:\Users\samko\Documents\Projekty\PBR\PUZZLE BATTLE ROYALE\Library\Burst
 --output=C:\Users\samko\Documents\Projekty\PBR\PUZZLE BATTLE ROYALE\Temp\BurstOutput\tempburstlibs\armeabi-v7a\lib_burst_generated

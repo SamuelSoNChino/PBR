@@ -1,4 +1,7 @@
-- Pridat hromadne presuvanie skupiny tiles (Vymysliet tileDragging a Pan)
+SELECTED TILES:
+- Zlepsi zvyraznenie selected tiles
+- Vymysli deselect ostatnych, ked draggujes neselected tile
+- Urob selectovanie tiles zavisle od casu
 
 DALSIE:
 - Multiplyer
