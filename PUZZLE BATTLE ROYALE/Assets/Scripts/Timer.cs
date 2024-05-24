@@ -1,26 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Timer : MonoBehaviour
 {
-    public float time;
-    public int seconds;
-    // Start is called before the first frame update
+    private float time = 0;
+    private bool timerEnabled;
+    private Text timerText;
+
     void Start()
     {
-        time = 0;
+        timerEnabled = false;
+        gameObject.SetActive(true);
+        timerText =  GetComponent<Text>();
     }
 
-    // Update is called once per frame
+    public void EnableTimer()
+    {
+        timerEnabled = true;
+    }
+
+    public void DisableTimer()
+    {
+        timerEnabled = false;
+    }
+    public int GetCurrentTime()
+    {
+        return (int) time;
+    }
+
     void Update()
     {
-        if (GameObject.FindGameObjectWithTag("Puzzle").GetComponent<GameState>().gameActive)
+        if (timerEnabled)
         {
             time += Time.deltaTime;
-            seconds = (int) time;
-            GetComponent<Text>().text = "Time: " + seconds.ToString();
+            timerText.text = $"Time: {GetCurrentTime()}";
         }
     }
 }

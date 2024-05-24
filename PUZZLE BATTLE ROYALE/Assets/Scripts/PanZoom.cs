@@ -5,7 +5,7 @@ using UnityEngine.Tilemaps;
 
 public class PanZoom : MonoBehaviour
 {
-    Vector3 touchStart;
+    private Vector3 touchStart;
     public float maxZoom;
     public float minZoom;
     public float incrementScale;
@@ -53,7 +53,7 @@ public class PanZoom : MonoBehaviour
 
     void Update()
     {
-        bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().tileDragging;
+        bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().IsTileDragging();
         if (Input.GetMouseButtonDown(0)) // Triggers on MouseDown, stores the initial value
         {
             touchStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);

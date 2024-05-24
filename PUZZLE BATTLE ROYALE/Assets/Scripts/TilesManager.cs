@@ -5,22 +5,21 @@ using UnityEngine;
 
 public class TilesManager : MonoBehaviour
 {
-    public bool tileDragging = false;
+    private bool tileDragging = false;
     public void MoveSelected()
     {
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
             PuzzleTile tile = child.GetComponent<PuzzleTile>();
-            if (tile.isSelected)
+            if (tile.IsSelected())
             {
                 Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector3 childOffset = tile.offset;
+                Vector3 childOffset = tile.GetOffset();
                 child.position = new Vector3(mousePosition.x + childOffset.x, mousePosition.y + childOffset.y, child.transform.position.z);
-                if (tile.snappedGridTile)
+                if (tile.GetSnappedGridTile())
                 {
-                    tile.snappedGridTile.status = 0;
-                    tile.snappedGridTile = null;
+                    tile.ClearSnappedGridTile();
                 }
             }
         }
@@ -30,7 +29,7 @@ public class TilesManager : MonoBehaviour
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
-            child.GetComponent<PuzzleTile>().isSelected = false;
+            child.GetComponent<PuzzleTile>().DeselectTile();
             child.localScale = new Vector3(1, 1, 1); // Experiment for selection visualization
         }
     }
@@ -39,7 +38,7 @@ public class TilesManager : MonoBehaviour
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
-            child.GetComponent<PuzzleTile>().offset = child.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            child.GetComponent<PuzzleTile>().SetOffset(child.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition));
         }
     }
     public void PutTileOnTop(float zValue)
@@ -73,19 +72,19 @@ public class TilesManager : MonoBehaviour
             SpriteRenderer gridSRenderer = gridChild.GetComponent<SpriteRenderer>();
             GridTile gridTile = gridChild.GetComponent<GridTile>();
 
-            if (gridSRenderer.bounds.Contains(tileCenter) && gridTile.status == 0)
+            if (gridSRenderer.bounds.Contains(tileCenter) && gridTile.GetStatus() == 0)
             {
                 tileTransform.position = new Vector3(gridChild.position.x, gridChild.position.y, tileTransform.position.z);
-                puzzleTile.snappedGridTile = gridTile;
+                puzzleTile.SetSnappedGridTile(gridTile);
 
-                gridTile.UpdateStatus(puzzleTile.indexX, puzzleTile.indexY);
+                gridTile.UpdateStatus(puzzleTile.GetIndexes()[0], puzzleTile.GetIndexes()[1]);
                 break; // Doesnt need to continue as it can snap only to a single grid tile
             }
         }
 
-        if (GameObject.Find("Grid").GetComponent<GridManager>().CheckComplete()) // Checks for game completeness
+        if (GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness()) // Checks for game completeness
         {
-            GameObject.Find("Puzzle").GetComponent<GameState>().EndGame();
+            GameObject.Find("Puzzle").GetComponent<GameManager>().EndGame();
         }
     }
     public void SnapSelectedToGrid()
@@ -94,10 +93,18 @@ public class TilesManager : MonoBehaviour
         {
             Transform tileChild = transform.GetChild(i);
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
-            if (puzzleTile.isSelected)
+            if (puzzleTile.IsSelected())
             {
                 SnapTileToGrid(tileChild);
             }  
         }
+    }
+    public bool IsTileDragging()
+    {
+        return tileDragging;
+    }
+    public void SetTileDragging(bool newState)
+    {
+        tileDragging = newState;
     }
 }

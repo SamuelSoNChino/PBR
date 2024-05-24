@@ -7,26 +7,64 @@ using UnityEngine.Tilemaps;
 
 public class PuzzleTile : MonoBehaviour
 {
-    public Vector3 offset;
+    private Vector3 offset;
     private Vector3 originalPosition;
-    public bool isSelected = false;
-    public int indexX;
-    public int indexY;
-    public GridTile snappedGridTile;
+    private bool isSelected = false;
+    private int indexX;
+    private int indexY;
+    private GridTile snappedGridTile;
     private TilesManager tilesManager;
 
     private void Start()
     {
         tilesManager = transform.parent.GetComponent<TilesManager>();
     }
-    
+    public bool IsSelected()
+    {
+        return isSelected;
+    }
+    public void DeselectTile()
+    {
+        isSelected = false;
+    }
+    public Vector3 GetOffset()
+    {
+        return offset;
+    }
+    public void SetOffset(Vector3 newOffset)
+    {
+        offset = newOffset;
+    }
+    public GridTile GetSnappedGridTile()
+    {
+        return snappedGridTile;
+    }
+    public void SetSnappedGridTile(GridTile newGridTile)
+    {
+        snappedGridTile = newGridTile;
+    }
+    public void ClearSnappedGridTile()
+    {
+        snappedGridTile.SetStatus(0);
+        snappedGridTile = null;
+    }
+    public int[] GetIndexes()
+    {
+        int[] output = {indexX, indexY};
+        return output;
+    }
+    public void SetIndexes(int x, int y)
+    {
+        indexX = x;
+        indexY = y;
+    }
     private void OnMouseDown()
     {
         if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition for PC testing
         {
             tilesManager.PutTileOnTop(transform.position.z);
             originalPosition = transform.position;
-            tilesManager.tileDragging = true;
+            tilesManager.SetTileDragging(true);
             if (isSelected) // Calculates offsets for all selected, otherwise only for itself
             {
                 tilesManager.CalculateOffsets();
@@ -53,7 +91,7 @@ public class PuzzleTile : MonoBehaviour
 
                 if (snappedGridTile)
                 {
-                    snappedGridTile.status = 0;
+                    snappedGridTile.SetStatus(0);
                     snappedGridTile = null;
                 }
             }
@@ -62,7 +100,7 @@ public class PuzzleTile : MonoBehaviour
 
     private void OnMouseUp()
     {
-        tilesManager.tileDragging = false;
+        tilesManager.SetTileDragging(false);
 
         if (transform.position == originalPosition) // Triggers only when the tile was dragged, but not if only clicked
         {

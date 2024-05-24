@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class GridTile : MonoBehaviour
 {
-    public int status;  // 0 - unoccupied, 1 - occupied, not correct, 2 - occupied, correct
-    public int indexX;
-    public int indexY;
+    private int status;  // 0 - unoccupied, 1 - occupied, not correct, 2 - occupied, correct
+    private int indexX;
+    private int indexY;
     void Start()
     {
         status = 0;
     }
-    public void UpdateStatus(int tileIndexX, int tileIndexY)
+    public void UpdateStatus(int tileIndexX, int tileIndexY) // Updates status by comparing the puzzle tile and grid tile indexes
     {
         if (indexX == tileIndexX && indexY == tileIndexY)
         {
@@ -20,5 +20,18 @@ public class GridTile : MonoBehaviour
         {
             status = 1;
         }
+    }
+    public void SetIndexes(int x, int y)
+    {
+        indexX = x;
+        indexY = y;
+    }
+    public int GetStatus()
+    {
+        return status;
+    }
+    public void SetStatus(int newStatus)
+    {
+        status = newStatus;
     }
 }

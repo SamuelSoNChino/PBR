@@ -5,21 +5,19 @@ using UnityEngine.Networking;
 
 public class PuzzleGenerator : MonoBehaviour
 {
-    public GameObject main_camera;
-    Texture2D skin;
-    Texture2D pad;
-    public int pieces;
-    public GameObject Tiles;
-    public GameObject Grid;
-    public SortingLayer TileLayer;
-    public SortingLayer GridLayer;
-    public int PuzzleSize;
+    private Texture2D skin;
+    private Texture2D pad;
+    [SerializeField] int pieces;
+    [SerializeField] GameObject Tiles;
+    [SerializeField] GameObject Grid;
+    [SerializeField] SortingLayer TileLayer;
+    [SerializeField] SortingLayer GridLayer;
+    [SerializeField] int PuzzleSize;
 
-    void Start()
+    public void StartGenerating()
     {
         pieces = PlayerPrefs.GetInt("Tiles");
         StartCoroutine(RequestImages());
-        
     }
     IEnumerator RequestImages()
     {
@@ -45,27 +43,20 @@ public class PuzzleGenerator : MonoBehaviour
             yield break;
         }
         pad = DownloadHandlerTexture.GetContent(padRequest);
-        
 
-        if (PuzzleSize != skin.width || PuzzleSize != skin.height || PuzzleSize != pad.height || PuzzleSize != pad.width)
-        {
-            Debug.LogError("IMAGES HAVE WRONG DIMENSIONS");
-            yield break;
-        }
-        generateTiles();
-        shuffleTiles();
-        
+        GenerateTiles();
+        ShuffleTiles();
     }
-    void generateTiles()
+    void GenerateTiles()
     {
         for (int i = 0; i < pieces; i++)
         {
             for (int j = 0; j < pieces; j++)
             { 
-                int x = (PuzzleSize * i) / pieces;
-                int y = (PuzzleSize * j) / pieces;
-                int nextX = (PuzzleSize * (i + 1)) / pieces;
-                int nextY = (PuzzleSize * (j + 1)) / pieces;
+                int x = PuzzleSize * i / pieces;
+                int y = PuzzleSize * j / pieces;
+                int nextX = PuzzleSize * (i + 1) / pieces;
+                int nextY = PuzzleSize * (j + 1) / pieces;
                 int tileWidth = nextX - x;
                 int tileHeight = nextY - y;
                 GameObject tile = new GameObject();
@@ -74,8 +65,7 @@ public class PuzzleGenerator : MonoBehaviour
                 tile.transform.parent = Tiles.transform;
 
                 PuzzleTile puzzleTileC = tile.AddComponent<PuzzleTile>();
-                puzzleTileC.indexX = i; // Stores correct index
-                puzzleTileC.indexY = j; // Stores correct index
+                puzzleTileC.SetIndexes(i, j); // Stores correct index
 
                 Texture2D tileSkin  = new Texture2D(tileWidth, tileHeight);
                 tileSkin.SetPixels(skin.GetPixels(x, y, tileWidth, tileHeight));
@@ -95,8 +85,7 @@ public class PuzzleGenerator : MonoBehaviour
                 gridTile.transform.parent = Grid.transform;
 
                 GridTile gridTileC = gridTile.AddComponent<GridTile>();
-                gridTileC.indexX = i; // Stores index
-                gridTileC.indexY = j; // Stores index
+                gridTileC.SetIndexes(i, j);
                 
                 Texture2D gridSkin = new Texture2D(tileWidth, tileHeight);
                 gridSkin.SetPixels(pad.GetPixels(x ,y, tileWidth, tileHeight));
@@ -108,7 +97,7 @@ public class PuzzleGenerator : MonoBehaviour
         }
     }
     
-    void shuffleTiles()
+    void ShuffleTiles()
     {
         int tileSize = PuzzleSize / pieces;
         float minX = 0;

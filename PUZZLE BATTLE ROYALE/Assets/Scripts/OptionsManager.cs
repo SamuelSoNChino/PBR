@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 public class OptionsManager : MonoBehaviour
 {
-    public GameObject text;
-    public GameObject slider;
+    [SerializeField] GameObject text;
+    [SerializeField] GameObject slider;
     void Start()
     {
         slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("Tiles");
@@ -17,11 +17,9 @@ public class OptionsManager : MonoBehaviour
     {
         SceneManager.LoadScene("Menu");
     }
-
-    // Update is called once per frame
     public void UpdateSliderText()
     {
         PlayerPrefs.SetInt("Tiles", (int) slider.GetComponent<Slider>().value);
-        text.GetComponent<Text>().text = "Tiles " + PlayerPrefs.GetInt("Tiles").ToString();
+        text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("Tiles").ToString();
     }
 }
