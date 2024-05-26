@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TilesManager : MonoBehaviour
 {
-    private bool tileDragging = false;
+    private bool anyTileDragging = false;
     public void MoveSelected()
     {
         for (int i = 0; i < transform.childCount; i++)
@@ -15,8 +15,8 @@ public class TilesManager : MonoBehaviour
             if (tile.IsSelected())
             {
                 Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector3 childOffset = tile.GetOffset();
-                child.position = new Vector3(mousePosition.x + childOffset.x, mousePosition.y + childOffset.y, child.transform.position.z);
+                Vector3 childOffset = tile.GetMouseOffset();
+                tile.Move(mousePosition, childOffset);
                 if (tile.GetSnappedGridTile())
                 {
                     tile.ClearSnappedGridTile();
@@ -33,58 +33,12 @@ public class TilesManager : MonoBehaviour
             child.localScale = new Vector3(1, 1, 1); // Experiment for selection visualization
         }
     }
-    public void CalculateAllOffsets()
+    public void CalculateAllMouseOffsets()
     {
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
-            child.GetComponent<PuzzleTile>().CalculateOffset();
-        }
-    }
-    public void PutTileOnTop(float zValue)
-    {
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            Vector3 childPos = transform.GetChild(i).transform.position;
-            if (childPos.z == zValue) 
-            {
-                Vector3 newChildPos = new Vector3(childPos.x, childPos.y, 1f);
-                transform.GetChild(i).transform.position = newChildPos;
-            } else if (childPos.z < zValue)
-            {
-                Vector3 newChildPos = new Vector3(childPos.x, childPos.y, childPos.z + 1);
-                transform.GetChild(i).transform.position = newChildPos;
-            }
-        }
-    }
-    public void SnapTileToGrid(Transform tileTransform)
-    {
-        PuzzleTile puzzleTile = tileTransform.GetComponent<PuzzleTile>();
-        SpriteRenderer tileSRenderer = tileTransform.GetComponent<SpriteRenderer>();
-
-        Transform grid = GameObject.Find("Grid").transform;
-        float gridZ = grid.GetChild(0).position.z; // Becuase tiles have all different z coords, while grid has a constant z coord
-        Vector3 tileCenter = new Vector3(tileSRenderer.bounds.center.x, tileSRenderer.bounds.center.y, gridZ);
-        
-        for (int j = 0; j < grid.childCount; j++)
-        {
-            Transform gridChild = grid.GetChild(j);
-            SpriteRenderer gridSRenderer = gridChild.GetComponent<SpriteRenderer>();
-            GridTile gridTile = gridChild.GetComponent<GridTile>();
-
-            if (gridSRenderer.bounds.Contains(tileCenter) && gridTile.GetStatus() == 0)
-            {
-                tileTransform.position = new Vector3(gridChild.position.x, gridChild.position.y, tileTransform.position.z);
-                puzzleTile.SetSnappedGridTile(gridTile);
-
-                gridTile.UpdateStatus(puzzleTile.GetIndexes()[0], puzzleTile.GetIndexes()[1]);
-                break; // Doesnt need to continue as it can snap only to a single grid tile
-            }
-        }
-
-        if (GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness()) // Checks for game completeness
-        {
-            GameObject.Find("Puzzle").GetComponent<GameManager>().EndGame();
+            child.GetComponent<PuzzleTile>().CalculateMouseOffset();
         }
     }
     public void SnapSelectedToGrid()
@@ -95,16 +49,16 @@ public class TilesManager : MonoBehaviour
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
             if (puzzleTile.IsSelected())
             {
-                SnapTileToGrid(tileChild);
-            }  
+                puzzleTile.SnapToGrid();
+            }
         }
     }
-    public bool IsTileDragging()
+    public bool IsAnyTileDragging()
     {
-        return tileDragging;
+        return anyTileDragging;
     }
-    public void SetTileDragging(bool newState)
+    public void SetAnyTileDragging(bool newState)
     {
-        tileDragging = newState;
+        anyTileDragging = newState;
     }
 }

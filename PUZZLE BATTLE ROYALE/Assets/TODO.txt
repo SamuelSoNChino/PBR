@@ -1,9 +1,8 @@
-- Oprav PuzzleTile
+- Oprav chytanie puzzle tilu dvoma prstami
 
 SELECTED TILES:
 - Zlepsi zvyraznenie selected tiles
-- Vymysli deselect ostatnych, ked draggujes neselected tile
-- Urob selectovanie tiles zavisle od casu
+- Urob selectovanie tiles zavisle od casu?
 
 MULTIPLAYER:
 - Google Keep

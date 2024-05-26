@@ -118,7 +118,7 @@ public class PanZoom : MonoBehaviour
     void Update()
     {
         // Stores whether the player is dragging a puzzle tile
-        bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().IsTileDragging(); 
+        bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().IsAnyTileDragging(); 
 
         // Triggers on MouseDown when the player isn't dragging a puzzle tile, stores the initial position for Pan
         if (Input.GetMouseButtonDown(0) && !tileDragging) 

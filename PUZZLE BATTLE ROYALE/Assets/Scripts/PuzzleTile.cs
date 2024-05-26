@@ -1,16 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.Tilemaps;
 
 public class PuzzleTile : MonoBehaviour
 {
     /// <summary>
     /// The vector between the puzzle tile and mouse position.
     /// </summary>
-    private Vector3 offset;
+    private Vector3 mouseOffset;
 
     /// <summary>
     /// Stores the original position when the tile is being dragged.
@@ -60,28 +55,38 @@ public class PuzzleTile : MonoBehaviour
     }
 
     /// <summary>
-    /// Deselects the tile.
+    /// Selects the tile and visually indicates its selection.
+    /// </summary>
+    public void SelectTile()
+    {
+        isSelected = true;
+        transform.localScale = new Vector3(0.95f, 0.95f, 1);
+    }
+
+    /// <summary>
+    /// Deselects the tile and visually indicates its deselection.
     /// </summary>
     public void DeselectTile()
     {
         isSelected = false;
+        transform.localScale = new Vector3(1, 1, 1);
     }
 
     /// <summary>
     /// Gets the offset between the tile and the mouse position.
     /// </summary>
     /// <returns>The offset vector.</returns>
-    public Vector3 GetOffset()
+    public Vector3 GetMouseOffset()
     {
-        return offset;
+        return mouseOffset;
     }
 
     /// <summary>
     /// Calculates the offset between the tile and the mouse position.
     /// </summary>
-    public void CalculateOffset()
+    public void CalculateMouseOffset()
     {
-        offset = transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mouseOffset = transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
     }
 
     /// <summary>
@@ -133,24 +138,104 @@ public class PuzzleTile : MonoBehaviour
     }
 
     /// <summary>
+    /// Moves the puzzle tile to a new position with an optional offset.
+    /// </summary>
+    /// <param name="newPosition">The new position.</param>
+    /// <param name="offset">The offset to apply.</param>
+    public void Move(Vector3 newPosition, Vector3 offset = default)
+    {
+        transform.position = new Vector3(newPosition.x + offset.x, newPosition.y + offset.y, transform.position.z);
+
+        // Unsnaps itself from the grid tile
+        if (snappedGridTile)
+        {
+            ClearSnappedGridTile();
+        }
+    }
+
+    /// <summary>
+    /// Snaps the puzzle tile to the nearest available grid tile.
+    /// </summary>
+    public void SnapToGrid()
+    {
+        SpriteRenderer tileSRenderer = transform.GetComponent<SpriteRenderer>();
+
+        Transform grid = GameObject.Find("Grid").transform;
+        // Grid has constant Z values set during generation
+        float gridZ = grid.GetChild(0).position.z;
+        // Uses Z value of the grind so Contains method can be used later, as puzzle tiles have different z values
+        Vector3 tileCenter = new(tileSRenderer.bounds.center.x, tileSRenderer.bounds.center.y, gridZ);
+
+        for (int j = 0; j < grid.childCount; j++)
+        {
+            Transform gridChild = grid.GetChild(j);
+            SpriteRenderer gridSRenderer = gridChild.GetComponent<SpriteRenderer>();
+            GridTile gridTile = gridChild.GetComponent<GridTile>();
+
+            // Moves the puzzle tile to the same position as the grid tile (preserving the puzzle tile's Z value), which contains tileCenter and is unoccupied
+            if (gridSRenderer.bounds.Contains(tileCenter) && gridTile.GetStatus() == 0)
+            {
+                Move(new Vector3(gridChild.position.x, gridChild.position.y, transform.position.z));
+                SetSnappedGridTile(gridTile);
+                gridTile.UpdateStatus(indexX, indexY);
+                // Doesnt need to continue as it can always snap only to a single grid tile
+                break;
+            }
+        }
+
+        if (GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness()) // Checks for game completeness
+        {
+            GameObject.Find("Puzzle").GetComponent<GameManager>().EndGame();
+        }
+    }
+
+    /// <summary>
+    /// Increments the Z position of the tile.
+    /// </summary>
+    public void IncrementZ()
+    {
+        transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + 1);
+    }
+
+    /// <summary>
+    /// Moves this puzzle tile to the front.
+    /// </summary>
+    public void PutOnTop()
+    {
+        for (int i = 0; i < transform.parent.childCount; i++)
+        {
+            Transform child = transform.parent.GetChild(i);
+            // Moves each tile that's in front of this one back (by incrementing z)
+            if (child.position.z < transform.position.z)
+            {
+                child.GetComponent<PuzzleTile>().IncrementZ();
+            }
+        }
+        // Moves this puzzle tile in the front spot (z=1)
+        transform.position = new Vector3(transform.position.x, transform.position.y, 1);
+    }
+
+    /// <summary>
     /// Handles the mouse down event to start dragging the tile.
     /// </summary>
     private void OnMouseDown()
     {
-        if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition for PC testing
+        if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition only for PC testing
         {
-            tilesManager.PutTileOnTop(transform.position.z);
+            PutOnTop();
             originalPosition = transform.position;
-            tilesManager.SetTileDragging(true);
+
+            // Lets other components know that a tile is being dragged (or just clicked)
+            tilesManager.SetAnyTileDragging(true);
 
             // Calculates offsets for all selected tiles, otherwise only for itself
             if (isSelected)
             {
-                tilesManager.CalculateAllOffsets();
+                tilesManager.CalculateAllMouseOffsets();
             }
             else
             {
-                CalculateOffset();
+                CalculateMouseOffset();
             }
         }
     }
@@ -160,24 +245,22 @@ public class PuzzleTile : MonoBehaviour
     /// </summary>
     private void OnMouseDrag()
     {
-        // The second condition is only for PC debugging, on touch device should only be == 1 (Check whether it is even needed)
-        if ((Input.touchCount == 1 || Input.touchCount == 0)) 
+        if (Input.touchCount == 1 || Input.GetMouseButton(0)) // 2nd condition only for PC testing
         {
-            if (isSelected) // When dragging selected, move all selected
+            if (isSelected) // When dragging a selected tile, move all selected
             {
                 tilesManager.MoveSelected();
             }
             else // Else move only this one
             {
                 Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                transform.position = new Vector3(mousePosition.x + offset.x, mousePosition.y + offset.y, transform.position.z);
-
-                if (snappedGridTile)
-                {
-                    snappedGridTile.SetStatus(0);
-                    snappedGridTile = null;
-                }
+                Move(mousePosition, mouseOffset);
             }
+        }
+        // When moving a not selected tile deselects all the tiles
+        if (!isSelected && originalPosition != transform.position)
+        {
+            tilesManager.DeselectAllTiles();
         }
     }
 
@@ -186,32 +269,34 @@ public class PuzzleTile : MonoBehaviour
     /// </summary>
     private void OnMouseUp()
     {
-        tilesManager.SetTileDragging(false);
+        // Lets other components know that the tile is not being dragged anymore
+        tilesManager.SetAnyTileDragging(false);
 
-        if (transform.position == originalPosition) // Triggers only when the tile was clicked without dragging it
+        // Triggers only when the tile was clicked without changing position
+        if (transform.position == originalPosition)
         {
-            // Experiment for selection visualization
-            if (isSelected) 
+            // Switches tile's selected status
+            if (isSelected)
             {
-                transform.localScale = new Vector3(1, 1, 1);
+                DeselectTile();
             }
             else
             {
-                transform.localScale = new Vector3(0.95f, 0.95f, 1);
+                SelectTile();
             }
-
-            isSelected = !isSelected; // Switches selected status
         }
+        // When the tile's position was changed
         else
         {
-            if (isSelected) // Snaps all selected without changing anything else
+            // Snaps all selected
+            if (isSelected)
             {
                 tilesManager.SnapSelectedToGrid();
             }
-            else // If wasn't selected, deselects all selected and snaps itself to grid
+            // If wasn't selected snaps itself to grid
+            else
             {
-                tilesManager.DeselectAllTiles();
-                tilesManager.SnapTileToGrid(transform);
+                SnapToGrid();
             }
         }
     }
