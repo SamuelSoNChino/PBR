@@ -1,10 +1,20 @@
+- Oprav PuzzleTile
+
 SELECTED TILES:
 - Zlepsi zvyraznenie selected tiles
 - Vymysli deselect ostatnych, ked draggujes neselected tile
 - Urob selectovanie tiles zavisle od casu
 
+MULTIPLAYER:
+- Google Keep
+
+DOKUMENTACIA:
+- TilesManager
+- PuzzleGenerator
+- GameManager
+- NetworkManagerUI, PuzzleRPC (Mozno sa ani nepouziju)
+
 DALSIE:
-- Multiplyer
 - Novy typ obrazkov
 - Graficke zveladenie
 - Klany

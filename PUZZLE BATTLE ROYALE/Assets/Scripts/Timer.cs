@@ -10,11 +10,12 @@ public class Timer : MonoBehaviour
     private bool timerEnabled;
     private Text timerText;
 
+    // Sets default values
     void Start()
     {
         timerEnabled = false;
         gameObject.SetActive(true);
-        timerText =  GetComponent<Text>();
+        timerText = GetComponent<Text>();
     }
 
     public void EnableTimer()
@@ -26,13 +27,14 @@ public class Timer : MonoBehaviour
     {
         timerEnabled = false;
     }
+    // Returns time in seconds
     public int GetCurrentTime()
     {
         return (int) time;
     }
-
     void Update()
     {
+        // Updates the time variable and updates the timer text in seconds
         if (timerEnabled)
         {
             time += Time.deltaTime;

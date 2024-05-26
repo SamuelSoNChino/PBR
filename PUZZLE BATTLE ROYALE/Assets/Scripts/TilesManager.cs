@@ -33,12 +33,12 @@ public class TilesManager : MonoBehaviour
             child.localScale = new Vector3(1, 1, 1); // Experiment for selection visualization
         }
     }
-    public void CalculateOffsets()
+    public void CalculateAllOffsets()
     {
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
-            child.GetComponent<PuzzleTile>().SetOffset(child.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            child.GetComponent<PuzzleTile>().CalculateOffset();
         }
     }
     public void PutTileOnTop(float zValue)
