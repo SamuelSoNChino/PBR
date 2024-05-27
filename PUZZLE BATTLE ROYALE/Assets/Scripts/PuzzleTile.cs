@@ -188,10 +188,7 @@ public class PuzzleTile : MonoBehaviour
             }
         }
 
-        if (GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness()) // Checks for game completeness
-        {
-            GameObject.Find("Puzzle").GetComponent<GameManager>().EndGame();
-        }
+        GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness(); // Checks for game completeness
     }
 
     /// <summary>

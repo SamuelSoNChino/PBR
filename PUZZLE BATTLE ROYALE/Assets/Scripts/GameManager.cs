@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 
-public class GameManager: MonoBehaviour
+public class GameManager : MonoBehaviour
 {
     private bool isSingleplayer;
     private Timer timer;
@@ -20,12 +20,15 @@ public class GameManager: MonoBehaviour
         {
             StartSingePlayer();
             isSingleplayer = true;
-        } else {
+        }
+        else
+        {
             isSingleplayer = false;
             StartCoroutine(StartMultiplayer());
         }
     }
-    IEnumerator StartMultiplayer() {
+    IEnumerator StartMultiplayer()
+    {
         string url = "SamuelSoNChino.eu.pythonanywhere.com";
         string ip = GetLocalIPAddress();
         UnityWebRequest matchRequest = UnityWebRequest.Get($"{url}/request_image?{ip}");
@@ -39,7 +42,9 @@ public class GameManager: MonoBehaviour
         if (instruction == "WAIT")
         {
             networkManager.StartHost();
-        } else {
+        }
+        else
+        {
             networkManager.GetComponent<UnityTransport>().ConnectionData.Address = instruction;
             networkManager.StartClient();
         }
@@ -68,11 +73,12 @@ public class GameManager: MonoBehaviour
         if (isSingleplayer)
         {
             EndSingleplayer();
-        } else
+        }
+        else
         {
             EndMultiplayer();
         }
-        
+
     }
     private void EndSingleplayer()
     {

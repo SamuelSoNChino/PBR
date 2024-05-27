@@ -59,7 +59,7 @@ public class PuzzleGenerator : MonoBehaviour
                 int nextY = PuzzleSize * (j + 1) / pieces;
                 int tileWidth = nextX - x;
                 int tileHeight = nextY - y;
-                GameObject tile = new GameObject();
+                GameObject tile = new();
                 tile.transform.position = new Vector3(x, y, 0);
                 tile.name = "Tile-" + i.ToString() + "-" + j.ToString();
                 tile.transform.parent = Tiles.transform;
