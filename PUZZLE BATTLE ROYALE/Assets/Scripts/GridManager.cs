@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Handles all of the grid tile in the scene.
+/// </summary>
 public class GridManager : MonoBehaviour
 {
     /// <summary>
@@ -10,10 +13,10 @@ public class GridManager : MonoBehaviour
     /// <returns>True if all puzzle tiles are correctly placed, false otherwise.</returns>
     public bool CheckCompleteness()
     {
-        // Loop through all children of this transform
+        // Loop through all grid tiles
         for (int i = 0; i < transform.childCount; i++)
         {
-            // Check if the puzzle tile isn't placed on the correct grid tile
+            // Checks whether all grid tiles have a correctly placed puzzle tile on them
             if (transform.GetChild(i).GetComponent<GridTile>().GetStatus() != 2)
             {
                 return false;

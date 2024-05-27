@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Handles the end screen scene.
+/// </summary>
 public class EndScreenManager : MonoBehaviour
 {
     /// <summary>

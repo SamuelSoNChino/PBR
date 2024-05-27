@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// The <c>PuzzleTile</c> class represents an individual tile in a puzzle game. This class manages the tile's 
+/// selection status, movement, snapping to the grid, and interactions with the mouse.
+/// </summary>
 public class PuzzleTile : MonoBehaviour
 {
     /// <summary>
@@ -166,6 +170,7 @@ public class PuzzleTile : MonoBehaviour
         // Uses Z value of the grind so Contains method can be used later, as puzzle tiles have different z values
         Vector3 tileCenter = new(tileSRenderer.bounds.center.x, tileSRenderer.bounds.center.y, gridZ);
 
+        // Iterates through each grid tile
         for (int j = 0; j < grid.childCount; j++)
         {
             Transform gridChild = grid.GetChild(j);
@@ -249,7 +254,7 @@ public class PuzzleTile : MonoBehaviour
         {
             if (isSelected) // When dragging a selected tile, move all selected
             {
-                tilesManager.MoveSelected();
+                tilesManager.MoveSelectedToMouse();
             }
             else // Else move only this one
             {

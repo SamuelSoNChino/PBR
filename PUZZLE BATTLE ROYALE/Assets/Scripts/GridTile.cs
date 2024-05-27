@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Represents an individual grid tile. This class manages snapping puzzle tiles onto the grid, 
+/// and determining whether the puzzle tiles are placed correctly.
+/// </summary>
 public class GridTile : MonoBehaviour
 {
     /// <summary>

@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Handles the options scene.
+/// </summary>
 public class OptionsManager : MonoBehaviour
 {
     /// <summary>

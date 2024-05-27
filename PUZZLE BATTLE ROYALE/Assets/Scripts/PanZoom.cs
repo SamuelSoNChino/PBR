@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+/// <summary>
+/// The <c>PanZoom</c> class handles the camera's panning and zooming functionality of the game.
+/// It allows the player to move the camera by dragging and to zoom in and out using a pinch gesture.
+/// </summary>
 public class PanZoom : MonoBehaviour
 {
     /// <summary>
@@ -118,10 +122,10 @@ public class PanZoom : MonoBehaviour
     void Update()
     {
         // Stores whether the player is dragging a puzzle tile
-        bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().IsAnyTileDragging(); 
+        bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().IsAnyTileDragging();
 
         // Triggers on MouseDown when the player isn't dragging a puzzle tile, stores the initial position for Pan
-        if (Input.GetMouseButtonDown(0) && !tileDragging) 
+        if (Input.GetMouseButtonDown(0) && !tileDragging)
         {
             touchStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         }
@@ -132,7 +136,7 @@ public class PanZoom : MonoBehaviour
             Zoom(Input.GetTouch(0), Input.GetTouch(1));
         }
         // Triggers when the player is dragging without holding a puzzle tile
-        else if (Input.GetMouseButton(0) && !tileDragging) 
+        else if (Input.GetMouseButton(0) && !tileDragging)
         {
             GameObject.Find("Tiles").GetComponent<TilesManager>().DeselectAllTiles();
             Pan(touchStart, Camera.main.ScreenToWorldPoint(Input.mousePosition));

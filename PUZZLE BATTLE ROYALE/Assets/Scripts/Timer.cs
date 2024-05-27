@@ -4,6 +4,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Handles the time counter during a singleplayer game.
+/// </summary>
 public class Timer : MonoBehaviour
 {
     private float time = 0;
