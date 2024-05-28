@@ -142,7 +142,7 @@ public class PuzzleTile : MonoBehaviour
     }
 
     /// <summary>
-    /// Moves the puzzle tile to a new position with an optional offset.
+    /// Moves the puzzle tile to a new position with an optional offset while not changing the Z value.
     /// </summary>
     /// <param name="newPosition">The new position.</param>
     /// <param name="offset">The offset to apply.</param>

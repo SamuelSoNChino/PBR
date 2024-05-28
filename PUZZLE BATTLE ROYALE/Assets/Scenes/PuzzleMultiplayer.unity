@@ -273,9 +273,8 @@ GameObject:
   m_Component:
   - component: {fileID: 637174947}
   - component: {fileID: 637174946}
-  - component: {fileID: 637174945}
   - component: {fileID: 637174949}
-  - component: {fileID: 637174948}
+  - component: {fileID: 637174950}
   m_Layer: 0
   m_Name: Puzzle
   m_TagString: Puzzle
@@ -283,19 +282,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &637174945
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 637174944}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36f13c6e0728b384fa1f463b187b6547, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  networkManager: {fileID: 1680857453}
 --- !u!114 &637174946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -309,9 +295,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pieces: 2
-  Tiles: {fileID: 1557589167}
-  Grid: {fileID: 1323705365}
-  PuzzleSize: 1000
+  tiles: {fileID: 0}
+  grid: {fileID: 0}
+  puzzleSize: 0
+  serverUrl: SamuelSoNChino.eu.pythonanywhere.com
 --- !u!4 &637174947
 Transform:
   m_ObjectHideFlags: 0
@@ -329,18 +316,6 @@ Transform:
   - {fileID: 1323705367}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &637174948
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 637174944}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60abc0eb84e913c43b24fdb3140a81be, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &637174949
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -362,6 +337,18 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &637174950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637174944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d4e63fcfe2a02e44b445d4e9a6b9104, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &657034185
 GameObject:
   m_ObjectHideFlags: 0
@@ -412,6 +399,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41bab34becb252a4dabb188e816197b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timerText: {fileID: 657034188}
 --- !u!114 &657034188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -618,7 +606,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 637174945}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameState, Assembly-CSharp
         m_MethodName: BackToMenu
         m_Mode: 1
@@ -741,7 +729,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50130e2dbeec05f4787191664c10f711, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileDragging: 0
+  topRightShuffleBound: {x: 0, y: 0, z: 0}
+  bottomLeftShuffleBound: {x: 0, y: 0, z: 0}
 --- !u!4 &1557589169
 Transform:
   m_ObjectHideFlags: 0

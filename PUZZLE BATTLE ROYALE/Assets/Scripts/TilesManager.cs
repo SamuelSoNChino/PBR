@@ -9,6 +9,36 @@ public class TilesManager : MonoBehaviour
     /// Indicates whether any tile is currently being dragged (moved).
     /// </summary>
     private bool anyTileDragging = false;
+    /// <summary>
+    /// Top right bound of the area where tiles can be shuffled.
+    /// </summary>
+    [SerializeField] Vector3 topRightShuffleBound;
+    /// <summary>
+    /// Bottom left bound of the area where tiles can be shuffled.
+    /// </summary>
+    [SerializeField] Vector3 bottomLeftShuffleBound;
+
+    /// <summary>
+    /// Shuffles all tiles randomly on the area specified by ShuffleBounds.
+    /// </summary>
+    public void ShuffleAllTiles()
+    {
+        // Calculates possible values for the shuffle position
+        float minX = bottomLeftShuffleBound.x;
+        float maxX = topRightShuffleBound.x;
+        float minY = bottomLeftShuffleBound.y;
+        float maxY = topRightShuffleBound.y;
+
+        // Iterates through each puzzle tile
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
+            // Z can be set to 0 since puzzleTile.Move ignores Z values
+            Vector3 newPosition = new(Random.Range(minX, maxX), Random.Range(minY, maxY), 0);
+            puzzleTile.Move(newPosition);
+        }
+    }
 
     /// <summary>
     /// Moves all selected tiles to the current mouse position.

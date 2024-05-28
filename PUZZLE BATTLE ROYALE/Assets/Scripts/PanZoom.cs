@@ -37,12 +37,12 @@ public class PanZoom : MonoBehaviour
     /// <summary>
     /// The bottom-left boundary of the background.
     /// </summary>
-    private Vector3 boundBL;
+    private Vector3 bottomLeftBound;
 
     /// <summary>
     /// The top-right boundary of the background.
     /// </summary>
-    private Vector3 boundTR;
+    private Vector3 topRightBound;
 
     /// <summary>
     /// The starting zoom level.
@@ -62,8 +62,8 @@ public class PanZoom : MonoBehaviour
     {
         Camera.main.orthographicSize = startingZoom;
         Camera.main.transform.position = startingPos;
-        boundBL = background.GetComponent<SpriteRenderer>().bounds.min;
-        boundTR = background.GetComponent<SpriteRenderer>().bounds.max;
+        bottomLeftBound = background.GetComponent<SpriteRenderer>().bounds.min;
+        topRightBound = background.GetComponent<SpriteRenderer>().bounds.max;
     }
 
     /// <summary>
@@ -105,10 +105,10 @@ public class PanZoom : MonoBehaviour
         float cameraHalfWidth = cameraHalfHeight * Camera.main.aspect;
 
         // Calculates max and min possible values for camera position based on background bounds
-        float minX = boundBL.x + cameraHalfWidth;
-        float maxX = boundTR.x - cameraHalfWidth;
-        float minY = boundBL.y + cameraHalfHeight;
-        float maxY = boundTR.y - cameraHalfHeight;
+        float minX = bottomLeftBound.x + cameraHalfWidth;
+        float maxX = topRightBound.x - cameraHalfWidth;
+        float minY = bottomLeftBound.y + cameraHalfHeight;
+        float maxY = topRightBound.y - cameraHalfHeight;
 
         // Ensures the new position stays within background bounds
         newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);

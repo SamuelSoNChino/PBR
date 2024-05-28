@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
 
     private void StartSingePlayer()
     {
-        GameObject.Find("Puzzle").GetComponent<PuzzleGenerator>().StartGenerating();
+        // GameObject.Find("Puzzle").GetComponent<PuzzleGenerator>().StartGenerating();
         timer.EnableTimer();
     }
 

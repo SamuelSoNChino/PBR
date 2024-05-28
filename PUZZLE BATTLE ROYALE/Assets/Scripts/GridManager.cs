@@ -8,13 +8,12 @@ using UnityEngine;
 public class GridManager : MonoBehaviour
 {
     /// <summary>
-    /// Checks whether all the puzzle tiles are placed correctly using each grid tile's status.
+    /// Checks whether all the puzzle tiles are placed correctly using each grid tile's status. Ends the game if yes.
     /// </summary>
-    /// <returns>True if all puzzle tiles are correctly placed, false otherwise.</returns>
     public void CheckCompleteness()
     {
-        // Loop through all grid tiles
         bool allCorrect = true;
+        // Loop through all grid tiles
         for (int i = 0; i < transform.childCount; i++)
         {
             // Checks whether all grid tiles have a correctly placed puzzle tile on them
@@ -24,6 +23,7 @@ public class GridManager : MonoBehaviour
                 break;
             }
         }
+        // If all are placed correctly, end the game
         if (allCorrect)
         {
             GameObject.Find("Puzzle").GetComponent<SingleplayerManager>().EndGame();

@@ -10,16 +10,8 @@ using UnityEngine.UI;
 public class Timer : MonoBehaviour
 {
     private float time = 0;
-    private bool timerEnabled;
-    private Text timerText;
-
-    // Sets default values
-    void Start()
-    {
-        timerEnabled = false;
-        gameObject.SetActive(true);
-        timerText = GetComponent<Text>();
-    }
+    private bool timerEnabled = false;
+    [SerializeField] Text timerText;
 
     public void EnableTimer()
     {
@@ -33,7 +25,7 @@ public class Timer : MonoBehaviour
     // Returns time in seconds
     public int GetCurrentTime()
     {
-        return (int) time;
+        return (int)time;
     }
     void Update()
     {

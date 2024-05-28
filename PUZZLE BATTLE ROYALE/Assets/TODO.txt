@@ -8,7 +8,6 @@ MULTIPLAYER:
 - Google Keep
 
 DOKUMENTACIA:
-- GridManager
 - PuzzleGenerator
 - GameManager
 - NetworkManagerUI, PuzzleRPC (Mozno sa ani nepouziju)

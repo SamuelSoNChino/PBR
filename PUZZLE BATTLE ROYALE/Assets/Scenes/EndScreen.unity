@@ -377,6 +377,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 845e02dcba315f448b16b573866405ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  endTimeText: {fileID: 1133941479}
+  bestTimeText: {fileID: 982978676}
 --- !u!224 &631709976
 RectTransform:
   m_ObjectHideFlags: 0

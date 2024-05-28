@@ -1,13 +1,22 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SingleplayerManager : MonoBehaviour
 {
-    private Timer timer;
+    [SerializeField] Timer timer;
+    [SerializeField] PuzzleGenerator puzzleGenerator;
+    [SerializeField] TilesManager tilesManager;
     void Start()
     {
-        timer = GameObject.Find("Timer").GetComponent<Timer>();
-        GameObject.Find("Puzzle").GetComponent<PuzzleGenerator>().StartGenerating();
+        StartCoroutine(StartGame());
+    }
+    IEnumerator StartGame()
+    {
+        yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(0));
+        yield return StartCoroutine(puzzleGenerator.RequestGridImage());
+        puzzleGenerator.GenerateTiles();
+        tilesManager.ShuffleAllTiles();
         timer.EnableTimer();
     }
     public void EndGame()
