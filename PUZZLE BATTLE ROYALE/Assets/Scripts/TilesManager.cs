@@ -19,7 +19,8 @@ public class TilesManager : MonoBehaviour
     [SerializeField] Vector3 bottomLeftShuffleBound;
 
     /// <summary>
-    /// Shuffles all tiles randomly on the area specified by ShuffleBounds.
+    /// Shuffles all tiles randomly on the area specified by ShuffleBounds and
+    /// also shuffles their z values by randomly moving tile to the front.
     /// </summary>
     public void ShuffleAllTiles()
     {
@@ -37,6 +38,16 @@ public class TilesManager : MonoBehaviour
             // Z can be set to 0 since puzzleTile.Move ignores Z values
             Vector3 newPosition = new(Random.Range(minX, maxX), Random.Range(minY, maxY), 0);
             puzzleTile.Move(newPosition);
+        }
+
+        // Repeat the random MoveToFront for the number of puzzle tiles
+        for (int _ = 0; _ < transform.childCount; _++)
+        {
+            // Randomly chooses a puzzle tile and moves it to the front
+            int childIndex = Random.Range(0, transform.childCount);
+            Transform child = transform.GetChild(childIndex);
+            PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
+            puzzleTile.MoveToFront();
         }
     }
 

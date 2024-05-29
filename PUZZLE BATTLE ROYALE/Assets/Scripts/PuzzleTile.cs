@@ -202,7 +202,7 @@ public class PuzzleTile : MonoBehaviour
     /// <summary>
     /// Moves this puzzle tile to the front.
     /// </summary>
-    public void PutOnTop()
+    public void MoveToFront()
     {
         for (int i = 0; i < transform.parent.childCount; i++)
         {
@@ -224,7 +224,7 @@ public class PuzzleTile : MonoBehaviour
     {
         if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition only for PC testing
         {
-            PutOnTop();
+            MoveToFront();
             originalPosition = transform.position;
 
             // Lets other components know that a tile is being dragged (or just clicked)

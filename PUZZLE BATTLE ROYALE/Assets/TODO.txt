@@ -1,15 +1,15 @@
 - Oprav chytanie puzzle tilu dvoma prstami
 
 SELECTED TILES:
-- Zlepsi zvyraznenie selected tiles
-- Urob selectovanie tiles zavisle od casu?
+- Zlepsi zvyraznenie selected tiles: Bud daj pivot do stredu alebo to urob uplne inak
+- Pridaj trochu tolerancie pri selectovani
 
 MULTIPLAYER:
 - Google Keep
 
 DOKUMENTACIA:
-- PuzzleGenerator
-- GameManager
+--- SingleplayerManager 
+- MultiplayerManager
 - NetworkManagerUI, PuzzleRPC (Mozno sa ani nepouziju)
 
 DALSIE:
