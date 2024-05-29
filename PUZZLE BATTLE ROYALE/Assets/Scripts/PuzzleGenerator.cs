@@ -92,26 +92,34 @@ public class PuzzleGenerator : MonoBehaviour
     /// </summary>
     public void GenerateTiles()
     {
-        // 
-        int puzzleTileZValue = 1;
-        int gridZValue = pieces * pieces + 1;
+        // Initial Z position for the first puzzle tiles, will be incremented for each new tile
+        int puzzleTileZPosition = 1;
+        // Constant Z position of all grid tiles, located right behind the last puzzle tile
+        int gridZPosition = pieces * pieces + 1;
+
+        // Iterates trhough each tile needed to be created
         for (int i = 0; i < pieces; i++)
         {
             for (int j = 0; j < pieces; j++)
             {
-                int x = puzzleSize * i / pieces;
-                int y = puzzleSize * j / pieces;
+                // x, y represent both the position of the tiles in the game and the position of the
+                // tile in the image, from where it will be cropped out
+                int x = puzzleSize / pieces * i;
+                int y = puzzleSize / pieces * j;
 
-                // Width and Height need to be calculated this way to make su
-                int nextX = puzzleSize * (i + 1) / pieces;
-                int nextY = puzzleSize * (j + 1) / pieces;
+                // Width and Height need to be calculated this way so that the the resulting puzzle
+                // actually coresponds to puzzleSize
+                int nextX = puzzleSize / pieces * (i + 1);
+                int nextY = puzzleSize / pieces * (j + 1);
                 int tileWidth = nextX - x;
                 int tileHeight = nextY - y;
 
-                CreatePuzzleTile(i, j, x, y, tileWidth, tileHeight, puzzleTileZValue);
-                puzzleTileZValue++;
+                // Creates a puzzle tile and increments the Z position
+                CreatePuzzleTile(i, j, x, y, tileWidth, tileHeight, puzzleTileZPosition);
+                puzzleTileZPosition++;
 
-                CreateGridTile(i, j, x, y, tileWidth, tileHeight, gridZValue);
+                // Creates a grid tile
+                CreateGridTile(i, j, x, y, tileWidth, tileHeight, gridZPosition);
             }
         }
     }
@@ -125,17 +133,20 @@ public class PuzzleGenerator : MonoBehaviour
     /// <param name="y">The Y coordinate of the tile in the image.</param>
     /// <param name="width">The width of the tile.</param>
     /// <param name="height">The height of the tile.</param>
-    /// <param name="zValue">The Z position of the tile.</param>
-    private void CreateGridTile(int indexX, int indexY, int x, int y, int width, int height, int zValue)
+    /// <param name="zPosition">The Z position of the tile.</param>
+    private void CreateGridTile(int indexX, int indexY, int x, int y, int width, int height, int zPosition)
     {
+        // Sets basic attributes and the Grid parent
         GameObject tile = new();
-        tile.transform.position = new Vector3(x, y, zValue);
+        tile.transform.position = new Vector3(x, y, zPosition);
         tile.name = $"Grid Tile-{indexX}-{indexY}";
         tile.transform.parent = grid.transform;
 
+        // Attaches the GridTile class to the object and sets its indexes
         GridTile gridTile = tile.AddComponent<GridTile>();
         gridTile.SetIndexes(indexX, indexY);
 
+        // Creates the sprite for the tile and attaches it to the tile
         Sprite gridSprite = CreateSprite(gridImage, x, y, width, height);
         SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = gridSprite;
@@ -150,21 +161,25 @@ public class PuzzleGenerator : MonoBehaviour
     /// <param name="y">The Y coordinate of the tile in the image.</param>
     /// <param name="width">The width of the tile.</param>
     /// <param name="height">The height of the tile.</param>
-    /// <param name="zValue">The Z position of the tile.</param>
-    public void CreatePuzzleTile(int indexX, int indexY, int x, int y, int width, int height, int zValue)
+    /// <param name="zPosition">The Z position of the tile.</param>
+    public void CreatePuzzleTile(int indexX, int indexY, int x, int y, int width, int height, int zPosition)
     {
+        // Sets basic attributes and the Tiles parent
         GameObject tile = new();
-        tile.transform.position = new Vector3(0, 0, zValue);
+        tile.transform.position = new Vector3(x, y, zPosition);
         tile.name = $"Puzzle Tile-{indexX}-{indexY}";
         tile.transform.parent = tiles.transform;
 
+        // Attaches the PuzzleTile class to the object and sets its indexes
         PuzzleTile puzzleTile = tile.AddComponent<PuzzleTile>();
-        puzzleTile.SetIndexes(indexX, indexY); // Stores correct index
+        puzzleTile.SetIndexes(indexX, indexY);
 
+        // Creates the sprite for the tile and attaches it to the tile
         Sprite tileSprite = CreateSprite(puzzleImage, x, y, width, height);
         SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = tileSprite;
 
+        // Creates a collider for tile tile, so it can be interacted with
         BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(width, height);
     }
@@ -180,6 +195,6 @@ public class PuzzleGenerator : MonoBehaviour
     /// <returns>A sprite created from the specified portion of the texture.</returns>
     private Sprite CreateSprite(Texture2D originalTexture, int x, int y, int width, int height)
     {
-        return Sprite.Create(originalTexture, new Rect(x, y, width, height), Vector2.zero, 1); 
+        return Sprite.Create(originalTexture, new Rect(x, y, width, height), Vector2.zero, 1);
     }
 }
