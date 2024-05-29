@@ -7,8 +7,7 @@ SELECTED TILES:
 MULTIPLAYER:
 - Google Keep
 
-DOKUMENTACIA:
---- SingleplayerManager 
+DOKUMENTACIA: 
 - MultiplayerManager
 - NetworkManagerUI, PuzzleRPC (Mozno sa ani nepouziju)
 

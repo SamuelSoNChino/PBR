@@ -2,15 +2,38 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Manages the singleplayer game flow.
+/// </summary>
 public class SingleplayerManager : MonoBehaviour
 {
-    [SerializeField] Timer timer;
-    [SerializeField] PuzzleGenerator puzzleGenerator;
-    [SerializeField] TilesManager tilesManager;
+    /// <summary>
+    /// The timer component for tracking game time.
+    /// </summary>
+    [SerializeField] private Timer timer;
+
+    /// <summary>
+    /// The puzzle generator component for generating puzzle tiles.
+    /// </summary>
+    [SerializeField] private PuzzleGenerator puzzleGenerator;
+
+    /// <summary>
+    /// The tiles manager component for managing puzzle tiles.
+    /// </summary>
+    [SerializeField] private TilesManager tilesManager;
+
+    /// <summary>
+    /// Starts the game by requesting puzzle and grid images, generating tiles, shuffling them, and starting the timer.
+    /// </summary>
     void Start()
     {
         StartCoroutine(StartGame());
     }
+
+    /// <summary>
+    /// Coroutine to start the game by requesting puzzle and grid images, generating tiles, shuffling them, and starting the timer.
+    /// </summary>
+    /// <returns>An IEnumerator for the coroutine.</returns>
     IEnumerator StartGame()
     {
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(0));
@@ -19,6 +42,10 @@ public class SingleplayerManager : MonoBehaviour
         tilesManager.ShuffleAllTiles();
         timer.EnableTimer();
     }
+
+    /// <summary>
+    /// Ends the game by stopping the timer, recording the final time, and loading the end screen scene.
+    /// </summary>
     public void EndGame()
     {
         timer.DisableTimer();
@@ -30,6 +57,10 @@ public class SingleplayerManager : MonoBehaviour
         }
         SceneManager.LoadScene("EndScreen");
     }
+
+    /// <summary>
+    /// Loads the main menu scene.
+    /// </summary>
     public void BackToMenu()
     {
         SceneManager.LoadScene("Menu");
