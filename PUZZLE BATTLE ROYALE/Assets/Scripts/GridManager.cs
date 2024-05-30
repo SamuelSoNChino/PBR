@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Handles all of the grid tile in the scene.
@@ -26,7 +27,15 @@ public class GridManager : MonoBehaviour
         // If all are placed correctly, end the game
         if (allCorrect)
         {
-            GameObject.Find("Puzzle").GetComponent<SingleplayerManager>().EndGame();
+            if (SceneManager.GetActiveScene().name == "PuzzleMultiplayer")
+            {
+                GameObject.Find("Puzzle").GetComponent<MultiplayerManager>().EndGame();
+            }
+            else
+            {
+                GameObject.Find("Puzzle").GetComponent<SingleplayerManager>().EndGame();
+            }
+
         }
     }
 }

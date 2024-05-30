@@ -12,35 +12,70 @@ public class MultiplayerManager : MonoBehaviour
 {
     [SerializeField] NetworkManager networkManager;
     [SerializeField] string serverUrl;
+    [SerializeField] PuzzleGenerator puzzleGenerator;
+    [SerializeField] TilesManager tilesManager;
+    private string localIP;
+    private int seed;
+    private string role;
+    private string hostIP;
 
-    void Start()
+    private void Start()
     {
         StartCoroutine(StartGame());
     }
 
     private IEnumerator StartGame()
     {
-        string url = "SamuelSoNChino.eu.pythonanywhere.com";
-        string ip = GetLocalIPAddress();
-        UnityWebRequest matchRequest = UnityWebRequest.Get($"{url}/request_image?{ip}");
+        GetLocalIPAddress();
+        Debug.Log(localIP); // Haha Peter
+        yield return RequestMatch();
+        if (role == "HOST")
+        {
+            networkManager.StartHost();
+        }
+        else if (role == "CLIENT")
+        {
+            networkManager.GetComponent<UnityTransport>().ConnectionData.Address = hostIP;
+            networkManager.StartClient();
+        }
+        yield return StartCoroutine(RequestMatch());
+        yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
+        yield return StartCoroutine(puzzleGenerator.RequestGridImage());
+        puzzleGenerator.GenerateTiles();
+        tilesManager.ShuffleAllTiles();
+    }
+
+    private IEnumerator RequestMatch()
+    {
+        UnityWebRequest matchRequest = UnityWebRequest.Get($"{serverUrl}/request_match?ip={localIP}");
+        Debug.Log($"{serverUrl}/request_image?ip={localIP}");
         yield return matchRequest.SendWebRequest();
         if (matchRequest.result != UnityWebRequest.Result.Success)
         {
             Debug.Log("Failed to request a match.");
             yield break;
         }
-        string instruction = matchRequest.downloadHandler.text;
-        if (instruction == "WAIT")
+        string[] information = matchRequest.downloadHandler.text.Split(",");
+        seed = int.Parse(information[0]);
+        role = information[1];
+        if (role == "CLIENT")
         {
-            networkManager.StartHost();
+            hostIP = information[2];
+        }
+    }
+    public void GetLocalIPAddress()
+    {
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            localIP = GetLocalIPAddressAndroid();
         }
         else
         {
-            networkManager.GetComponent<UnityTransport>().ConnectionData.Address = instruction;
-            networkManager.StartClient();
+            localIP = GetLocalIPAddressWidnows();
         }
     }
-    public static string GetLocalIPAddress()
+
+    public static string GetLocalIPAddressWidnows()
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
         foreach (var ip in host.AddressList)
@@ -53,12 +88,68 @@ public class MultiplayerManager : MonoBehaviour
         throw new System.Exception("Couldn't find local IP address!");
     }
 
-    void EndGame()
+    public static string GetLocalIPAddressAndroid()
     {
-        // TODO
+        string ipAddress = string.Empty;
+
+        foreach (var networkInterface in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (networkInterface.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up)
+            {
+                var properties = networkInterface.GetIPProperties();
+                foreach (var address in properties.UnicastAddresses)
+                {
+                    if (address.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address.Address))
+                    {
+                        ipAddress = address.Address.ToString();
+                        // We found a valid IP address, return it
+                        return ipAddress;
+                    }
+                }
+            }
+        }
+
+        if (string.IsNullOrEmpty(ipAddress))
+        {
+            Debug.LogError("Local IP Address Not Found!");
+        }
+
+        return ipAddress;
+    }
+
+    private void NotifyPuzzleCompletion()
+    {
+        if (networkManager.IsServer)
+        {
+            NotifyPuzzleCompletionClientRpc();
+        }
+        else
+        {
+            NotifyPuzzleCompletionServerRpc();
+        }
+    }
+
+    [ServerRpc]
+    private void NotifyPuzzleCompletionServerRpc(ServerRpcParams rpcParams = default)
+    {
+        NotifyPuzzleCompletionClientRpc();
+    }
+
+    [ClientRpc]
+    private void NotifyPuzzleCompletionClientRpc(ClientRpcParams rpcParams = default)
+    {
+        Debug.Log("Puzzle Solved by another player!");
+        SceneManager.LoadScene("Menu");
+    }
+
+    public void EndGame()
+    {
+        NotifyPuzzleCompletion();
+        SceneManager.LoadScene("EndScreen");
     }
     public void BackToMenu()
     {
+        // networkManager.Shutdown();
         SceneManager.LoadScene("Menu");
     }
 }
