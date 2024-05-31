@@ -18,9 +18,9 @@ public class PuzzleGenerator : MonoBehaviour
     private Texture2D gridImage;
 
     /// <summary>
-    /// The number of pieces the puzzle is divided into.
+    /// The number of tiles the puzzle is divided into.
     /// </summary>
-    [SerializeField] private int pieces;
+    private int numberOfTiles;
 
     /// <summary>
     /// The parent GameObject for puzzle tiles.
@@ -50,7 +50,7 @@ public class PuzzleGenerator : MonoBehaviour
     public IEnumerator RequestPuzzleImage(int seed)
     {
         // Sends a request to the server 
-        string puzzleImageUrl = $"{serverUrl}/generate_image?image_size={puzzleSize}&pieces={pieces}&seed={seed}";
+        string puzzleImageUrl = $"{serverUrl}/generate_image?image_size={puzzleSize}&number_of_tiles={numberOfTiles}&seed={seed}";
         UnityWebRequest puzzleImageRequest = UnityWebRequestTexture.GetTexture(puzzleImageUrl);
         yield return puzzleImageRequest.SendWebRequest();
 
@@ -72,7 +72,7 @@ public class PuzzleGenerator : MonoBehaviour
     public IEnumerator RequestGridImage()
     {
         // Sends a request to the server 
-        string gridImageUrl = $"{serverUrl}/generate_grid?image_size={puzzleSize}&pieces={pieces}";
+        string gridImageUrl = $"{serverUrl}/generate_grid?image_size={puzzleSize}&number_of_tiles={numberOfTiles}";
         UnityWebRequest gridImageRequest = UnityWebRequestTexture.GetTexture(gridImageUrl);
         yield return gridImageRequest.SendWebRequest();
 
@@ -95,22 +95,22 @@ public class PuzzleGenerator : MonoBehaviour
         // Initial Z position for the first puzzle tiles, will be incremented for each new tile
         int puzzleTileZPosition = 1;
         // Constant Z position of all grid tiles, located right behind the last puzzle tile
-        int gridZPosition = pieces * pieces + 1;
+        int gridZPosition = numberOfTiles * numberOfTiles + 1;
 
         // Iterates trhough each tile needed to be created
-        for (int i = 0; i < pieces; i++)
+        for (int i = 0; i < numberOfTiles; i++)
         {
-            for (int j = 0; j < pieces; j++)
+            for (int j = 0; j < numberOfTiles; j++)
             {
                 // x, y represent both the position of the tiles in the game and the position of the
                 // tile in the image, from where it will be cropped out
-                int x = puzzleSize / pieces * i;
-                int y = puzzleSize / pieces * j;
+                int x = puzzleSize / numberOfTiles * i;
+                int y = puzzleSize / numberOfTiles * j;
 
                 // Width and Height need to be calculated this way so that the the resulting puzzle
                 // actually coresponds to puzzleSize
-                int nextX = puzzleSize / pieces * (i + 1);
-                int nextY = puzzleSize / pieces * (j + 1);
+                int nextX = puzzleSize / numberOfTiles * (i + 1);
+                int nextY = puzzleSize / numberOfTiles * (j + 1);
                 int tileWidth = nextX - x;
                 int tileHeight = nextY - y;
 
@@ -196,5 +196,14 @@ public class PuzzleGenerator : MonoBehaviour
     private Sprite CreateSprite(Texture2D originalTexture, int x, int y, int width, int height)
     {
         return Sprite.Create(originalTexture, new Rect(x, y, width, height), Vector2.zero, 1);
+    }
+
+    /// <summary>
+    /// Sets a new value for the number of tiles.
+    /// </summary>
+    /// <param name="newNumberOfTiles">New number of tiles.</param>
+    public void SetNumberOfTiles(int newNumberOfTiles)
+    {
+        numberOfTiles = newNumberOfTiles;
     }
 }

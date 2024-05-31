@@ -293,10 +293,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dacfe71dbcb7ad34bb87def6db9ea59f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pieces: 2
-  tiles: {fileID: 0}
-  grid: {fileID: 0}
-  puzzleSize: 0
+  tiles: {fileID: 1557589167}
+  grid: {fileID: 1323705365}
+  puzzleSize: 1000
   serverUrl: SamuelSoNChino.eu.pythonanywhere.com
 --- !u!4 &637174947
 Transform:
@@ -637,8 +636,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50130e2dbeec05f4787191664c10f711, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  topRightShuffleBound: {x: 0, y: 0, z: 0}
-  bottomLeftShuffleBound: {x: 0, y: 0, z: 0}
+  topRightShuffleBound: {x: 500, y: -500, z: 0}
+  bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
 --- !u!4 &1557589169
 Transform:
   m_ObjectHideFlags: 0

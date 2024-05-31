@@ -36,6 +36,7 @@ public class SingleplayerManager : MonoBehaviour
     /// <returns>An IEnumerator for the coroutine.</returns>
     IEnumerator StartGame()
     {
+        puzzleGenerator.SetNumberOfTiles(PlayerPrefs.GetInt("Tiles"));
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(0));
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
         puzzleGenerator.GenerateTiles();

@@ -1,54 +1,59 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
+using Unity.Services.Core;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using Unity.Services.Authentication;
+using System.Threading.Tasks;
 
-public class MultiplayerManager : MonoBehaviour
+public class MultiplayerManager : NetworkBehaviour
 {
     [SerializeField] NetworkManager networkManager;
     [SerializeField] string serverUrl;
     [SerializeField] PuzzleGenerator puzzleGenerator;
     [SerializeField] TilesManager tilesManager;
-    private string localIP;
-    private int seed;
     private string role;
-    private string hostIP;
+    private int seed;
+    private string relayJoinCode;
 
-    private void Start()
+    private async void Start()
     {
-        StartCoroutine(StartGame());
+        await UnityServices.InitializeAsync();
+
+        AuthenticationService.Instance.SignedIn += () => {
+            Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
+        };
+
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+        TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+        StartCoroutine(RequestMatch(tcs));
+        await tcs.Task;
+
+        if (role == "HOST")
+        {
+            CreateRelay();
+        }
+        else if (role == "CLIENT")
+        {
+            // TODO
+        }
     }
 
     private IEnumerator StartGame()
     {
-        GetLocalIPAddress();
-        Debug.Log(localIP); // Haha Peter
-        yield return RequestMatch();
-        if (role == "HOST")
-        {
-            networkManager.StartHost();
-        }
-        else if (role == "CLIENT")
-        {
-            networkManager.GetComponent<UnityTransport>().ConnectionData.Address = hostIP;
-            networkManager.StartClient();
-        }
-        yield return StartCoroutine(RequestMatch());
+        puzzleGenerator.SetNumberOfTiles(2);
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
         puzzleGenerator.GenerateTiles();
         tilesManager.ShuffleAllTiles();
     }
 
-    private IEnumerator RequestMatch()
+    private IEnumerator RequestMatch(TaskCompletionSource<bool> tcs)
     {
-        UnityWebRequest matchRequest = UnityWebRequest.Get($"{serverUrl}/request_match?ip={localIP}");
-        Debug.Log($"{serverUrl}/request_image?ip={localIP}");
+        UnityWebRequest matchRequest = UnityWebRequest.Get($"{serverUrl}/request_match");
         yield return matchRequest.SendWebRequest();
         if (matchRequest.result != UnityWebRequest.Result.Success)
         {
@@ -56,95 +61,18 @@ public class MultiplayerManager : MonoBehaviour
             yield break;
         }
         string[] information = matchRequest.downloadHandler.text.Split(",");
-        seed = int.Parse(information[0]);
-        role = information[1];
+        role = information[0];
+        seed = int.Parse(information[1]);
         if (role == "CLIENT")
         {
-            hostIP = information[2];
+            relayJoinCode = information[2];
         }
-    }
-    public void GetLocalIPAddress()
-    {
-        if (Application.platform == RuntimePlatform.Android)
-        {
-            localIP = GetLocalIPAddressAndroid();
-        }
-        else
-        {
-            localIP = GetLocalIPAddressWidnows();
-        }
+        tcs.SetResult(true);
     }
 
-    public static string GetLocalIPAddressWidnows()
-    {
-        var host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach (var ip in host.AddressList)
-        {
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
-            {
-                return ip.ToString();
-            }
-        }
-        throw new System.Exception("Couldn't find local IP address!");
-    }
-
-    public static string GetLocalIPAddressAndroid()
-    {
-        string ipAddress = string.Empty;
-
-        foreach (var networkInterface in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
-        {
-            if (networkInterface.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up)
-            {
-                var properties = networkInterface.GetIPProperties();
-                foreach (var address in properties.UnicastAddresses)
-                {
-                    if (address.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address.Address))
-                    {
-                        ipAddress = address.Address.ToString();
-                        // We found a valid IP address, return it
-                        return ipAddress;
-                    }
-                }
-            }
-        }
-
-        if (string.IsNullOrEmpty(ipAddress))
-        {
-            Debug.LogError("Local IP Address Not Found!");
-        }
-
-        return ipAddress;
-    }
-
-    private void NotifyPuzzleCompletion()
-    {
-        if (networkManager.IsServer)
-        {
-            NotifyPuzzleCompletionClientRpc();
-        }
-        else
-        {
-            NotifyPuzzleCompletionServerRpc();
-        }
-    }
-
-    [ServerRpc]
-    private void NotifyPuzzleCompletionServerRpc(ServerRpcParams rpcParams = default)
-    {
-        NotifyPuzzleCompletionClientRpc();
-    }
-
-    [ClientRpc]
-    private void NotifyPuzzleCompletionClientRpc(ClientRpcParams rpcParams = default)
-    {
-        Debug.Log("Puzzle Solved by another player!");
-        SceneManager.LoadScene("Menu");
-    }
 
     public void EndGame()
     {
-        NotifyPuzzleCompletion();
         SceneManager.LoadScene("EndScreen");
     }
     public void BackToMenu()

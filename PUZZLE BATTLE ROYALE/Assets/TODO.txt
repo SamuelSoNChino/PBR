@@ -1,3 +1,4 @@
+DETAILS:
 - Oprav chytanie puzzle tilu dvoma prstami
 
 SELECTED TILES:
@@ -5,13 +6,15 @@ SELECTED TILES:
 - Pridaj trochu tolerancie pri selectovani
 
 MULTIPLAYER:
-- Google Keep
+- Create end screen
+- Ensure both players start at the same time
+- Create a progress bar
 
-DOKUMENTACIA: 
+DOCUMENTATION: 
 - MultiplayerManager
 - NetworkManagerUI, PuzzleRPC (Mozno sa ani nepouziju)
 
-DALSIE:
+OTHER:
 - Novy typ obrazkov
 - Graficke zveladenie
 - Klany
