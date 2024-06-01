@@ -1,5 +1,10 @@
+- Dokonci multiplyaer manager
+- Urov start a end multiplyaeru
+- Prerob endscreen v singleplayeri
+
 DETAILS:
 - Oprav chytanie puzzle tilu dvoma prstami
+- Zacni pouzivat PowerConsole
 
 SELECTED TILES:
 - Zlepsi zvyraznenie selected tiles: Bud daj pivot do stredu alebo to urob uplne inak
