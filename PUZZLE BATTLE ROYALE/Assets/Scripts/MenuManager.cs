@@ -9,21 +9,6 @@ using UnityEngine.SceneManagement;
 public class MenuManager : MonoBehaviour
 {
     /// <summary>
-    /// Loads default values if the player is playing for the first time.
-    /// </summary>
-    void Start()
-    {
-        if (!PlayerPrefs.HasKey("Tiles"))
-        {
-            PlayerPrefs.SetInt("Tiles", 5);
-        }
-        if (!PlayerPrefs.HasKey("BestTime"))
-        {
-            PlayerPrefs.SetInt("BestTime", -1);
-        }
-    }
-
-    /// <summary>
     /// Loads the singleplayer puzzle scene.
     /// </summary>
     public void StartSingleplayer()
