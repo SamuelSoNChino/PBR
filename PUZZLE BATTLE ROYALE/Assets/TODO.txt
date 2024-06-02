@@ -10,8 +10,6 @@ SELECTED TILES:
 - Pridaj trochu tolerancie pri selectovani
 
 MULTIPLAYER:
-- Create end screen
-- Ensure both players start at the same time
 - Create a progress bar
 
 DOCUMENTATION: 

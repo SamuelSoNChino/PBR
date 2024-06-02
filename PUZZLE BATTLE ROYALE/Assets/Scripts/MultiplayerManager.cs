@@ -17,9 +17,13 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private PuzzleGenerator puzzleGenerator;
     [SerializeField] private TilesManager tilesManager;
     [SerializeField] private StartScreenManager startScreenManager;
+    [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
+
     private string role;
     private int seed;
     private string relayJoinCode;
+    private bool gameEnded = false;
+    private ulong winnerClientId = 0;
 
     private async void Start()
     {
@@ -42,20 +46,39 @@ public class MultiplayerManager : NetworkBehaviour
             tcs = new();
             StartCoroutine(UploadRelayJoinCode(tcs));
             await tcs.Task;
-            // TODO
+            tcs = new();
+            NetworkManager.Singleton.OnClientConnectedCallback += (clientId) =>
+            {
+                if (clientId != NetworkManager.Singleton.LocalClientId)
+                {
+                    tcs.SetResult(true);
+                }
+            };
+            await tcs.Task;
+            StartGameHost();
         }
         else if (role == "CLIENT")
         {
             await JoinRelay();
-            startScreenManager.StopMatchmakingCycle();
-            StartCoroutine(startScreenManager.StartCountdown());
-            StartCoroutine(StartGame());
-            // TODO
         }
+    }
+
+    private void StartGameHost()
+    {
+        StartGameClientRpc();
+        StartCoroutine(StartGame());
+    }
+
+    [ClientRpc]
+    private void StartGameClientRpc()
+    {
+        StartCoroutine(StartGame());
     }
 
     private IEnumerator StartGame()
     {
+        startScreenManager.StopMatchmakingCycle();
+        StartCoroutine(startScreenManager.StartCountdown());
         puzzleGenerator.SetNumberOfTiles(2);
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
@@ -142,12 +165,44 @@ public class MultiplayerManager : NetworkBehaviour
 
     public void EndGame()
     {
-        // TODO
-        SceneManager.LoadScene("EndScreen");
+        if (IsServer)
+        {
+            if (!gameEnded)
+            {
+                gameEnded = true;
+                winnerClientId = NetworkManager.Singleton.LocalClientId;
+                endScreenManagerMultiplayer.LoadWinningScreen();
+                NotifyClientsGameOverClientRpc(winnerClientId);
+            }
+        }
+        else
+        {
+            NotifyServerGameOverServerRpc(NetworkManager.Singleton.LocalClientId);
+        }
     }
-    public void BackToMenu()
+
+    [ClientRpc]
+    private void NotifyClientsGameOverClientRpc(ulong winningClientId)
     {
-        // TODO
-        SceneManager.LoadScene("Menu");
+        if (NetworkManager.Singleton.LocalClientId != winningClientId)
+        {
+            endScreenManagerMultiplayer.LoadLosingScreen();
+        }
+        else
+        {
+            endScreenManagerMultiplayer.LoadWinningScreen();
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void NotifyServerGameOverServerRpc(ulong clientId)
+    {
+        if (!gameEnded)
+        {
+            gameEnded = true;
+            winnerClientId = clientId;
+            endScreenManagerMultiplayer.LoadLosingScreen();
+            NotifyClientsGameOverClientRpc(winnerClientId);
+        }
     }
 }

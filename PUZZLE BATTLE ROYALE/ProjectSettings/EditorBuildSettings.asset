@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PuzzleSingleplayer.unity
     guid: f5d1c70edb1a6ae4d87ddc7c3a4ff483
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/EndScreen.unity
     guid: 0719389e260e16243922c318f8e3b786
   - enabled: 1
