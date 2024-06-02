@@ -7,13 +7,13 @@ using UnityEngine.UI;
 
 public class StartScreenManager : MonoBehaviour
 {
-    [SerializeField] TextMeshProUGUI startScreenText;
-    [SerializeField] float cyclingInterval = 0.5f;
-    [SerializeField] string matchmakingText = "Looking for an opponent";
-    [SerializeField] string countdownText = "Match starting in";
-    [SerializeField] int countdownStart = 3;
-    [SerializeField] float countdownInterval = 1f;
-    [SerializeField] float goInterval = 0.5f;
+    [SerializeField] private TextMeshProUGUI startScreenText;
+    [SerializeField] private float cyclingInterval = 0.5f;
+    [SerializeField] private string matchmakingText = "Looking for an opponent";
+    [SerializeField] private string countdownText = "Match starting in";
+    [SerializeField] private int countdownStart = 3;
+    [SerializeField] private float countdownInterval = 1f;
+    [SerializeField] private float goInterval = 0.5f;
 
     private int dotCount = 0;
     private bool stopCycling = false;

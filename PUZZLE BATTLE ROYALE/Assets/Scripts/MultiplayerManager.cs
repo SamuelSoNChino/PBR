@@ -13,10 +13,10 @@ using Unity.Networking.Transport.Relay;
 
 public class MultiplayerManager : NetworkBehaviour
 {
-    [SerializeField] string serverUrl;
-    [SerializeField] PuzzleGenerator puzzleGenerator;
-    [SerializeField] TilesManager tilesManager;
-    [SerializeField] StartScreenManager startScreenManager;
+    [SerializeField] private string serverUrl;
+    [SerializeField] private PuzzleGenerator puzzleGenerator;
+    [SerializeField] private TilesManager tilesManager;
+    [SerializeField] private StartScreenManager startScreenManager;
     private string role;
     private int seed;
     private string relayJoinCode;
