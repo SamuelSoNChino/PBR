@@ -24,7 +24,12 @@ public class OptionsManager : MonoBehaviour
     /// </summary>
     void Start()
     {
-        slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("Tiles");
+        // If numberOfTiles wasn't set yet, sets it to the default value
+        if (!PlayerPrefs.HasKey("numberOfTiles"))
+        {
+            PlayerPrefs.SetInt("numberOfTiles", 5);
+        }
+        slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfTiles");
         UpdateSliderText();
     }
 
@@ -41,7 +46,7 @@ public class OptionsManager : MonoBehaviour
     /// </summary>
     public void UpdateSliderText()
     {
-        PlayerPrefs.SetInt("Tiles", (int)slider.GetComponent<Slider>().value);
-        text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("Tiles").ToString();
+        PlayerPrefs.SetInt("numberOfTiles", (int)slider.GetComponent<Slider>().value);
+        text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
     }
 }

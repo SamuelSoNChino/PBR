@@ -23,6 +23,11 @@ public class SingleplayerManager : MonoBehaviour
     [SerializeField] private TilesManager tilesManager;
 
     /// <summary>
+    /// The end screen manager component for managing end screen.
+    /// </summary>
+    [SerializeField] private EndScreenManager endScreenManager;
+
+    /// <summary>
     /// Starts the game by requesting puzzle and grid images, generating tiles, shuffling them, and starting the timer.
     /// </summary>
     void Start()
@@ -36,7 +41,13 @@ public class SingleplayerManager : MonoBehaviour
     /// <returns>An IEnumerator for the coroutine.</returns>
     IEnumerator StartGame()
     {
-        puzzleGenerator.SetNumberOfTiles(PlayerPrefs.GetInt("Tiles"));
+        // If the numberOfTiles wasn't set yet in the options scene, sets it to te default value
+        if (!PlayerPrefs.HasKey("numberOfTiles"))
+        {
+            PlayerPrefs.SetInt("numberOfTiles", 5);
+        }
+
+        puzzleGenerator.SetNumberOfTiles(PlayerPrefs.GetInt("numberOfTiles"));
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(0));
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
         puzzleGenerator.GenerateTiles();
@@ -51,12 +62,24 @@ public class SingleplayerManager : MonoBehaviour
     {
         timer.DisableTimer();
         int finalTime = timer.GetCurrentTime();
-        PlayerPrefs.SetInt("LastTime", finalTime);
-        if (finalTime < PlayerPrefs.GetInt("BestTime") || PlayerPrefs.GetInt("BestTime") < 0)
+        UpdateTimeValues(finalTime);
+        endScreenManager.EnableEndScreen();
+    }
+
+    /// <summary>
+    /// Updates the time newTime and bestTime values in PlayerPrefs based on the finla time.
+    /// </summary>
+    /// <param name="finalTime">The resulting time from the last game.</param>
+    public void UpdateTimeValues(int finalTime)
+    {
+        // Loads the number of tiles for accessing the values for the correct game mode
+        string NumberOfTiles = PlayerPrefs.GetInt("numberOfTiles").ToString();
+        PlayerPrefs.SetInt("newTime-" + NumberOfTiles, finalTime);
+        // If the gamemode was player for the first time or final time is better than the current bestTime stores the finalTime value
+        if (!PlayerPrefs.HasKey("bestTime-" + NumberOfTiles) || finalTime < PlayerPrefs.GetInt("bestTime-" + NumberOfTiles))
         {
-            PlayerPrefs.SetInt("BestTime", finalTime);
+            PlayerPrefs.SetInt("bestTime-" + NumberOfTiles, finalTime);
         }
-        SceneManager.LoadScene("EndScreen");
     }
 
     /// <summary>

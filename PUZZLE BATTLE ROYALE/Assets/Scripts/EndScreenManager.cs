@@ -20,10 +20,19 @@ public class EndScreenManager : MonoBehaviour
     /// <summary>
     /// Initializes the end screen by setting the end time and best time text fields to the respective saved values.
     /// </summary>
-    void Start()
+    private void Start()
     {
-        endTimeText.text += PlayerPrefs.GetInt("LastTime");
-        bestTimeText.text += PlayerPrefs.GetInt("BestTime");
+        string numberOfTiles = PlayerPrefs.GetInt("numberOfTiles").ToString();
+        endTimeText.text += PlayerPrefs.GetInt("newTime-" + numberOfTiles);
+        bestTimeText.text += PlayerPrefs.GetInt("bestTime-" + numberOfTiles);
+    }
+
+    /// <summary>
+    /// Enables the end screen game object, making it visible.
+    /// </summary>
+    public void EnableEndScreen()
+    {
+        gameObject.SetActive(true);
     }
 
     /// <summary>
