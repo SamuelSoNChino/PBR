@@ -132,4 +132,19 @@ public class TilesManager : MonoBehaviour
     {
         anyTileDragging = newState;
     }
+
+    /// <summary>
+    /// Deactivates all the colliders to prevent moving the tiles.
+    /// </summary>
+    public void DeactivateAllColiders()
+    {
+        // Iterates through each puzzle tile
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            // Disables the collider
+            Transform tileChild = transform.GetChild(i);
+            BoxCollider2D collider = tileChild.GetComponent<BoxCollider2D>();
+            collider.enabled = false;
+        }
+    }
 }
