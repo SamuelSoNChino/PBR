@@ -17,22 +17,22 @@ public class PanZoom : MonoBehaviour
     /// <summary>
     /// The maximum zoom level.
     /// </summary>
-    [SerializeField] float maxZoom;
+    [SerializeField] private float maxZoom;
 
     /// <summary>
     /// The minimum zoom level.
     /// </summary>
-    [SerializeField] float minZoom;
+    [SerializeField] private float minZoom;
 
     /// <summary>
     /// The scale increment for zooming.
     /// </summary>
-    [SerializeField] float incrementScale;
+    [SerializeField] private float incrementScale;
 
     /// <summary>
     /// The background game object used to set boundaries for panning.
     /// </summary>
-    [SerializeField] GameObject background;
+    [SerializeField] private GameObject background;
 
     /// <summary>
     /// The bottom-left boundary of the background.
@@ -47,12 +47,17 @@ public class PanZoom : MonoBehaviour
     /// <summary>
     /// The starting zoom level.
     /// </summary>
-    [SerializeField] int startingZoom;
+    [SerializeField] private int startingZoom;
 
     /// <summary>
     /// The starting position of the camera.
     /// </summary>
-    [SerializeField] Vector3 startingPos;
+    [SerializeField] private Vector3 startingPos;
+
+    /// <summary>
+    /// Determines if player can Pan and Zoom.
+    /// </summary>
+    private bool touchInputEnabled = true;
 
     /// <summary>
     /// Initializes the starting zoom and position of the camera.
@@ -121,25 +126,46 @@ public class PanZoom : MonoBehaviour
     /// </summary>
     void Update()
     {
-        // Stores whether the player is dragging a puzzle tile
-        bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().IsAnyTileDragging();
+        // Checks if player can pan and zoom
+        if (touchInputEnabled)
+        {
+            // Stores whether the player is dragging a puzzle tile
+            bool tileDragging = GameObject.Find("Tiles").GetComponent<TilesManager>().IsAnyTileDragging();
 
-        // Triggers on MouseDown when the player isn't dragging a puzzle tile, stores the initial position for Pan
-        if (Input.GetMouseButtonDown(0) && !tileDragging)
-        {
-            touchStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            // Triggers on MouseDown when the player isn't dragging a puzzle tile, stores the initial position for Pan
+            if (Input.GetMouseButtonDown(0) && !tileDragging)
+            {
+                touchStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            }
+
+            // Triggers if the player tries to zoom by pinching gesture
+            if (Input.touchCount == 2)
+            {
+                Zoom(Input.GetTouch(0), Input.GetTouch(1));
+            }
+            // Triggers when the player is dragging without holding a puzzle tile
+            else if (Input.GetMouseButton(0) && !tileDragging)
+            {
+                GameObject.Find("Tiles").GetComponent<TilesManager>().DeselectAllTiles();
+                Pan(touchStart, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            }
         }
 
-        // Triggers if the player tries to zoom by pinching gesture
-        if (Input.touchCount == 2)
-        {
-            Zoom(Input.GetTouch(0), Input.GetTouch(1));
-        }
-        // Triggers when the player is dragging without holding a puzzle tile
-        else if (Input.GetMouseButton(0) && !tileDragging)
-        {
-            GameObject.Find("Tiles").GetComponent<TilesManager>().DeselectAllTiles();
-            Pan(touchStart, Camera.main.ScreenToWorldPoint(Input.mousePosition));
-        }
+    }
+
+    /// <summary>
+    /// Enables Pan and Zoom for the player.
+    /// </summary>
+    public void EnableTouchInput()
+    {
+        touchInputEnabled = true;
+    }
+
+    /// <summary>
+    /// Disable Pan and Zoom for the player.
+    /// </summary>
+    public void DisableTouchInput()
+    {
+        touchInputEnabled = false;
     }
 }
