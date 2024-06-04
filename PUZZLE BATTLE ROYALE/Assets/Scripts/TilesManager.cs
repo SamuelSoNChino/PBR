@@ -147,4 +147,17 @@ public class TilesManager : MonoBehaviour
             collider.enabled = false;
         }
     }
+
+    /// <summary>
+    /// Deactivates all the colliders to prevent moving the tiles.
+    /// </summary>
+    public void DestroyAllTiles()
+    {
+        // Iterates through each puzzle tile
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            // Destroys the child
+            Destroy(transform.GetChild(i).gameObject);
+        }
+    }
 }
