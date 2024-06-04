@@ -38,4 +38,19 @@ public class GridManager : MonoBehaviour
 
         }
     }
+
+    /// <summary>
+    /// Resets the status to unnocupied for all grid tiles.
+    /// </summary
+    public void ResetCompleteness()
+    {
+        // Loop through all grid tiles
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            // Sets the status for each grid tile to 0 - unoccupied
+            Transform child = transform.GetChild(i);
+            GridTile gridTile = child.GetComponent<GridTile>();
+            gridTile.SetStatus(0);
+        }
+    }
 }
