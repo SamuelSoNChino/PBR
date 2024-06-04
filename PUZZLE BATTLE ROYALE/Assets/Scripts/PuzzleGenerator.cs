@@ -88,16 +88,14 @@ public class PuzzleGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// Generates the puzzle and grid tiles from the downloaded images.
+    /// Generates the puzzle tiles from the downloaded image.
     /// </summary>
-    public void GenerateTiles()
+    public void GeneratePuzzleTiles()
     {
         // Initial Z position for the first puzzle tiles, will be incremented for each new tile
         int puzzleTileZPosition = 1;
-        // Constant Z position of all grid tiles, located right behind the last puzzle tile
-        int gridZPosition = numberOfTiles * numberOfTiles + 1;
 
-        // Iterates trhough each tile needed to be created
+        // Iterates through each tile needed to be created
         for (int i = 0; i < numberOfTiles; i++)
         {
             for (int j = 0; j < numberOfTiles; j++)
@@ -117,6 +115,34 @@ public class PuzzleGenerator : MonoBehaviour
                 // Creates a puzzle tile and increments the Z position
                 CreatePuzzleTile(i, j, x, y, tileWidth, tileHeight, puzzleTileZPosition);
                 puzzleTileZPosition++;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generates the grid tiles from the downloaded image.
+    /// </summary>
+    public void GenerateGridTiles()
+    {
+        // Constant Z position of all grid tiles, located right behind the last puzzle tile
+        int gridZPosition = numberOfTiles * numberOfTiles + 1;
+
+        // Iterates through each tile needed to be created
+        for (int i = 0; i < numberOfTiles; i++)
+        {
+            for (int j = 0; j < numberOfTiles; j++)
+            {
+                // x, y represent both the position of the tiles in the game and the position of the
+                // tile in the image, from where it will be cropped out
+                int x = puzzleSize / numberOfTiles * i;
+                int y = puzzleSize / numberOfTiles * j;
+
+                // Width and Height need to be calculated this way so that the the resulting puzzle
+                // actually coresponds to puzzleSize
+                int nextX = puzzleSize / numberOfTiles * (i + 1);
+                int nextY = puzzleSize / numberOfTiles * (j + 1);
+                int tileWidth = nextX - x;
+                int tileHeight = nextY - y;
 
                 // Creates a grid tile
                 CreateGridTile(i, j, x, y, tileWidth, tileHeight, gridZPosition);
