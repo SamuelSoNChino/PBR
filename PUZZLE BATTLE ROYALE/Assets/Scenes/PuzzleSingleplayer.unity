@@ -896,6 +896,7 @@ MonoBehaviour:
   puzzleGenerator: {fileID: 1084766613}
   tilesManager: {fileID: 559649356}
   endScreenManager: {fileID: 209754594}
+  panZoom: {fileID: 1595168190}
 --- !u!1 &1094578364
 GameObject:
   m_ObjectHideFlags: 0
