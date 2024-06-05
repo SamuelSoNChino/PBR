@@ -33,18 +33,21 @@ public class GridTile : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the status of the grid tile by comparing the puzzle tile and grid tile indexes.
+    /// Updates the status of the grid tile when a puzzle tile was snapped to it.
     /// </summary>
     /// <param name="tileIndexX">The X index of the puzzle tile.</param>
     /// <param name="tileIndexY">The Y index of the puzzle tile.</param>
     public void UpdateStatus(int tileIndexX, int tileIndexY) 
     {
+        // If the puzzle tile indexes and grid tile indexes are the same (puzzle tile being in the correct position)
         if (indexX == tileIndexX && indexY == tileIndexY)
         {
+            // Sets the status to occupied, correct
             status = 2;
         }
         else
         {
+            // Sets the status to occupied, not correct
             status = 1;
         }
     }
