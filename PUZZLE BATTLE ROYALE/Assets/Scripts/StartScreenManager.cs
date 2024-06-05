@@ -1,53 +1,59 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Manages the start screen and the countdown before the game begins.
+/// WORKS ONLY WITH SINGLEPLAYER
+/// </summary>
 public class StartScreenManager : MonoBehaviour
 {
+    /// <summary>
+    /// Text component to display the countdown.
+    /// </summary>
     [SerializeField] private TextMeshProUGUI startScreenText;
-    [SerializeField] private float cyclingInterval = 0.5f;
-    [SerializeField] private string matchmakingText = "Looking for an opponent";
+
+    /// <summary>
+    /// Base text for the countdown message.
+    /// </summary>
     [SerializeField] private string countdownText = "Match starting in";
+
+    /// <summary>
+    /// Number of seconds to count down from.
+    /// </summary>
     [SerializeField] private int countdownStart = 3;
+
+    /// <summary>
+    /// Interval between countdown updates, in seconds.
+    /// </summary>
     [SerializeField] private float countdownInterval = 1f;
-    [SerializeField] private float goInterval = 0.5f;
 
-    private int dotCount = 0;
-    private bool stopCycling = false;
-
-    void Start()
+    /// <summary>
+    /// Starts the countdown sequence.
+    /// </summary>
+    /// <param name="countdownFinished">Task completion source to signal when the countdown is finished.</param>
+    /// <returns>Coroutine enumerator.</returns>
+    public IEnumerator StartCountdown(TaskCompletionSource<bool> countdownFinished)
     {
-        StartCoroutine(MatchmakingCycle());
-    }
-
-    private IEnumerator MatchmakingCycle()
-    {
-        while (!stopCycling)
-        {
-            dotCount += 1;
-            startScreenText.text = matchmakingText + new string('.', dotCount % 4);
-            yield return new WaitForSeconds(cyclingInterval);
-        }
-    }
-
-    public void StopMatchmakingCycle()
-    {
-        stopCycling = true;
-    }
-
-    public IEnumerator StartCountdown()
-    {
+        // Counts down from the countdown start
         for (int i = countdownStart; i >= 0; i--)
         {
+            // Updates the start screen text
             startScreenText.text = $"{countdownText}: {i}";
+
+            // Waits for the length of countdown interval
             yield return new WaitForSeconds(countdownInterval);
         }
 
+        // Updates the start screen text and waits for the length of countdown interval
         startScreenText.text = "GO!";
-        yield return new WaitForSeconds(goInterval);
+        yield return new WaitForSeconds(countdownInterval);
+
+        // Deactivates the start screen object, making it not visible
         gameObject.SetActive(false);
+
+        // Sets the countdown task completion source to completed
+        countdownFinished.SetResult(true);
     }
 }
