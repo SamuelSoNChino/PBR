@@ -1,8 +1,6 @@
-- Dokonci multiplyaer manager
-- Urov start a end multiplyaeru
+- Z nejakeho dovodu sa jeden seed opakuje vzdy 2x po sebe
 
 DETAILS:
-- Oprav chytanie puzzle tilu dvoma prstami
 - Zacni pouzivat PowerConsole
 
 SELECTED TILES:
@@ -14,7 +12,9 @@ MULTIPLAYER:
 
 DOCUMENTATION: 
 - MultiplayerManager
-- NetworkManagerUI, PuzzleRPC (Mozno sa ani nepouziju)
+- EndScreenMultiplayerManager
+- SinglePlayerManager
+- StartScreenManager
 
 OTHER:
 - Novy typ obrazkov
