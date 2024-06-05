@@ -1,4 +1,5 @@
 MULTIPLAYER:
+- Split StartScreenManager
 - Add a way to leave the matchmaking
 - Create a progress bar
 
@@ -12,7 +13,7 @@ SELECTED TILES:
 - Pridaj trochu tolerancie pri selectovani
 
 OTHER:
-- Zacni pouzivat PowerConsole
+- Zacni pouzivat PowerConsole ?
 - Novy typ obrazkov
 - Graficke zveladenie
 - Klany

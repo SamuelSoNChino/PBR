@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Manages the end screen, displaying the final time and best time, and provides options to return to the menu or play again.
+/// WORKS ONLY WITH SINGLEPLAYER
 /// </summary>
 public class EndScreenManager : MonoBehaviour
 {
