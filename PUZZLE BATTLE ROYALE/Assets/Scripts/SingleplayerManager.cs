@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,7 +29,17 @@ public class SingleplayerManager : MonoBehaviour
     [SerializeField] private EndScreenManager endScreenManager;
 
     /// <summary>
-    /// Starts the game by requesting puzzle and grid images, generating tiles, shuffling them, and starting the timer.
+    /// The end screen manager component for managing start screen.
+    /// </summary>
+    [SerializeField] private StartScreenManager startScreenManager;
+
+    /// <summary>
+    /// A script that manages panning and zooming during the game.
+    /// </summary>
+    [SerializeField] private PanZoom panZoom;
+
+    /// <summary>
+    /// Starts the game by starting the StartGame coroutine.
     /// </summary>
     void Start()
     {
@@ -41,17 +52,36 @@ public class SingleplayerManager : MonoBehaviour
     /// <returns>An IEnumerator for the coroutine.</returns>
     IEnumerator StartGame()
     {
-        // If the numberOfTiles wasn't set yet in the options scene, sets it to te default value
+        // Starts the countdown on the start screen and tracks whether it is finished 
+        TaskCompletionSource<bool> countdownFinished = new();
+        StartCoroutine(startScreenManager.StartCountdown(countdownFinished));
+
+        // If the numberOfTiles hasn't been set in the options scene yet, sets it to te default value
         if (!PlayerPrefs.HasKey("numberOfTiles"))
         {
             PlayerPrefs.SetInt("numberOfTiles", 5);
         }
 
+        // Sets the number of tiles in puzzle generator and requests both the puzzle and grid images
         puzzleGenerator.SetNumberOfTiles(PlayerPrefs.GetInt("numberOfTiles"));
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(0));
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
-        puzzleGenerator.GenerateTiles();
+
+        // Generates both puzzle tiles and grid tiles
+        puzzleGenerator.GenerateGridTiles();
+        puzzleGenerator.GeneratePuzzleTiles();
+
+        // Shuffles the puzzle tiles
         tilesManager.ShuffleAllTiles();
+
+        // Waits for the countdown to finish
+        yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
+
+        // Enables touch input and manipulating with the tiles
+        panZoom.EnableTouchInput();
+        tilesManager.EnableAllColiders();
+
+        // Starts the timer
         timer.EnableTimer();
     }
 
@@ -60,9 +90,16 @@ public class SingleplayerManager : MonoBehaviour
     /// </summary>
     public void EndGame()
     {
+        // Stops the timer and saves the the new time values
         timer.DisableTimer();
         int finalTime = timer.GetCurrentTime();
         UpdateTimeValues(finalTime);
+
+        // Prevents the player from manipulating the game behind the end screen
+        tilesManager.DisableAllColiders();
+        panZoom.DisableTouchInput();
+
+        // Loads the end screen
         endScreenManager.EnableEndScreen();
     }
 
@@ -72,12 +109,17 @@ public class SingleplayerManager : MonoBehaviour
     /// <param name="finalTime">The resulting time from the last game.</param>
     public void UpdateTimeValues(int finalTime)
     {
-        // Loads the number of tiles for accessing the values for the correct game mode
+        // Loads the number of tiles for accessing the values for the correct game mode (number of tiles played with)
         string NumberOfTiles = PlayerPrefs.GetInt("numberOfTiles").ToString();
+
+        // Saves the finalTime value to PlayerPrefs (finalTime = resluting time = newTime)
         PlayerPrefs.SetInt("newTime-" + NumberOfTiles, finalTime);
-        // If the gamemode was player for the first time or final time is better than the current bestTime stores the finalTime value
+
+        // If the gamemode (number of tiles played with) was played for the first time or final time is better than current bestTime
         if (!PlayerPrefs.HasKey("bestTime-" + NumberOfTiles) || finalTime < PlayerPrefs.GetInt("bestTime-" + NumberOfTiles))
         {
+
+            // Sets the finalTime as a new best time for the current game mode (number of tiles played with)
             PlayerPrefs.SetInt("bestTime-" + NumberOfTiles, finalTime);
         }
     }
