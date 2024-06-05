@@ -55,9 +55,9 @@ public class PanZoom : MonoBehaviour
     [SerializeField] private Vector3 startingPos;
 
     /// <summary>
-    /// Determines if player can Pan and Zoom.
+    /// Determines if player can Pan and Zoom. False by default, needs to be enabled before the start of the game.
     /// </summary>
-    private bool touchInputEnabled = true;
+    private bool touchInputEnabled = false;
 
     /// <summary>
     /// Initializes the starting zoom and position of the camera.
