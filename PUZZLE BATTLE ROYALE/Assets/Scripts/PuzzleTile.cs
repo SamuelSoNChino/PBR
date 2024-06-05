@@ -177,9 +177,10 @@ public class PuzzleTile : MonoBehaviour
             SpriteRenderer gridSRenderer = gridChild.GetComponent<SpriteRenderer>();
             GridTile gridTile = gridChild.GetComponent<GridTile>();
 
-            // Moves the puzzle tile to the same position as the grid tile (preserving the puzzle tile's Z value), which contains tileCenter and is unoccupied
+            // If the grid tile sprite contains tileCenter and it is unoccupied
             if (gridSRenderer.bounds.Contains(tileCenter) && gridTile.GetStatus() == 0)
             {
+                // Moves the puzzle tile to the same position as the grid tile (preserving the puzzle tile's Z value), which contains tileCenter and is unoccupied
                 Move(new Vector3(gridChild.position.x, gridChild.position.y, transform.position.z));
                 SetSnappedGridTile(gridTile);
                 gridTile.UpdateStatus(indexX, indexY);
@@ -187,8 +188,8 @@ public class PuzzleTile : MonoBehaviour
                 break;
             }
         }
-
-        GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness(); // Checks for game completeness
+        // Checks if the puzzle is completed
+        GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness();
     }
 
     /// <summary>
@@ -204,13 +205,14 @@ public class PuzzleTile : MonoBehaviour
     /// </summary>
     public void MoveToFront()
     {
+        // Iterates through all other puzzle tiles 
         for (int i = 0; i < transform.parent.childCount; i++)
         {
-            Transform child = transform.parent.GetChild(i);
+            Transform sibling = transform.parent.GetChild(i);
             // Moves each tile that's in front of this one back (by incrementing z)
-            if (child.position.z < transform.position.z)
+            if (sibling.position.z < transform.position.z)
             {
-                child.GetComponent<PuzzleTile>().IncrementZ();
+                sibling.GetComponent<PuzzleTile>().IncrementZ();
             }
         }
         // Moves this puzzle tile in the front spot (z=1)
@@ -224,6 +226,7 @@ public class PuzzleTile : MonoBehaviour
     {
         if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition only for PC testing
         {
+            // Moves the tile to the front to show it was clicked and saves its original position
             MoveToFront();
             originalPosition = transform.position;
 
@@ -259,7 +262,7 @@ public class PuzzleTile : MonoBehaviour
                 Move(mousePosition, mouseOffset);
             }
         }
-        // When moving a not selected tile deselects all the tiles
+        // When moving a not selected tile deselect all the tiles
         if (!isSelected && originalPosition != transform.position)
         {
             tilesManager.DeselectAllTiles();
