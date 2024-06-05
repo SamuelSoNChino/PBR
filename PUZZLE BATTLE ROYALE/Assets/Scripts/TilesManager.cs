@@ -134,9 +134,9 @@ public class TilesManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Deactivates all the colliders to prevent moving the tiles.
+    /// Disables all the colliders to prevent moving the tiles.
     /// </summary>
-    public void DeactivateAllColiders()
+    public void DisableAllColiders()
     {
         // Iterates through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
@@ -147,6 +147,22 @@ public class TilesManager : MonoBehaviour
             collider.enabled = false;
         }
     }
+
+    /// <summary>
+    /// Enables all the colliders to allow moving the tiles.
+    /// </summary>
+    public void EnableAllColiders()
+    {
+        // Iterates through each puzzle tile
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            // Enables the collider
+            Transform tileChild = transform.GetChild(i);
+            BoxCollider2D collider = tileChild.GetComponent<BoxCollider2D>();
+            collider.enabled = true;
+        }
+    }
+
 
     /// <summary>
     /// Deactivates all the colliders to prevent moving the tiles.
