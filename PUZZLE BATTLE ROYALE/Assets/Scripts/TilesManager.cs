@@ -12,11 +12,15 @@ public class TilesManager : MonoBehaviour
     /// <summary>
     /// Top right bound of the area where tiles can be shuffled.
     /// </summary>
-    [SerializeField] Vector3 topRightShuffleBound;
+    [SerializeField] private Vector3 topRightShuffleBound;
     /// <summary>
     /// Bottom left bound of the area where tiles can be shuffled.
     /// </summary>
-    [SerializeField] Vector3 bottomLeftShuffleBound;
+    [SerializeField] private Vector3 bottomLeftShuffleBound;
+    /// <summary>
+    /// The size of the whole puzzle image.
+    /// </summary>
+    [SerializeField] private int puzzleSize;
 
     /// <summary>
     /// Shuffles all tiles randomly on the area specified by ShuffleBounds and
@@ -24,19 +28,29 @@ public class TilesManager : MonoBehaviour
     /// </summary>
     public void ShuffleAllTiles()
     {
-        // Calculates possible values for the shuffle position
+        // Calculates approxmate size of a single tile
+        int tileSize = puzzleSize / PlayerPrefs.GetInt("numberOfTiles");
+
+        // Calculates possible x values for the tiles 
         float minX = bottomLeftShuffleBound.x;
-        float maxX = topRightShuffleBound.x;
+        float maxX = topRightShuffleBound.x - tileSize;
+
+        // Calculates possible y values for the tiles 
         float minY = bottomLeftShuffleBound.y;
-        float maxY = topRightShuffleBound.y;
+        float maxY = topRightShuffleBound.y - tileSize;
+
+        Debug.Log(minX.ToString() + maxX.ToString() + minY.ToString() + maxY.ToString());
 
         // Iterates through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
             PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
-            // Z can be set to 0 since puzzleTile.Move ignores Z values
+
+            // Randolmy generates x and y values in the shuffle area, z can be set to 0 since puzzleTile.Move ignores Z values
             Vector3 newPosition = new(Random.Range(minX, maxX), Random.Range(minY, maxY), 0);
+
+            // Moves to tile to the new position
             puzzleTile.Move(newPosition);
         }
 

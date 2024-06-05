@@ -1,22 +1,18 @@
-- Z nejakeho dovodu sa jeden seed opakuje vzdy 2x po sebe
-
-DETAILS:
-- Zacni pouzivat PowerConsole
-
-SELECTED TILES:
-- Zlepsi zvyraznenie selected tiles: Bud daj pivot do stredu alebo to urob uplne inak
-- Pridaj trochu tolerancie pri selectovani
-
 MULTIPLAYER:
+- Add a way to leave the matchmaking
 - Create a progress bar
 
 DOCUMENTATION: 
 - MultiplayerManager
 - EndScreenMultiplayerManager
-- SinglePlayerManager
 - StartScreenManager
 
+SELECTED TILES:
+- Zlepsi zvyraznenie selected tiles: Bud daj pivot do stredu alebo to urob uplne inak
+- Pridaj trochu tolerancie pri selectovani
+
 OTHER:
+- Zacni pouzivat PowerConsole
 - Novy typ obrazkov
 - Graficke zveladenie
 - Klany

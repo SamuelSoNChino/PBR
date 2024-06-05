@@ -708,8 +708,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50130e2dbeec05f4787191664c10f711, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  topRightShuffleBound: {x: 500, y: -500, z: 0}
+  topRightShuffleBound: {x: 1000, y: 0, z: 0}
   bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
+  puzzleSize: 1000
 --- !u!1 &582362308
 GameObject:
   m_ObjectHideFlags: 0
@@ -1122,8 +1123,8 @@ MonoBehaviour:
   puzzleGenerator: {fileID: 1084766613}
   tilesManager: {fileID: 559649356}
   endScreenManager: {fileID: 209754594}
-  panZoom: {fileID: 1595168190}
   startScreenManager: {fileID: 418491809}
+  panZoom: {fileID: 1595168190}
 --- !u!1 &1094578364
 GameObject:
   m_ObjectHideFlags: 0

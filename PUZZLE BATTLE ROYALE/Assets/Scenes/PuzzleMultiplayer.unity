@@ -724,7 +724,6 @@ MonoBehaviour:
   countdownText: Match starting in
   countdownStart: 3
   countdownInterval: 1
-  goInterval: 0.5
 --- !u!114 &557488102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2539,8 +2538,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50130e2dbeec05f4787191664c10f711, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  topRightShuffleBound: {x: 500, y: -500, z: 0}
+  topRightShuffleBound: {x: 1000, y: 0, z: 0}
   bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
+  puzzleSize: 1000
 --- !u!4 &1557589169
 Transform:
   m_ObjectHideFlags: 0
