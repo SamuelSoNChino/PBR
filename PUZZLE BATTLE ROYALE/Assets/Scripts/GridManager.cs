@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,13 +14,19 @@ public class GridManager : MonoBehaviour
     /// </summary>
     public void CheckCompleteness()
     {
+        // Assumes that all the grid tiles have a correct puzzle tile placed on them
         bool allCorrect = true;
-        // Loop through all grid tiles
+
+        // Iterates through all grid tiles
         for (int i = 0; i < transform.childCount; i++)
         {
-            // Checks whether all grid tiles have a correctly placed puzzle tile on them
-            if (transform.GetChild(i).GetComponent<GridTile>().GetStatus() != 2)
+            Transform child = transform.GetChild(i);
+            GridTile gridTile = child.GetComponent<GridTile>();
+
+            // Checks whether the grid tile has a correctly placed puzzle tile (status = 2)
+            if (gridTile.GetStatus() != 2)
             {
+                // Assumption was wrong, one tile is placed incorrectly or unoccupied, no need to continue
                 allCorrect = false;
                 break;
             }
@@ -27,6 +34,7 @@ public class GridManager : MonoBehaviour
         // If all are placed correctly, end the game
         if (allCorrect)
         {
+            // Checks if the the player is currently playign singleplayer or multiplayer and calls the correct EndGame method.
             if (SceneManager.GetActiveScene().name == "PuzzleMultiplayer")
             {
                 GameObject.Find("Puzzle").GetComponent<MultiplayerManager>().EndGame();
@@ -44,7 +52,7 @@ public class GridManager : MonoBehaviour
     /// </summary
     public void ResetCompleteness()
     {
-        // Loop through all grid tiles
+        // Iterates through all grid tiles
         for (int i = 0; i < transform.childCount; i++)
         {
             // Sets the status for each grid tile to 0 - unoccupied
