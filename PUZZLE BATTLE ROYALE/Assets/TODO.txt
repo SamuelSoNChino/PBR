@@ -1,12 +1,10 @@
 MULTIPLAYER:
-- Split StartScreenManager
 - Add a way to leave the matchmaking
 - Create a progress bar
 
 DOCUMENTATION: 
 - MultiplayerManager
 - EndScreenMultiplayerManager
-- StartScreenManager
 
 SELECTED TILES:
 - Zlepsi zvyraznenie selected tiles: Bud daj pivot do stredu alebo to urob uplne inak
