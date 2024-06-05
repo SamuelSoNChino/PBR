@@ -523,6 +523,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1181708702}
+  - {fileID: 798844539}
   - {fileID: 837136215}
   - {fileID: 601091128}
   - {fileID: 557488100}
@@ -678,7 +679,7 @@ GameObject:
   - component: {fileID: 557488100}
   - component: {fileID: 557488103}
   - component: {fileID: 557488102}
-  - component: {fileID: 557488101}
+  - component: {fileID: 557488104}
   m_Layer: 5
   m_Name: StartScreen
   m_TagString: Untagged
@@ -706,24 +707,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &557488101
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 557488099}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 39facab324f29ae4e9c3cca66b19e50e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  startScreenText: {fileID: 1032277423}
-  cyclingInterval: 0.5
-  matchmakingText: Looking for an opponent
-  countdownText: Match starting in
-  countdownStart: 3
-  countdownInterval: 1
 --- !u!114 &557488102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -759,6 +742,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 557488099}
   m_CullTransparentMesh: 1
+--- !u!114 &557488104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 557488099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f73639a13939ef74799a2e490398beb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startScreenText: {fileID: 1032277423}
+  cyclingInterval: 0.5
+  matchmakingText: Looking for an opponent
+  countdownText: Match starting in
+  countdownStart: 3
+  countdownInterval: 1
 --- !u!1 &601091127
 GameObject:
   m_ObjectHideFlags: 0
@@ -903,7 +904,7 @@ MonoBehaviour:
   puzzleGenerator: {fileID: 637174946}
   tilesManager: {fileID: 1557589168}
   gridManager: {fileID: 1323705366}
-  startScreenManager: {fileID: 557488101}
+  startScreenManagerMultiplayer: {fileID: 557488104}
   endScreenManagerMultiplayer: {fileID: 798844538}
   panZoom: {fileID: 1619521031}
 --- !u!114 &637174951
@@ -1101,11 +1102,11 @@ Transform:
   m_GameObject: {fileID: 798844537}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 816.9438, y: 1128.2206, z: 0.15292633}
+  m_LocalPosition: {x: 276.9438, y: 48.22058, z: 0.15292633}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 166548353}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &837136214
 GameObject:
@@ -2989,5 +2990,4 @@ SceneRoots:
   - {fileID: 1627954483}
   - {fileID: 1619521034}
   - {fileID: 637174947}
-  - {fileID: 798844539}
   - {fileID: 166548353}

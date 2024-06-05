@@ -39,8 +39,6 @@ public class TilesManager : MonoBehaviour
         float minY = bottomLeftShuffleBound.y;
         float maxY = topRightShuffleBound.y - tileSize;
 
-        Debug.Log(minX.ToString() + maxX.ToString() + minY.ToString() + maxY.ToString());
-
         // Iterates through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
