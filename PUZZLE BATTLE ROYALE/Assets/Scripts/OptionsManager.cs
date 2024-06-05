@@ -29,6 +29,8 @@ public class OptionsManager : MonoBehaviour
         {
             PlayerPrefs.SetInt("numberOfTiles", 5);
         }
+
+        // Sets the slider value to the stored value in PlayerPrefs and Updates its text
         slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfTiles");
         UpdateSliderText();
     }
@@ -46,7 +48,10 @@ public class OptionsManager : MonoBehaviour
     /// </summary>
     public void UpdateSliderText()
     {
+        // Saves the new value to PlayerPrefs
         PlayerPrefs.SetInt("numberOfTiles", (int)slider.GetComponent<Slider>().value);
+
+        // Updates the slider text
         text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
     }
 }
