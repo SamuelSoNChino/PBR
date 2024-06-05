@@ -65,8 +65,11 @@ public class PanZoom : MonoBehaviour
     /// </summary>
     void Start()
     {
+        // Initializes the starting zoom and position of the camera
         Camera.main.orthographicSize = startingZoom;
         Camera.main.transform.position = startingPos;
+
+        // Sets the boundaries based on the background sprite
         bottomLeftBound = background.GetComponent<SpriteRenderer>().bounds.min;
         topRightBound = background.GetComponent<SpriteRenderer>().bounds.max;
     }
@@ -146,7 +149,10 @@ public class PanZoom : MonoBehaviour
             // Triggers when the player is dragging without holding a puzzle tile
             else if (Input.GetMouseButton(0) && !tileDragging)
             {
+                // Deselectes all puzzle tiles, since player is trying to pan
                 GameObject.Find("Tiles").GetComponent<TilesManager>().DeselectAllTiles();
+
+                // Pan using touchStart and current mouse position
                 Pan(touchStart, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             }
         }
