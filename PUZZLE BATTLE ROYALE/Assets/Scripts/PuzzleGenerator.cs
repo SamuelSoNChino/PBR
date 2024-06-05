@@ -208,6 +208,8 @@ public class PuzzleGenerator : MonoBehaviour
         // Creates a collider for tile tile, so it can be interacted with
         BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(width, height);
+        // Starts with a disabled collider, needs to be activated in TileManager before the start of the game
+        collider.enabled = false;
     }
 
     /// <summary>
