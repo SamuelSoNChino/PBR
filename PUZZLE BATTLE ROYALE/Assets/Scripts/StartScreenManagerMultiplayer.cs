@@ -2,6 +2,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Manages the start screen, the matchmaking text, and the countdown before the match.
@@ -38,6 +39,11 @@ public class StartScreenManagerMultiplayer : MonoBehaviour
     /// Interval between countdown updates, in seconds.
     /// </summary>
     [SerializeField] private float countdownInterval = 1f;
+
+    /// <summary>
+    /// The button for canceling matchmaking (functionality in MultiplayerManager).
+    /// </summary>
+    [SerializeField] private Button cancelButton;
 
     /// <summary>
     /// Number of dots in the matchmaking message.
@@ -83,6 +89,7 @@ public class StartScreenManagerMultiplayer : MonoBehaviour
     public void StopMatchmakingCycle()
     {
         stopCycling = true;
+        cancelButton.gameObject.SetActive(false);
     }
 
     /// <summary>
