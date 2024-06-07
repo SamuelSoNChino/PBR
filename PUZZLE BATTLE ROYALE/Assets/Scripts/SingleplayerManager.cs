@@ -64,7 +64,7 @@ public class SingleplayerManager : MonoBehaviour
 
         // Sets the number of tiles in puzzle generator and requests both the puzzle and grid images
         puzzleGenerator.SetNumberOfTiles(PlayerPrefs.GetInt("numberOfTiles"));
-        yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(0));
+        yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage());
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
 
         // Generates both puzzle tiles and grid tiles
