@@ -26,8 +26,15 @@ public class TilesManager : MonoBehaviour
     /// Shuffles all tiles randomly on the area specified by ShuffleBounds and
     /// also shuffles their z values by randomly moving tile to the front.
     /// </summary>
-    public void ShuffleAllTiles()
+    public void ShuffleAllTiles(int seed = 0)
     {
+        // If the seed was set during the call, initializates the rng state to the seed
+        if (seed != 0)
+        {
+            Random.InitState(seed);
+        }
+        
+
         // Calculates approxmate size of a single tile
         int tileSize = puzzleSize / PlayerPrefs.GetInt("numberOfTiles");
 

@@ -20,32 +20,32 @@ public class MultiplayerManager : NetworkBehaviour
     /// URL of the server used for matchmaking.
     /// </summary>
     [SerializeField] private string serverUrl;
-    
+
     /// <summary>
     /// Reference to the PuzzleGenerator script.
     /// </summary>
     [SerializeField] private PuzzleGenerator puzzleGenerator;
-    
+
     /// <summary>
     /// Reference to the TilesManager script.
     /// </summary>
     [SerializeField] private TilesManager tilesManager;
-    
+
     /// <summary>
     /// Reference to the GridManager script.
     /// </summary>
     [SerializeField] private GridManager gridManager;
-    
+
     /// <summary>
     /// Reference to the StartScreenManagerMultiplayer script.
     /// </summary>
     [SerializeField] private StartScreenManagerMultiplayer startScreenManagerMultiplayer;
-    
+
     /// <summary>
     /// Reference to the EndScreenManagerMultiplayer script.
     /// </summary>
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
-    
+
     /// <summary>
     /// Reference to the PanZoom script.
     /// </summary>
@@ -55,17 +55,17 @@ public class MultiplayerManager : NetworkBehaviour
     /// Role of the player (HOST or CLIENT) in the multiplayer session.
     /// </summary>
     private string role;
-    
+
     /// <summary>
     /// Seed used for generating the puzzle.
     /// </summary>
     private int seed;
-    
+
     /// <summary>
     /// Relay join code for connecting to the relay server.
     /// </summary>
     private string relayJoinCode;
-    
+
     /// <summary>
     /// TaskCompletionSource used to signal when a client has connected.
     /// </summary>
@@ -370,7 +370,7 @@ public class MultiplayerManager : NetworkBehaviour
         // Generates both puzzle and grid tiles and shuffles puzzle tiles
         puzzleGenerator.GenerateGridTiles();
         puzzleGenerator.GeneratePuzzleTiles();
-        tilesManager.ShuffleAllTiles();
+        tilesManager.ShuffleAllTiles(seed);
 
         // Waits until the countdown has finished
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
@@ -502,7 +502,7 @@ public class MultiplayerManager : NetworkBehaviour
 
         // Generates the new puzzle tiles and shuffles them
         puzzleGenerator.GeneratePuzzleTiles();
-        tilesManager.ShuffleAllTiles();
+        tilesManager.ShuffleAllTiles(seed);
 
         // Waits until the countdown is finished
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
