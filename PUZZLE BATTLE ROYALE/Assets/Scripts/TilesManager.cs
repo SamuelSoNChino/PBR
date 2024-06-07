@@ -148,7 +148,7 @@ public class TilesManager : MonoBehaviour
     /// <summary>
     /// Disables all the colliders to prevent moving the tiles.
     /// </summary>
-    public void DisableAllColiders()
+    public void DisableAllColliders()
     {
         // Iterates through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
@@ -163,7 +163,7 @@ public class TilesManager : MonoBehaviour
     /// <summary>
     /// Enables all the colliders to allow moving the tiles.
     /// </summary>
-    public void EnableAllColiders()
+    public void EnableAllColliders()
     {
         // Iterates through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
