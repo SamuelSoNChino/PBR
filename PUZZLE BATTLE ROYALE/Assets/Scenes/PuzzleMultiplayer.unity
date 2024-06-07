@@ -753,7 +753,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 637174950}
         m_TargetAssemblyTypeName: MultiplayerManager, Assembly-CSharp
-        m_MethodName: CancelMatchmkaing
+        m_MethodName: CancelMatchmaking
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
