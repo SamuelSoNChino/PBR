@@ -47,7 +47,7 @@ public class PuzzleGenerator : MonoBehaviour
     /// </summary>
     /// <param name="seed">The seed value used for image generation.</param>
     /// <returns>An IEnumerator for the coroutine.</returns>
-    public IEnumerator RequestPuzzleImage(int seed)
+    public IEnumerator RequestPuzzleImage(int seed = 0)
     {
         // Sends a request to the server 
         string puzzleImageUrl = $"{serverUrl}/generate_image?image_size={puzzleSize}&number_of_tiles={numberOfTiles}&seed={seed}";
