@@ -92,7 +92,15 @@ public class StartScreenManagerMultiplayer : MonoBehaviour
     }
 
     /// <summary>
-    /// Disables the cancel button, making it invisible and unclickable.
+    /// Enables the cancel button, making it visible and interactable.
+    /// </summary>
+    public void EnableCancelButton()
+    {
+        cancelButton.gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Disables the cancel button, making it invisible and uninteractable.
     /// </summary>
     public void DisableCancelButton()
     {
