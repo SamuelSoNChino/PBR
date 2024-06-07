@@ -79,7 +79,7 @@ public class SingleplayerManager : MonoBehaviour
 
         // Enables touch input and manipulating with the tiles
         panZoom.EnableTouchInput();
-        tilesManager.EnableAllColiders();
+        tilesManager.EnableAllColliders();
 
         // Starts the timer
         timer.EnableTimer();
@@ -96,7 +96,7 @@ public class SingleplayerManager : MonoBehaviour
         UpdateTimeValues(finalTime);
 
         // Prevents the player from manipulating the game behind the end screen
-        tilesManager.DisableAllColiders();
+        tilesManager.DisableAllColliders();
         panZoom.DisableTouchInput();
 
         // Loads the end screen
