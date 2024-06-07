@@ -89,6 +89,13 @@ public class StartScreenManagerMultiplayer : MonoBehaviour
     public void StopMatchmakingCycle()
     {
         stopCycling = true;
+    }
+
+    /// <summary>
+    /// Disables the cancel button, making it invisible and unclickable.
+    /// </summary>
+    public void DisableCancelButton()
+    {
         cancelButton.gameObject.SetActive(false);
     }
 
