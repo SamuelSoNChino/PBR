@@ -120,8 +120,14 @@ public class MultiplayerManager : NetworkBehaviour
             // When a client connects to the relay, calls OnClientConnected method, setting the connectionCompleted as done
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
 
+            // The button enables the player to cancel matchmaking, when it is taking too long
+            startScreenManagerMultiplayer.EnableCancelButton();
+
             // Waits until the client has connected
             await connectionCompleted.Task;
+
+            // After the client has connected, the player can no longer use the button to cancel matchmaking
+            startScreenManagerMultiplayer.EnableCancelButton();
 
             // Removes callback after successful connection to prevent problems in other multiplayer sessions
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
@@ -277,20 +283,29 @@ public class MultiplayerManager : NetworkBehaviour
         }
     }
 
+    /// |---------------------------------|
+    /// |        CANCELING A MATCH        |
+    /// |---------------------------------|
+
     /// <summary>
     /// Cancels the matchmaking process and returns to the main menu.
     /// </summary>
     public async void CancelMatchmaking()
     {
-        NetworkManager.Singleton.Shutdown();
-        if (relayJoinCode != null)
+        //  Only the host can cancel the matchmaking
+        if (role == "HOST")
         {
+            // Asks the server to remove the relay join code, so no client will try to connect to it
             TaskCompletionSource<bool> codeRemovalCompleted = new();
             StartCoroutine(RequestJoinCodeRemoval(codeRemovalCompleted));
             await codeRemovalCompleted.Task;
+
+            // Shuts down all the network connections
+            NetworkManager.Singleton.Shutdown();
+
+            // Sends the player back to menu
+            SceneManager.LoadScene("Menu");
         }
-        // TODO: Handle client-specific scenarios
-        SceneManager.LoadScene("Menu");
     }
 
     /// <summary>
