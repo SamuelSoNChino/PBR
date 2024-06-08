@@ -127,7 +127,7 @@ public class MultiplayerManager : NetworkBehaviour
             await connectionCompleted.Task;
 
             // After the client has connected, the player can no longer use the button to cancel matchmaking
-            startScreenManagerMultiplayer.EnableCancelButton();
+            startScreenManagerMultiplayer.DisableCancelButton();
 
             // Removes callback after successful connection to prevent problems in other multiplayer sessions
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
