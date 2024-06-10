@@ -142,7 +142,7 @@ public class PuzzleTile : MonoBehaviour
     }
 
     /// <summary>
-    /// Moves the puzzle tile to a new position with an optional offset while not changing the Z value.
+    /// Moves the puzzle tile to a new position with an optional offset without changing the Z value.
     /// </summary>
     /// <param name="newPosition">The new position.</param>
     /// <param name="offset">The offset to apply.</param>
@@ -155,6 +155,24 @@ public class PuzzleTile : MonoBehaviour
         {
             ClearSnappedGridTile();
         }
+    }
+
+    /// <summary>
+    /// Sets a new position of the puzzle tile, also changing the Z value unlike to Move method.
+    /// </summary>
+    /// <param name="newPosition">The new position.</param>
+    public void SetPosition(Vector3 newPosition)
+    {
+        transform.position = new Vector3(newPosition.x, newPosition.y, newPosition.z);
+    }
+
+    /// <summary>
+    /// Gets the current position of the puzzle tile.
+    /// </summary>
+    /// <returns>The current position of the puzzle tile.</returns>
+    public Vector3 GetPosition()
+    {
+        return new Vector3(transform.position.x, transform.position.y, transform.position.z);
     }
 
     /// <summary>
@@ -217,6 +235,22 @@ public class PuzzleTile : MonoBehaviour
         }
         // Moves this puzzle tile in the front spot (z=1)
         transform.position = new Vector3(transform.position.x, transform.position.y, 1);
+    }
+
+    /// <summary>
+    /// Disables the tile's collider to prevent manipulating it.
+    /// </summary>
+    public void DisableCollider()
+    {
+        GetComponent<BoxCollider2D>().enabled = false;
+    }
+
+    /// <summary>
+    /// Enaables the tile's collider to allow manipulating it.
+    /// </summary>
+    public void EnableCollider()
+    {
+        GetComponent<BoxCollider2D>().enabled = true;
     }
 
     /// <summary>
