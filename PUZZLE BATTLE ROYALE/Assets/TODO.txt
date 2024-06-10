@@ -1,19 +1,23 @@
+PEEK FUNKCIA:
+- Pri peekovani bude jeden hrac posielat rpc s udajmi o poziciach
+- Pri konci peekovania sa nastavia zas povodne pozicie
+- Vyries snapovanie na grid pri peeku
+- Vyries koniec hry pri peeku
+
 MULTIPLAYER:
-- Shuffle seed robi srandy, na mobile je to cele posunute
-- Pri rematchi sa objavi cancel tlacidlo
 - Daj pri rematchi vediet druhemu hracovi, ze si odisiel
-- Create a progress bar
 
 DOCUMENTATION: 
-- ConnectionTestManager
+- TileManager
+- PeekManager
 
 SELECTED TILES:
 - Zlepsi zvyraznenie selected tiles: Bud daj pivot do stredu alebo to urob uplne inak
 - Pridaj trochu tolerancie pri selectovani
 
 OTHER:
-- Zacni pouzivat PowerConsole ?
+- Pridaj SnapToGrid do Move funkcie 
+- Powers
 - Novy typ obrazkov
 - Graficke zveladenie
-- Powers
 - Klany
