@@ -33,7 +33,7 @@ public class TilesManager : MonoBehaviour
         {
             Random.InitState(seed);
         }
-        
+
 
         // Calculates approxmate size of a single tile
         int tileSize = puzzleSize / PlayerPrefs.GetInt("numberOfTiles");
@@ -153,7 +153,7 @@ public class TilesManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Disables all the colliders to prevent moving the tiles.
+    /// Disables all the colliders to prevent manipulating the tiles.
     /// </summary>
     public void DisableAllColliders()
     {
@@ -162,13 +162,13 @@ public class TilesManager : MonoBehaviour
         {
             // Disables the collider
             Transform tileChild = transform.GetChild(i);
-            BoxCollider2D collider = tileChild.GetComponent<BoxCollider2D>();
-            collider.enabled = false;
+            PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
+            puzzleTile.DisableCollider();
         }
     }
 
     /// <summary>
-    /// Enables all the colliders to allow moving the tiles.
+    /// Enables all the colliders to allow manipulating the tiles.
     /// </summary>
     public void EnableAllColliders()
     {
@@ -177,11 +177,34 @@ public class TilesManager : MonoBehaviour
         {
             // Enables the collider
             Transform tileChild = transform.GetChild(i);
-            BoxCollider2D collider = tileChild.GetComponent<BoxCollider2D>();
-            collider.enabled = true;
+            PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
+            puzzleTile.EnableCollider();
         }
     }
 
+
+    public Vector3[] GetAllPositions()
+    {
+        Vector3[] allPositions = new Vector3[transform.childCount];
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform tileChild = transform.GetChild(i);
+            PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
+            allPositions[i] = puzzleTile.GetPosition();
+        }
+        return allPositions;
+    }
+
+
+    public void SetAllPositions(Vector3[] newPositions)
+    {
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform tileChild = transform.GetChild(i);
+            PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
+            puzzleTile.SetPosition(newPositions[i]);
+        }
+    }
 
     /// <summary>
     /// Deactivates all the colliders to prevent moving the tiles.
