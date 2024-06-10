@@ -7,6 +7,7 @@ public class ConnectionTestManager : MonoBehaviour
 {
     [SerializeField] private string serverUrl;
     [SerializeField] private GameObject connectionErrorScreen;
+    [SerializeField] private float testingFrequency;
 
     private static ConnectionTestManager instance;
 
@@ -33,7 +34,7 @@ public class ConnectionTestManager : MonoBehaviour
         TestConnection();
 
         // Repeats the connection test every 5 seconds
-        InvokeRepeating(nameof(TestConnection), 5f, 5f);
+        InvokeRepeating(nameof(TestConnection), testingFrequency, testingFrequency);
     }
 
     public void TestConnection()

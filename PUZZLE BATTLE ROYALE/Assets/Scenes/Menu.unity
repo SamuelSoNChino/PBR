@@ -1585,6 +1585,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverUrl: samuelsonchino.eu.pythonanywhere.com
   connectionErrorScreen: {fileID: 1330371886}
+  testingFrequency: 60
 --- !u!224 &1912289976
 RectTransform:
   m_ObjectHideFlags: 0
