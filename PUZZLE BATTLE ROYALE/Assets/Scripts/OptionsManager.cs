@@ -12,12 +12,12 @@ public class OptionsManager : MonoBehaviour
     /// <summary>
     /// The text object displaying the number of tiles.
     /// </summary>
-    [SerializeField] GameObject text;
+    [SerializeField] private GameObject text;
 
     /// <summary>
     /// The slider object for selecting the number of tiles.
     /// </summary>
-    [SerializeField] GameObject slider;
+    [SerializeField] private GameObject slider;
 
     /// <summary>
     /// Initializes the slider value and updates the slider text to the last saved state.
