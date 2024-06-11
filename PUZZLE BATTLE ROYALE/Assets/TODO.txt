@@ -1,8 +1,7 @@
 PEEK FUNKCIA:
-- Pri peekovani bude jeden hrac posielat rpc s udajmi o poziciach
-- Pri konci peekovania sa nastavia zas povodne pozicie
-- Vyries snapovanie na grid pri peeku
+- Vyries vzajomne peekovanie
 - Vyries koniec hry pri peeku
+- Cooldown 
 
 MULTIPLAYER:
 - Daj pri rematchi vediet druhemu hracovi, ze si odisiel
@@ -17,6 +16,7 @@ SELECTED TILES:
 
 OTHER:
 - Pridaj SnapToGrid do Move funkcie 
+- Nech vsetko prechadza cez server, aby sa zabranilo cheatingu
 - Powers
 - Novy typ obrazkov
 - Graficke zveladenie
