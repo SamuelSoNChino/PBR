@@ -3,7 +3,7 @@ using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
 
-public class PeekManager : MonoBehaviour
+public class PeekManager : NetworkBehaviour
 {
     [SerializeField] private TilesManager tilesManager;
 
@@ -20,7 +20,7 @@ public class PeekManager : MonoBehaviour
         RequestPeekServerRpc(NetworkManager.Singleton.LocalClientId);
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server)]
     private void RequestPeekServerRpc(ulong sentRequestingClientId)
     {
         if (!NetworkManager.Singleton.IsServer)
@@ -58,7 +58,7 @@ public class PeekManager : MonoBehaviour
         targetedClientId = 0;
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void StartSendingPositionClientRpc(ulong clientId)
     {
         Debug.Log($"[Client] Targeted client: {clientId}");
@@ -70,7 +70,7 @@ public class PeekManager : MonoBehaviour
         }
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void StopSendingPositionsPeriodicallyClientRpc(ulong clientId)
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
@@ -80,7 +80,7 @@ public class PeekManager : MonoBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server)]
     private void SendPositionsServerRpc(Vector3[] positions)
     {
         if (!NetworkManager.Singleton.IsServer)
@@ -93,7 +93,7 @@ public class PeekManager : MonoBehaviour
         SendPositionsClientRpc(requestingClientId, positions);
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void SendPositionsClientRpc(ulong clientId, Vector3[] positions)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
@@ -103,7 +103,7 @@ public class PeekManager : MonoBehaviour
         }
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void RestoreOriginalPuzzleClientRpc(ulong clientId)
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
