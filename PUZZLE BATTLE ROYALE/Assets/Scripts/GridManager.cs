@@ -6,6 +6,10 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class GridManager : MonoBehaviour
 {
+
+    [SerializeField] private SingleplayerManager singleplayerManager;
+    [SerializeField] private MultiplayerManager multiplayerManager;
+
     /// <summary>
     /// Checks whether all the puzzle tiles are placed correctly using each grid tile's status. Ends the game if yes.
     /// </summary>
@@ -32,13 +36,13 @@ public class GridManager : MonoBehaviour
         if (allCorrect)
         {
             // Checks if the the player is currently playign singleplayer or multiplayer and calls the correct EndGame method.
-            if (SceneManager.GetActiveScene().name == "PuzzleMultiplayer")
+            if (singleplayerManager != null)
             {
-                GameObject.Find("Puzzle").GetComponent<MultiplayerManager>().EndGame();
+                singleplayerManager.EndGame();
             }
             else
             {
-                GameObject.Find("Puzzle").GetComponent<SingleplayerManager>().EndGame();
+                multiplayerManager.EndGame();
             }
 
         }
