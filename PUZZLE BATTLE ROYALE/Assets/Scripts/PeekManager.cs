@@ -1,126 +1,177 @@
 using System.Collections;
+using TMPro;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PeekManager : NetworkBehaviour
 {
     [SerializeField] private TilesManager tilesManager;
+    [SerializeField] private Button peekButton;
+    [SerializeField] private Button stopButton;
+    [SerializeField] private TextMeshProUGUI peekTimer;
+    [SerializeField] private GameObject peekIndicator;
+    [SerializeField] private float peekLenght;
 
     private Vector3[] originalPositions;
-    private ulong targetedClientId = 0;
-    private ulong requestingClientId = 0;
-    private bool sendPositionsPeriodically;
+    private float timeRemaining;
+    private bool timerRunning;
+
+
+    private bool sendingPuzzle;
+
+
+    private ulong targetClientId = 0;
+    private ulong userClientId = 0;
 
     public void Peek()
     {
-        originalPositions = tilesManager.GetAllPositions();
-        tilesManager.DisableAllColliders();
         Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting peek.");
-        RequestPeekServerRpc(NetworkManager.Singleton.LocalClientId);
+        RequestPeekRpc(NetworkManager.Singleton.LocalClientId);
+    }
+
+    public void StopPeeking()
+    {
+        RequestStopPeekingRpc(NetworkManager.Singleton.LocalClientId);
     }
 
     [Rpc(SendTo.Server)]
-    private void RequestPeekServerRpc(ulong sentRequestingClientId)
+    private void RequestStopPeekingRpc(ulong sentUserClientId)
     {
-        if (!NetworkManager.Singleton.IsServer)
+        if (sentUserClientId == userClientId)
         {
-            Debug.LogError("[Server] Error: This method should only run on the server.");
-            return;
+            StopCoroutine(PeekServerRoutine());
+
+            StopPeekRoutineTargetRpc(targetClientId);
+            StopPeekRoutineUserRpc(userClientId);
+
+            userClientId = 0;
+            targetClientId = 0;
         }
 
-        requestingClientId = sentRequestingClientId;
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestPeekRpc(ulong sentUserClientId)
+    {
+        userClientId = sentUserClientId;
         Debug.Log($"[Server] Connected clients: {string.Join(", ", NetworkManager.Singleton.ConnectedClientsIds)}");
 
         foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            if (clientId != requestingClientId)
+            if (clientId != userClientId)
             {
-                targetedClientId = clientId;
+                targetClientId = clientId;
                 break;
             }
         }
 
-        Debug.Log($"[Server] Client: {requestingClientId} has requested to use Peek on {targetedClientId}.");
-        StartCoroutine(StartPeekTimer());
+        Debug.Log($"[Server] Client: {userClientId} has requested to use Peek on {targetClientId}.");
+        StartCoroutine(PeekServerRoutine());
     }
 
-    private IEnumerator StartPeekTimer()
+    private IEnumerator PeekServerRoutine()
     {
-        Debug.Log("[Server] Requesting targeted client to periodically send positions.");
-        StartSendingPositionClientRpc(targetedClientId);
-        yield return new WaitForSeconds(5);
+        StartPeekRoutineUserRpc(userClientId);
+        StartPeekRoutineTargetRpc(targetClientId);
 
+        yield return new WaitForSeconds(peekLenght);
         Debug.Log("[Server] The peek timer has ended. Requesting to stop sending positions periodically and restore original puzzle.");
-        StopSendingPositionsPeriodicallyClientRpc(targetedClientId);
-        RestoreOriginalPuzzleClientRpc(requestingClientId);
-        requestingClientId = 0;
-        targetedClientId = 0;
+
+        StopPeekRoutineTargetRpc(targetClientId);
+        StopPeekRoutineUserRpc(userClientId);
+
+        userClientId = 0;
+        targetClientId = 0;
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void StartSendingPositionClientRpc(ulong clientId)
+    private void StartPeekRoutineUserRpc(ulong clientId)
     {
-        Debug.Log($"[Client] Targeted client: {clientId}");
-        Debug.Log($"[Client] Local client: {NetworkManager.Singleton.LocalClientId}");
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
-            Debug.Log("[Client] Starting to send positions periodically.");
-            sendPositionsPeriodically = true;
+            peekButton.gameObject.SetActive(false);
+            stopButton.gameObject.SetActive(true);
+
+            timerRunning = true;
+            timeRemaining = peekLenght;
+            peekTimer.gameObject.SetActive(true);
+
+            originalPositions = tilesManager.GetAllPositions();
+            tilesManager.DisableAllColliders();
         }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void StopSendingPositionsPeriodicallyClientRpc(ulong clientId)
+    private void StopPeekRoutineUserRpc(ulong clientId)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            peekButton.gameObject.SetActive(true); // Implement cooldown instead
+            stopButton.gameObject.SetActive(false);
+
+            timerRunning = false;
+            peekTimer.gameObject.SetActive(false);
+
+            Debug.Log("[Client] Restoring original puzzle.");
+            tilesManager.SetAllPositions(originalPositions);
+            originalPositions = null;
+            tilesManager.EnableAllColliders();
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void StartPeekRoutineTargetRpc(ulong clientId)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            Debug.Log("[Client] Starting to send positions periodically.");
+            sendingPuzzle = true;
+            peekIndicator.SetActive(true);
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void StopPeekRoutineTargetRpc(ulong clientId)
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
             Debug.Log("[Client] Stopping to send positions periodically.");
-            sendPositionsPeriodically = false;
+            sendingPuzzle = false;
+            peekIndicator.SetActive(false);
         }
     }
 
     [Rpc(SendTo.Server)]
-    private void SendPositionsServerRpc(Vector3[] positions)
+    private void SendPuzzleToServerRpc(Vector3[] positions)
     {
-        if (!NetworkManager.Singleton.IsServer)
-        {
-            Debug.LogError("[Server] Error: This method should only run on the server.");
-            return;
-        }
-
-        Debug.Log("[Server] Server received positions from the client.");
-        SendPositionsClientRpc(requestingClientId, positions);
+        SendPuzzleToClientRpc(userClientId, positions);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void SendPositionsClientRpc(ulong clientId, Vector3[] positions)
+    private void SendPuzzleToClientRpc(ulong clientId, Vector3[] positions)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            Debug.Log("[Client] Client received positions from the server.");
-            tilesManager.SetAllPositions(positions);
-        }
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void RestoreOriginalPuzzleClientRpc(ulong clientId)
-    {
-        if (NetworkManager.Singleton.LocalClientId == clientId)
-        {
-            Debug.Log("[Client] Restoring original puzzle.");
-            tilesManager.SetAllPositions(originalPositions);
-            tilesManager.EnableAllColliders();
-            originalPositions = null;
+            // To avoid sending the position after it has stopped
+            if (originalPositions != null)
+            {
+                tilesManager.SetAllPositions(positions);
+            }
         }
     }
 
     private void Update()
     {
-        if (sendPositionsPeriodically)
+        if (sendingPuzzle)
         {
-            Debug.Log("[Client] Sending positions to the server.");
-            SendPositionsServerRpc(tilesManager.GetAllPositions());
+            SendPuzzleToServerRpc(tilesManager.GetAllPositions());
+        }
+        if (timerRunning)
+        {
+            timeRemaining -= Time.deltaTime;
+            peekTimer.text = $"{(int)timeRemaining}";
         }
     }
 }
