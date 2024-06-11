@@ -9,60 +9,62 @@ public class TilesManager : MonoBehaviour
     /// Indicates whether any tile is currently being dragged (moved).
     /// </summary>
     private bool anyTileDragging = false;
+
     /// <summary>
     /// Top right bound of the area where tiles can be shuffled.
     /// </summary>
     [SerializeField] private Vector3 topRightShuffleBound;
+
     /// <summary>
     /// Bottom left bound of the area where tiles can be shuffled.
     /// </summary>
     [SerializeField] private Vector3 bottomLeftShuffleBound;
+
     /// <summary>
     /// The size of the whole puzzle image.
     /// </summary>
     [SerializeField] private int puzzleSize;
 
     /// <summary>
-    /// Shuffles all tiles randomly on the area specified by ShuffleBounds and
-    /// also shuffles their z values by randomly moving tile to the front.
+    /// Shuffles all tiles randomly within the shuffle bounds and also shuffles their z-values.
     /// </summary>
+    /// <param name="seed">Optional seed for random number generation.</param>
     public void ShuffleAllTiles(int seed = 0)
     {
-        // If the seed was set during the call, initializates the rng state to the seed
+        // If the seed was set during the call, initialize the RNG state to the seed
         if (seed != 0)
         {
             Random.InitState(seed);
         }
 
-
-        // Calculates approxmate size of a single tile
+        // Calculate approximate size of a single tile
         int tileSize = puzzleSize / PlayerPrefs.GetInt("numberOfTiles");
 
-        // Calculates possible x values for the tiles 
+        // Calculate possible x values for the tiles 
         float minX = bottomLeftShuffleBound.x;
         float maxX = topRightShuffleBound.x - tileSize;
 
-        // Calculates possible y values for the tiles 
+        // Calculate possible y values for the tiles 
         float minY = bottomLeftShuffleBound.y;
         float maxY = topRightShuffleBound.y - tileSize;
 
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
             PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
 
-            // Randolmy generates x and y values in the shuffle area, z can be set to 0 since puzzleTile.Move ignores Z values
+            // Randomly generate x and y values in the shuffle area, z can be set to 0 since puzzleTile.Move ignores Z values
             Vector3 newPosition = new(Random.Range(minX, maxX), Random.Range(minY, maxY), 0);
 
-            // Moves to tile to the new position
+            // Move the tile to the new position
             puzzleTile.Move(newPosition);
         }
 
         // Repeat the random MoveToFront for the number of puzzle tiles
         for (int _ = 0; _ < transform.childCount; _++)
         {
-            // Randomly chooses a puzzle tile and moves it to the front
+            // Randomly choose a puzzle tile and move it to the front
             int childIndex = Random.Range(0, transform.childCount);
             Transform child = transform.GetChild(childIndex);
             PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
@@ -75,12 +77,13 @@ public class TilesManager : MonoBehaviour
     /// </summary>
     public void MoveSelectedToMouse()
     {
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
             PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
-            // Moves each selected tile to the mouse position
+
+            // Move each selected tile to the mouse position
             if (puzzleTile.IsSelected())
             {
                 Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -95,7 +98,7 @@ public class TilesManager : MonoBehaviour
     /// </summary>
     public void DeselectAllTiles()
     {
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
@@ -108,7 +111,7 @@ public class TilesManager : MonoBehaviour
     /// </summary>
     public void CalculateAllMouseOffsets()
     {
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
@@ -121,12 +124,13 @@ public class TilesManager : MonoBehaviour
     /// </summary>
     public void SnapSelectedToGrid()
     {
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform tileChild = transform.GetChild(i);
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
-            // Snaps each selected tile to the grid
+
+            // Snap each selected tile to the grid
             if (puzzleTile.IsSelected())
             {
                 puzzleTile.SnapToGrid();
@@ -157,10 +161,10 @@ public class TilesManager : MonoBehaviour
     /// </summary>
     public void DisableAllColliders()
     {
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
-            // Disables the collider
+            // Disable the collider
             Transform tileChild = transform.GetChild(i);
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
             puzzleTile.DisableCollider();
@@ -172,22 +176,29 @@ public class TilesManager : MonoBehaviour
     /// </summary>
     public void EnableAllColliders()
     {
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
-            // Enables the collider
+            // Enable the collider
             Transform tileChild = transform.GetChild(i);
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
             puzzleTile.EnableCollider();
         }
     }
 
-
+    /// <summary>
+    /// Gets the positions of all puzzle tiles.
+    /// </summary>
+    /// <returns>An array of positions for all puzzle tiles.</returns>
     public Vector3[] GetAllPositions()
     {
+        // Prepare an array for storing all the positions 
         Vector3[] allPositions = new Vector3[transform.childCount];
+
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
+            // Save the position of the puzzle tile to the array
             Transform tileChild = transform.GetChild(i);
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
             allPositions[i] = puzzleTile.GetPosition();
@@ -195,11 +206,16 @@ public class TilesManager : MonoBehaviour
         return allPositions;
     }
 
-
+    /// <summary>
+    /// Sets the positions of all puzzle tiles.
+    /// </summary>
+    /// <param name="newPositions">An array of new positions for all puzzle tiles.</param>
     public void SetAllPositions(Vector3[] newPositions)
     {
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
+            // Set a new position for the puzzle tile from the newPositions array
             Transform tileChild = transform.GetChild(i);
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
             puzzleTile.SetPosition(newPositions[i]);
@@ -207,14 +223,14 @@ public class TilesManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Deactivates all the colliders to prevent moving the tiles.
+    /// Destroys all puzzle tiles.
     /// </summary>
     public void DestroyAllTiles()
     {
-        // Iterates through each puzzle tile
+        // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
         {
-            // Destroys the child
+            // Destroy the child
             Destroy(transform.GetChild(i).gameObject);
         }
     }
