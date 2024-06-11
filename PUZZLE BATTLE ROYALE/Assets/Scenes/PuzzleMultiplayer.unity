@@ -533,6 +533,79 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &368472930
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 368472933}
+  - component: {fileID: 368472931}
+  - component: {fileID: 368472932}
+  m_Layer: 0
+  m_Name: MultiplayerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &368472931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368472930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3237066758
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &368472932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368472930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d4e63fcfe2a02e44b445d4e9a6b9104, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serverUrl: samuelsonchino.eu.pythonanywhere.com
+  puzzleGenerator: {fileID: 637174946}
+  tilesManager: {fileID: 1557589168}
+  gridManager: {fileID: 1323705366}
+  startScreenManagerMultiplayer: {fileID: 557488104}
+  endScreenManagerMultiplayer: {fileID: 798844538}
+  panZoom: {fileID: 1619521031}
+--- !u!4 &368472933
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368472930}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 556.9909, y: 976.81146, z: 1.7491627}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &421840581
 GameObject:
   m_ObjectHideFlags: 0
@@ -750,7 +823,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 637174950}
+      - m_Target: {fileID: 368472932}
         m_TargetAssemblyTypeName: MultiplayerManager, Assembly-CSharp
         m_MethodName: CancelMatchmaking
         m_Mode: 1
@@ -980,8 +1053,6 @@ GameObject:
   m_Component:
   - component: {fileID: 637174947}
   - component: {fileID: 637174946}
-  - component: {fileID: 637174951}
-  - component: {fileID: 637174950}
   m_Layer: 0
   m_Name: Puzzle
   m_TagString: Puzzle
@@ -1022,46 +1093,6 @@ Transform:
   - {fileID: 1323705367}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &637174950
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 637174944}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d4e63fcfe2a02e44b445d4e9a6b9104, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  serverUrl: samuelsonchino.eu.pythonanywhere.com
-  puzzleGenerator: {fileID: 637174946}
-  tilesManager: {fileID: 1557589168}
-  gridManager: {fileID: 1323705366}
-  startScreenManagerMultiplayer: {fileID: 557488104}
-  endScreenManagerMultiplayer: {fileID: 798844538}
-  panZoom: {fileID: 1619521031}
---- !u!114 &637174951
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 637174944}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2046520123
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
 --- !u!1 &687035827
 GameObject:
   m_ObjectHideFlags: 0
@@ -1226,7 +1257,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   winningScreen: {fileID: 837136214}
   losingScreen: {fileID: 601091127}
-  multiplayerManager: {fileID: 637174950}
+  multiplayerManager: {fileID: 368472932}
 --- !u!4 &798844539
 Transform:
   m_ObjectHideFlags: 0
@@ -2283,6 +2314,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5257ddbb64cdcb42b1c8353e2f75177, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  singleplayerManager: {fileID: 0}
+  multiplayerManager: {fileID: 368472932}
 --- !u!4 &1323705367
 Transform:
   m_ObjectHideFlags: 0
@@ -3180,6 +3213,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1840344304}
+  - component: {fileID: 1840344305}
   - component: {fileID: 1840344303}
   m_Layer: 0
   m_Name: PeekManager
@@ -3216,6 +3250,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1840344305
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1840344302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2850290379
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1951931035
 GameObject:
   m_ObjectHideFlags: 0
@@ -3358,6 +3413,7 @@ SceneRoots:
   - {fileID: 1619521034}
   - {fileID: 637174947}
   - {fileID: 166548353}
+  - {fileID: 368472933}
   - {fileID: 1840344304}
   - {fileID: 798844539}
   - {fileID: 1680857454}
