@@ -340,7 +340,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// <summary>
     /// Sends an RPC to all clients to start the game.
     /// </summary>
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void StartGameClientRpc()
     {
         // Starts a coroutine for a new game
@@ -388,7 +388,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// Sends a server RPC to request a rematch.
     /// </summary>
     /// <param name="clientId">The ID of the client requesting the rematch.</param>
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server)]
     public void RequestRematchServerRpc(ulong clientId)
     {
         // Sends a request for a rematch to all clients
@@ -399,7 +399,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// Sends a client RPC to notify other clients of the rematch request.
     /// </summary>
     /// <param name="clientId">The ID of the client requesting the rematch.</param>
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void RequestRematchClientRpc(ulong clientId)
     {
         // Triggers only for other player than the one that sent the rematch request to the server
@@ -413,7 +413,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// <summary>
     /// Sends a server RPC to accept the rematch request.
     /// </summary>
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server)]
     public void AcceptRematchServerRpc()
     {
         // Starts the coroutine for the server to set up the rematch
@@ -462,7 +462,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// Sends a client RPC to set the new seed on the clients.
     /// </summary>
     /// <param name="newSeed">The new seed value.</param>
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void SetNewSeedClientRpc(int newSeed)
     {
         // Sets the new seed
@@ -473,7 +473,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// <summary>
     /// Sends a client RPC to start the rematch on the clients.
     /// </summary>
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     public void StartRematchClientRpc()
     {
         // Starts the coroutine for a rematch for all clients
@@ -529,7 +529,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// Sends a server RPC to notify that the game is over.
     /// </summary>
     /// <param name="clientId">The ID of the client that completed the puzzle.</param>
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server)]
     private void NotifyServerGameOverServerRpc(ulong clientId)
     {
         // Informs all other players that the game is over, sending them the ID of the winning player
@@ -541,7 +541,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// Sends a client RPC to notify clients that the game is over and handle the end screen.
     /// </summary>
     /// <param name="winningClientId">The ID of the winning client.</param>
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void NotifyClientsGameOverClientRpc(ulong winningClientId)
     {
         // Disables all touch input and tile manipulation
