@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using Unity.Netcode.Components;
@@ -14,16 +15,18 @@ public class PeekManager : NetworkBehaviour
     [SerializeField] private GameObject peekIndicator;
     [SerializeField] private float peekLenght;
 
+    // Peek user fields
+    private bool isPeeking = false;
     private Vector3[] originalPositions;
     private float timeRemaining;
-    private bool timerRunning;
 
+    // Peek target fields
+    private bool isBeingPeeked;
 
-    private bool sendingPuzzle;
-
-
-    private ulong targetClientId = 0;
-    private ulong userClientId = 0;
+    // ServerFields
+    private List<ulong> targetClientIds = new();
+    private List<ulong> userClientIds = new();
+    private List<Coroutine> runningPeekCoroutines = new();
 
     public void Peek()
     {
@@ -31,47 +34,62 @@ public class PeekManager : NetworkBehaviour
         RequestPeekRpc(NetworkManager.Singleton.LocalClientId);
     }
 
+    [Rpc(SendTo.Server)]
+    private void RequestPeekRpc(ulong userClientId)
+    {
+        if (!userClientIds.Contains(userClientId))
+        {
+            ulong targetClientId = 0;
+
+            // Temporary solution, later the player will be able to choose
+            foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            {
+                if (clientId != userClientId)
+                {
+                    targetClientId = clientId;
+                    break;
+                }
+            }
+
+            Debug.Log($"[Server] Client: {userClientId} has requested to use Peek on {targetClientId}.");
+            userClientIds.Add(userClientId);
+            targetClientIds.Add(targetClientId);
+
+            Coroutine coroutine = StartCoroutine(PeekServerRoutine(userClientId, targetClientId));
+            runningPeekCoroutines.Add(coroutine);
+        }
+
+    }
+
+
     public void StopPeeking()
     {
         RequestStopPeekingRpc(NetworkManager.Singleton.LocalClientId);
     }
 
     [Rpc(SendTo.Server)]
-    private void RequestStopPeekingRpc(ulong sentUserClientId)
+    private void RequestStopPeekingRpc(ulong userClientId)
     {
-        if (sentUserClientId == userClientId)
+        if (userClientIds.Contains(userClientId))
         {
-            StopCoroutine(PeekServerRoutine());
+            int peekSessionIndex = userClientIds.IndexOf(userClientId);
 
+            ulong targetClientId = targetClientIds[peekSessionIndex];
+            Coroutine peekCoroutine = runningPeekCoroutines[peekSessionIndex];
+
+            StopCoroutine(peekCoroutine);
             StopPeekRoutineTargetRpc(targetClientId);
             StopPeekRoutineUserRpc(userClientId);
 
-            userClientId = 0;
-            targetClientId = 0;
+            runningPeekCoroutines.RemoveAt(peekSessionIndex);
+            userClientIds.RemoveAt(peekSessionIndex);
+            targetClientIds.RemoveAt(peekSessionIndex);
         }
 
     }
 
-    [Rpc(SendTo.Server)]
-    private void RequestPeekRpc(ulong sentUserClientId)
-    {
-        userClientId = sentUserClientId;
-        Debug.Log($"[Server] Connected clients: {string.Join(", ", NetworkManager.Singleton.ConnectedClientsIds)}");
 
-        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
-        {
-            if (clientId != userClientId)
-            {
-                targetClientId = clientId;
-                break;
-            }
-        }
-
-        Debug.Log($"[Server] Client: {userClientId} has requested to use Peek on {targetClientId}.");
-        StartCoroutine(PeekServerRoutine());
-    }
-
-    private IEnumerator PeekServerRoutine()
+    private IEnumerator PeekServerRoutine(ulong userClientId, ulong targetClientId)
     {
         StartPeekRoutineUserRpc(userClientId);
         StartPeekRoutineTargetRpc(targetClientId);
@@ -82,8 +100,11 @@ public class PeekManager : NetworkBehaviour
         StopPeekRoutineTargetRpc(targetClientId);
         StopPeekRoutineUserRpc(userClientId);
 
-        userClientId = 0;
-        targetClientId = 0;
+        int peekSessionIndex = userClientIds.IndexOf(userClientId);
+
+        runningPeekCoroutines.RemoveAt(peekSessionIndex);
+        userClientIds.RemoveAt(peekSessionIndex);
+        targetClientIds.RemoveAt(peekSessionIndex);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -91,10 +112,11 @@ public class PeekManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
+            isPeeking = true;
+
             peekButton.gameObject.SetActive(false);
             stopButton.gameObject.SetActive(true);
 
-            timerRunning = true;
             timeRemaining = peekLenght;
             peekTimer.gameObject.SetActive(true);
 
@@ -108,10 +130,10 @@ public class PeekManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
+            isPeeking = false;
+
             peekButton.gameObject.SetActive(true); // Implement cooldown instead
             stopButton.gameObject.SetActive(false);
-
-            timerRunning = false;
             peekTimer.gameObject.SetActive(false);
 
             Debug.Log("[Client] Restoring original puzzle.");
@@ -126,8 +148,9 @@ public class PeekManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
+            isBeingPeeked = true;
+
             Debug.Log("[Client] Starting to send positions periodically.");
-            sendingPuzzle = true;
             peekIndicator.SetActive(true);
         }
     }
@@ -137,15 +160,19 @@ public class PeekManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
+            isBeingPeeked = false;
+
             Debug.Log("[Client] Stopping to send positions periodically.");
-            sendingPuzzle = false;
             peekIndicator.SetActive(false);
         }
     }
 
     [Rpc(SendTo.Server)]
-    private void SendPuzzleToServerRpc(Vector3[] positions)
+    private void SendPuzzleToServerRpc(ulong targetClientId, Vector3[] positions)
     {
+        int peekSessionIndex = targetClientIds.IndexOf(targetClientId);
+        ulong userClientId = userClientIds[peekSessionIndex];
+
         SendPuzzleToClientRpc(userClientId, positions);
     }
 
@@ -164,11 +191,11 @@ public class PeekManager : NetworkBehaviour
 
     private void Update()
     {
-        if (sendingPuzzle)
+        if (isBeingPeeked)
         {
-            SendPuzzleToServerRpc(tilesManager.GetAllPositions());
+            SendPuzzleToServerRpc(NetworkManager.Singleton.LocalClientId, tilesManager.GetAllPositions());
         }
-        if (timerRunning)
+        if (isPeeking)
         {
             timeRemaining -= Time.deltaTime;
             peekTimer.text = $"{(int)timeRemaining}";

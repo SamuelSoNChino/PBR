@@ -16,7 +16,7 @@ SELECTED TILES:
 
 OTHER:
 - Pridaj SnapToGrid do Move funkcie 
-- Nech vsetko prechadza cez server, aby sa zabranilo cheatingu
+- Nech vsetko prechadza cez server, aby sa zabranilo cheatingu (pohybovanie tiles etc.)
 - Powers
 - Novy typ obrazkov
 - Graficke zveladenie
