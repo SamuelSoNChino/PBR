@@ -195,6 +195,7 @@ public class PeekManager : NetworkBehaviour
         {
             SendPuzzleToServerRpc(NetworkManager.Singleton.LocalClientId, tilesManager.GetAllPositions());
         }
+
         if (isPeeking)
         {
             timeRemaining -= Time.deltaTime;

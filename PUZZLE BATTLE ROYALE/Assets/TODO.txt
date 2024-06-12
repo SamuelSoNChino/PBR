@@ -1,4 +1,7 @@
-PEEK FUNKCIA:
+NOVE MENU: (DIVI)
+- 
+
+PEEK FUNKCIA: (SAMO)
 - Vyries vzajomne peekovanie
 - Vyries koniec hry pri peeku
 - Cooldown 

@@ -1747,7 +1747,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 561899648}
         m_TargetAssemblyTypeName: SingleplayerManager, Assembly-CSharp
         m_MethodName: BackToMenu
         m_Mode: 1
