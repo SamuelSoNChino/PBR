@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -34,11 +35,11 @@ public class TilesManager : MonoBehaviour
         // If the seed was set during the call, initialize the RNG state to the seed
         if (seed != 0)
         {
-            Random.InitState(seed);
+            UnityEngine.Random.InitState(seed);
         }
 
         // Calculate approximate size of a single tile
-        int tileSize = puzzleSize / PlayerPrefs.GetInt("numberOfTiles");
+        int tileSize = puzzleSize / (int)Math.Sqrt(transform.childCount);
 
         // Calculate possible x values for the tiles 
         float minX = bottomLeftShuffleBound.x;
@@ -55,7 +56,7 @@ public class TilesManager : MonoBehaviour
             PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
 
             // Randomly generate x and y values in the shuffle area, z can be set to 0 since puzzleTile.Move ignores Z values
-            Vector3 newPosition = new(Random.Range(minX, maxX), Random.Range(minY, maxY), 0);
+            Vector3 newPosition = new(UnityEngine.Random.Range(minX, maxX), UnityEngine.Random.Range(minY, maxY), 0);
 
             // Move the tile to the new position
             puzzleTile.Move(newPosition);
@@ -65,7 +66,7 @@ public class TilesManager : MonoBehaviour
         for (int _ = 0; _ < transform.childCount; _++)
         {
             // Randomly choose a puzzle tile and move it to the front
-            int childIndex = Random.Range(0, transform.childCount);
+            int childIndex = UnityEngine.Random.Range(0, transform.childCount);
             Transform child = transform.GetChild(childIndex);
             PuzzleTile puzzleTile = child.GetComponent<PuzzleTile>();
             puzzleTile.MoveToFront();
@@ -120,9 +121,9 @@ public class TilesManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Snaps all selected tiles to the grid.
+    /// Snaps all tiles to the grid.
     /// </summary>
-    public void SnapSelectedToGrid()
+    public void SnapAllToGrid()
     {
         // Iterate through each puzzle tile
         for (int i = 0; i < transform.childCount; i++)
@@ -130,11 +131,9 @@ public class TilesManager : MonoBehaviour
             Transform tileChild = transform.GetChild(i);
             PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
 
-            // Snap each selected tile to the grid
-            if (puzzleTile.IsSelected())
-            {
-                puzzleTile.SnapToGrid();
-            }
+            // Snap each tile to the grid
+            puzzleTile.SnapToGrid();
+
         }
     }
 
