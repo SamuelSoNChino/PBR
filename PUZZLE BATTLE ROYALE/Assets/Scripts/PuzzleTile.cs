@@ -330,7 +330,7 @@ public class PuzzleTile : MonoBehaviour
             // Snaps all selected
             if (isSelected)
             {
-                tilesManager.SnapSelectedToGrid();
+                tilesManager.SnapAllToGrid();
             }
             // If wasn't selected snaps itself to grid
             else
