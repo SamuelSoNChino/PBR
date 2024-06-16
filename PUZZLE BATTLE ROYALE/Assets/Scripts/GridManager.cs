@@ -9,6 +9,7 @@ public class GridManager : MonoBehaviour
 
     [SerializeField] private SingleplayerManager singleplayerManager;
     [SerializeField] private MultiplayerManager multiplayerManager;
+    [SerializeField] private PeekManager peekManager;
 
     /// <summary>
     /// Checks whether all the puzzle tiles are placed correctly using each grid tile's status. Ends the game if yes.
@@ -40,7 +41,7 @@ public class GridManager : MonoBehaviour
             {
                 singleplayerManager.EndGame();
             }
-            else
+            else if (peekManager.GetPeekingStatus())
             {
                 multiplayerManager.EndGame();
             }
