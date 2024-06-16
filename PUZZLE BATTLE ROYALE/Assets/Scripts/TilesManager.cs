@@ -138,6 +138,23 @@ public class TilesManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Unsnaps all tiles from the grid.
+    /// </summary>
+    public void UnsnapAllFromGrid()
+    {
+        // Iterate through each puzzle tile
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform tileChild = transform.GetChild(i);
+            PuzzleTile puzzleTile = tileChild.GetComponent<PuzzleTile>();
+
+            // Unsnaps each tile to the grid
+            puzzleTile.UnsnapFromGrid();
+
+        }
+    }
+
+    /// <summary>
     /// Checks if any tile is currently being dragged.
     /// </summary>
     /// <returns>True if any tile is being dragged, false otherwise.</returns>
