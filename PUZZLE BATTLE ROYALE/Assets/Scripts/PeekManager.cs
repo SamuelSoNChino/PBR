@@ -16,14 +16,12 @@ public class PeekManager : NetworkBehaviour
     [SerializeField] private GameObject peekIndicator;
     [SerializeField] private GameObject peekIndicatorDanger;
 
-    // Peek user fields
-    private bool isPeeking = false;
-    private bool canMove = false;
 
-    // Peek target fields
+    private bool isPeeking = false;
+    private bool targetPeeking = false;
     private bool isBeingPeeked = false;
 
-    // ServerFields
+
     private List<ulong> targetClientIds = new();
     private List<ulong> userClientIds = new();
     private List<Vector3[]> originalPositions = new();
@@ -33,6 +31,18 @@ public class PeekManager : NetworkBehaviour
         Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting peek.");
         RequestPeekRpc(NetworkManager.Singleton.LocalClientId, tilesManager.GetAllPositions());
     }
+
+    public void StopPeeking()
+    {
+        Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting to stop peeking.");
+        RequestStopPeekingRpc(NetworkManager.Singleton.LocalClientId);
+    }
+
+    public bool GetPeekingStatus()
+    {
+        return isPeeking;
+    }
+
 
     [Rpc(SendTo.Server)]
     private void RequestPeekRpc(ulong userClientId, Vector3[] userOriginalPositions)
@@ -57,86 +67,37 @@ public class PeekManager : NetworkBehaviour
             originalPositions.Add(userOriginalPositions);
             targetClientIds.Add(targetClientId);
 
-            // User logic
+
+            StartPeekRoutineServer(userClientId, targetClientId);
+
             StartPeekRoutineUserRpc(userClientId, targetClientId);
 
-            bool targetAlsoPeeking = userClientIds.Contains(targetClientId);
-            if (targetAlsoPeeking)
-            {
-                Debug.Log($"[Server] Target Client {targetClientId} is also peeking.");
-                int targetPeekSessionIndex = userClientIds.IndexOf(targetClientId);
-                SendPuzzleToClientRpc(userClientId, originalPositions[targetPeekSessionIndex]);
-                EnableAllCollidersRpc(userClientId);
-            }
-            else
-            {
-                DisableAllCollidersRpc(userClientId);
-            }
-
-            bool userBeingPeeked = targetClientIds.Contains(userClientId);
-            if (userBeingPeeked)
-            {
-                Debug.Log($"[Server] User Client {userClientId} is also being peeked.");
-                UpdatePeekIndicatorRpc(userClientId);
-                for (int i = 0; i < targetClientIds.Count; i++)
-                {
-                    if (targetClientIds[1] == userClientId)
-                    {
-                        EnableAllCollidersRpc(userClientIds[i]);
-                    }
-                }
-            }
-
-            // Target logic
             StartPeekRoutineTargetRpc(targetClientId);
-            UpdatePeekIndicatorRpc(targetClientId);
         }
     }
 
-    public void StopPeeking()
+    private void StartPeekRoutineServer(ulong userClientId, ulong targetClientId)
     {
-        Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting to stop peeking.");
-        RequestStopPeekingRpc(NetworkManager.Singleton.LocalClientId);
-    }
-
-    [Rpc(SendTo.Server)]
-    private void RequestStopPeekingRpc(ulong userClientId)
-    {
-        Debug.Log($"[Server] Received stop peek request from Client {userClientId}");
-
-        if (userClientIds.Contains(userClientId))
+        bool targetAlsoPeeking = userClientIds.Contains(targetClientId);
+        if (targetAlsoPeeking)
         {
-            int peekSessionIndex = userClientIds.IndexOf(userClientId);
-            ulong targetClientId = targetClientIds[peekSessionIndex];
+            Debug.Log($"[Server] Target Client {targetClientId} is also peeking.");
+            int targetPeekSessionIndex = userClientIds.IndexOf(targetClientId);
+            SendPuzzleToClientRpc(userClientId, originalPositions[targetPeekSessionIndex]);
+            NotifyTargetIsPeekingRpc(userClientId);
+        }
+        else
+        {
+            NotifyTargetIsNotPeekingRpc(userClientId);
+        }
 
-
-
-            // User logic
-            StopPeekRoutineUserRpc(userClientId, originalPositions[peekSessionIndex]);
-            EnableAllCollidersRpc(userClientId);
-
-            userClientIds.RemoveAt(peekSessionIndex);
-            targetClientIds.RemoveAt(peekSessionIndex);
-            originalPositions.RemoveAt(peekSessionIndex);
-
-            for (int i = 0; i < targetClientIds.Count; i++)
-            {
-                if (userClientId == targetClientIds[i])
-                {
-                    Debug.Log($"[Server] Disabling colliders for Client {targetClientIds[i]}");
-                    DisableAllCollidersRpc(targetClientIds[i]);
-                }
-            }
-
-
-
-            // Target logic
-            if (!targetClientIds.Contains(targetClientId))
-            {
-                Debug.Log($"[Server] Stopping peek routine for Target Client {targetClientId}");
-                StopPeekRoutineTargetRpc(targetClientId);
-                UpdatePeekIndicatorRpc(targetClientId);
-            }
+        bool userBeingPeeked = targetClientIds.Contains(userClientId);
+        if (userBeingPeeked)
+        {
+            Debug.Log($"[Server] User is also being peeked");
+            int peekSessionIndex = targetClientIds.IndexOf(userClientId);
+            ulong peekerClientId = userClientIds[peekSessionIndex];
+            NotifyTargetIsPeekingRpc(peekerClientId);
         }
     }
 
@@ -158,6 +119,52 @@ public class PeekManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
+    private void StartPeekRoutineTargetRpc(ulong clientId)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            Debug.Log($"[Client] Starting peek routine as target.");
+            isBeingPeeked = true;
+        }
+    }
+
+    // ------------------------------------------------------------------------------------------------------------------------
+
+    [Rpc(SendTo.Server)]
+    private void RequestStopPeekingRpc(ulong userClientId)
+    {
+        Debug.Log($"[Server] Received stop peek request from Client {userClientId}");
+
+        if (userClientIds.Contains(userClientId))
+        {
+            int peekSessionIndex = userClientIds.IndexOf(userClientId);
+            ulong targetClientId = targetClientIds[peekSessionIndex];
+
+            StopPeekRoutineServer(userClientId, targetClientId);
+
+            StopPeekRoutineUserRpc(userClientId, originalPositions[peekSessionIndex]);
+
+            StopPeekRoutineTargetRpc(targetClientId);
+
+            userClientIds.RemoveAt(peekSessionIndex);
+            targetClientIds.RemoveAt(peekSessionIndex);
+            originalPositions.RemoveAt(peekSessionIndex);
+        }
+    }
+
+    private void StopPeekRoutineServer(ulong userClientId, ulong targetClientId)
+    {
+        for (int i = 0; i < targetClientIds.Count; i++)
+        {
+            if (userClientId == targetClientIds[i])
+            {
+                Debug.Log($"[Server] Disabling colliders for Client {targetClientIds[i]}");
+                NotifyTargetIsNotPeekingRpc(targetClientIds[i]);
+            }
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
     private void StopPeekRoutineUserRpc(ulong clientId, Vector3[] userOriginalPositions)
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
@@ -169,17 +176,10 @@ public class PeekManager : NetworkBehaviour
             stopButton.gameObject.SetActive(false);
             peekText.gameObject.SetActive(false);
 
+            tilesManager.DeselectAllTiles();
             tilesManager.SetAllPositions(userOriginalPositions);
-        }
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void StartPeekRoutineTargetRpc(ulong clientId)
-    {
-        if (NetworkManager.Singleton.LocalClientId == clientId)
-        {
-            Debug.Log($"[Client] Starting peek routine as target.");
-            isBeingPeeked = true;
+            tilesManager.EnableAllColliders();
+            tilesManager.SnapAllToGrid();
         }
     }
 
@@ -193,65 +193,42 @@ public class PeekManager : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void UpdatePeekIndicatorRpc(ulong clientId)
-    {
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-            Debug.Log($"[Client] Updating peek indicator. Being peeked: {isBeingPeeked}, Is peeking: {isPeeking}");
-
-            if (isBeingPeeked)
-            {
-                if (isPeeking)
-                {
-                    peekIndicatorDanger.SetActive(true);
-                }
-                else
-                {
-                    peekIndicator.SetActive(true);
-                }
-            }
-            else
-            {
-                peekIndicatorDanger.SetActive(false);
-                peekIndicator.SetActive(false);
-            }
-        }
-    }
+    //----------------------------------------------------------------------------------------------------------------------------
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void DisableAllCollidersRpc(ulong clientId)
+    private void NotifyTargetIsNotPeekingRpc(ulong clientId)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             Debug.Log($"[Client] Disabling all colliders.");
             tilesManager.DisableAllColliders();
-            canMove = false;
+            tilesManager.DeselectAllTiles();
+            targetPeeking = false;
+
         }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void EnableAllCollidersRpc(ulong clientId)
+    private void NotifyTargetIsPeekingRpc(ulong clientId)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             Debug.Log($"[Client] Enabling all colliders.");
+            tilesManager.UnsnapAllFromGrid();
             tilesManager.EnableAllColliders();
-            canMove = true;
+            tilesManager.DeselectAllTiles();
+            targetPeeking = true;
         }
     }
 
     [Rpc(SendTo.Server)]
     private void SendPuzzleToServerRpc(ulong targetClientId, Vector3[] positions)
     {
-        Debug.Log($"[Server] Sending puzzle positions to Server from Client {targetClientId}");
-
         for (int i = 0; i < targetClientIds.Count; i++)
         {
             if (targetClientId == targetClientIds[i])
             {
                 ulong userClientId = userClientIds[i];
-                Debug.Log($"[Server] Forwarding puzzle positions to Client {userClientId}");
                 SendPuzzleToClientRpc(userClientId, positions);
             }
         }
@@ -262,16 +239,13 @@ public class PeekManager : NetworkBehaviour
     {
         if (userClientId == NetworkManager.Singleton.LocalClientId)
         {
-            Debug.Log($"[Client] Receiving puzzle positions.");
             tilesManager.SetAllPositions(positions);
-
         }
     }
 
     [Rpc(SendTo.Server)]
     private void UpdateOriginalPositionsServerRpc(ulong clientId, Vector3[] positions)
     {
-        Debug.Log($"[Server] Updating original positions from Client {clientId}");
 
         if (userClientIds.Contains(clientId))
         {
@@ -280,22 +254,44 @@ public class PeekManager : NetworkBehaviour
 
             if (userClientIds.Contains(targetClientId))
             {
-                Debug.Log($"[Server] Forwarding updated original positions to Client {targetClientId}");
-                originalPositions[peekSessionIndex] = positions;
+                int peekerSessionIndex = userClientIds.IndexOf(targetClientId);
+                originalPositions[peekerSessionIndex] = positions;
             }
+        }
+    }
+
+    private void UpdatePeekIndicator()
+    {
+        if (isBeingPeeked)
+        {
+            if (isPeeking)
+            {
+                peekIndicatorDanger.SetActive(true);
+                peekIndicator.SetActive(false);
+            }
+            else
+            {
+                peekIndicator.SetActive(true);
+                peekIndicatorDanger.SetActive(false);
+            }
+        }
+        else
+        {
+            peekIndicatorDanger.SetActive(false);
+            peekIndicator.SetActive(false);
         }
     }
 
     private void Update()
     {
+        UpdatePeekIndicator();
+
         if (isBeingPeeked && !isPeeking)
         {
-            Debug.Log($"[Client] Sending puzzle positions to server. Being peeked and not peeking.");
             SendPuzzleToServerRpc(NetworkManager.Singleton.LocalClientId, tilesManager.GetAllPositions());
         }
-        else if (isPeeking && canMove)
+        else if (isPeeking && targetPeeking)
         {
-            Debug.Log($"[Client] Updating original positions on server. Peeking and can move.");
             UpdateOriginalPositionsServerRpc(NetworkManager.Singleton.LocalClientId, tilesManager.GetAllPositions());
         }
     }

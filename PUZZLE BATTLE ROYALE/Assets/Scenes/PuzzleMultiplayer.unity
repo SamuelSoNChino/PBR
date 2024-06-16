@@ -1502,7 +1502,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0.44474387, g: 0.44474387, b: 0.44474387, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2867,6 +2867,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   singleplayerManager: {fileID: 0}
   multiplayerManager: {fileID: 368472932}
+  peekManager: {fileID: 1840344303}
 --- !u!4 &1323705367
 Transform:
   m_ObjectHideFlags: 0
