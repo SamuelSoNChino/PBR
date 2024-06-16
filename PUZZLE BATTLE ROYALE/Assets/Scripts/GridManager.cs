@@ -41,7 +41,7 @@ public class GridManager : MonoBehaviour
             {
                 singleplayerManager.EndGame();
             }
-            else if (peekManager.GetPeekingStatus())
+            else if (!peekManager.GetPeekingStatus())
             {
                 multiplayerManager.EndGame();
             }
