@@ -114,9 +114,12 @@ public class PuzzleTile : MonoBehaviour
     /// <summary>
     /// Clears the snapped grid tile, setting its status to unoccupied.
     /// </summary>
-    public void ClearSnappedGridTile()
+    public void UnsnapFromGrid()
     {
-        snappedGridTile.SetStatus(0);
+        if (snappedGridTile != null)
+        {
+            snappedGridTile.SetStatus(0);
+        }
         snappedGridTile = null;
     }
 
@@ -153,7 +156,7 @@ public class PuzzleTile : MonoBehaviour
         // Unsnaps itself from the grid tile
         if (snappedGridTile)
         {
-            ClearSnappedGridTile();
+            UnsnapFromGrid();
         }
     }
 
