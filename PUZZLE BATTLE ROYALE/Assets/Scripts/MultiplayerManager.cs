@@ -52,6 +52,11 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private PanZoom panZoom;
 
     /// <summary>
+    /// Number of tiles of the puzzle.
+    /// </summary>    
+    [SerializeField] private int numberOfTiles;
+
+    /// <summary>
     /// Role of the player (HOST or CLIENT) in the multiplayer session.
     /// </summary>
     private string role;
@@ -361,7 +366,7 @@ public class MultiplayerManager : NetworkBehaviour
         StartCoroutine(startScreenManagerMultiplayer.StartCountdown(countdownFinished));
 
         // Sets the number of tiles for puzzle generation, only a temporary solution (2 for debugging)
-        puzzleGenerator.SetNumberOfTiles(2);
+        puzzleGenerator.SetNumberOfTiles(numberOfTiles);
 
         // Request both puzzle and grid images and waits until they are downloaded
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
