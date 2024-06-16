@@ -179,6 +179,7 @@ public class PeekManager : NetworkBehaviour
             tilesManager.DeselectAllTiles();
             tilesManager.SetAllPositions(userOriginalPositions);
             tilesManager.EnableAllColliders();
+            tilesManager.UnsnapAllFromGrid();
             tilesManager.SnapAllToGrid();
         }
     }
