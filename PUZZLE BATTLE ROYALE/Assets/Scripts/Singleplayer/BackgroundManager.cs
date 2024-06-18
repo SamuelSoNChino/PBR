@@ -34,5 +34,10 @@ public class BackgroundManager : NetworkBehaviour
         {
             PlayerPrefs.SetInt("backgroundSkin", 0);
         }
+
+        // Find the selected background and applies it as a sprite to the background object
+        Sprite selectedBackground = backgroundSkins[PlayerPrefs.GetInt("backgroundSkin")];
+        SpriteRenderer backgroundSpriteRenderer = background.GetComponent<SpriteRenderer>();
+        backgroundSpriteRenderer.sprite = selectedBackground;
     }
 }
