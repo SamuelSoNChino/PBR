@@ -9,7 +9,8 @@ using UnityEngine.UI;
 
 public class PeekManager : NetworkBehaviour
 {
-    [SerializeField] private TilesManager tilesManager;
+    [SerializeField] private TilesManagerMultiplayer tilesManager;
+    [SerializeField] private BackgroundManagerMultiplayer backgroundManager;
     [SerializeField] private Button peekButton;
     [SerializeField] private Button stopButton;
     [SerializeField] private TextMeshProUGUI peekText;
@@ -67,10 +68,11 @@ public class PeekManager : NetworkBehaviour
             originalPositions.Add(userOriginalPositions);
             targetClientIds.Add(targetClientId);
 
+            int targetClientBackgroundSkin = backgroundManager.GetPlayerBackground(targetClientId);
 
             StartPeekRoutineServer(userClientId, targetClientId);
 
-            StartPeekRoutineUserRpc(userClientId, targetClientId);
+            StartPeekRoutineUserRpc(userClientId, targetClientId, targetClientBackgroundSkin);
 
             StartPeekRoutineTargetRpc(targetClientId);
         }
@@ -102,7 +104,7 @@ public class PeekManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void StartPeekRoutineUserRpc(ulong userClientId, ulong targetClientId)
+    private void StartPeekRoutineUserRpc(ulong userClientId, ulong targetClientId, int nweBackgroundSkin)
     {
         if (NetworkManager.Singleton.LocalClientId == userClientId)
         {
@@ -115,6 +117,8 @@ public class PeekManager : NetworkBehaviour
 
             peekText.gameObject.SetActive(true);
             peekText.text = $"You are peeking at: {targetClientId}";
+
+            backgroundManager.LoadNewBackground(nweBackgroundSkin);
         }
     }
 
@@ -181,6 +185,8 @@ public class PeekManager : NetworkBehaviour
             tilesManager.EnableAllColliders();
             tilesManager.UnsnapAllFromGrid();
             tilesManager.SnapAllToGrid();
+
+            backgroundManager.LoadOriginalBackground();
         }
     }
 

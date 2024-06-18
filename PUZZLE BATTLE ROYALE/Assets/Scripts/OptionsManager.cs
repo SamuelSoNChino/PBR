@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -20,6 +21,11 @@ public class OptionsManager : MonoBehaviour
     [SerializeField] private GameObject slider;
 
     /// <summary>
+    /// The dropdown object for selecting the background.
+    /// </summary>
+    [SerializeField] private GameObject dropdown;
+
+    /// <summary>
     /// Initializes the slider value and updates the slider text to the last saved state.
     /// </summary>
     void Start()
@@ -33,6 +39,11 @@ public class OptionsManager : MonoBehaviour
         // Sets the slider value to the stored value in PlayerPrefs and Updates its text
         slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfTiles");
         UpdateSliderText();
+
+        if (PlayerPrefs.HasKey("backgroundSkin"))
+        {
+            dropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(PlayerPrefs.GetInt("backgroundSkin"));
+        }
     }
 
     /// <summary>
@@ -53,5 +64,11 @@ public class OptionsManager : MonoBehaviour
 
         // Updates the slider text
         text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
+    }
+
+    public void SetNewBackground()
+    {
+        int chosenBackground = dropdown.GetComponent<TMP_Dropdown>().value;
+        PlayerPrefs.SetInt("backgroundSkin", chosenBackground);
     }
 }

@@ -24,17 +24,22 @@ public class MultiplayerManager : NetworkBehaviour
     /// <summary>
     /// Reference to the PuzzleGenerator script.
     /// </summary>
-    [SerializeField] private PuzzleGenerator puzzleGenerator;
+    [SerializeField] private PuzzleGeneratorMultiplayer puzzleGenerator;
 
     /// <summary>
     /// Reference to the TilesManager script.
     /// </summary>
-    [SerializeField] private TilesManager tilesManager;
+    [SerializeField] private TilesManagerMultiplayer tilesManager;
 
     /// <summary>
     /// Reference to the GridManager script.
     /// </summary>
-    [SerializeField] private GridManager gridManager;
+    [SerializeField] private GridManagerMultiplayer gridManager;
+
+    /// <summary>
+    /// Reference to the BackgroundManager script.
+    /// </summary>
+    [SerializeField] private BackgroundManagerMultiplayer backgroundManager;
 
     /// <summary>
     /// Reference to the StartScreenManagerMultiplayer script.
@@ -136,6 +141,9 @@ public class MultiplayerManager : NetworkBehaviour
 
             // Removes callback after successful connection to prevent problems in other multiplayer sessions
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+
+            // If is a server, collects all background skins
+            backgroundManager.CollectPlayersBackgrounds();
 
             // Sends an RPC to all clients (including itself) to start the game
             StartGameClientRpc();
