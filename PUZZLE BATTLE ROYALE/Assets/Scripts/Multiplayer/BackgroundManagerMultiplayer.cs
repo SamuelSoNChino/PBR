@@ -11,6 +11,7 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
     [SerializeField] private Sprite[] backgroundSkins;
 
     private Dictionary<ulong, int> playerBackgrounds = new();
+
     private void Awake()
     {
         LoadOriginalBackground();
@@ -38,11 +39,6 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
 
 
     // Server methods
-    public void CollectPlayersBackgrounds()
-    {
-        CollectPlayersBackgroundsRpc();
-    }
-
     [Rpc(SendTo.ClientsAndHost)]
     public void CollectPlayersBackgroundsRpc()
     {
