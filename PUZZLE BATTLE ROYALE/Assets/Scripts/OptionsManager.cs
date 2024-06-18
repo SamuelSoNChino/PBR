@@ -26,7 +26,7 @@ public class OptionsManager : MonoBehaviour
     [SerializeField] private GameObject dropdown;
 
     /// <summary>
-    /// Initializes the slider value and updates the slider text to the last saved state.
+    /// Initializes the slider and dropdown values.
     /// </summary>
     void Start()
     {
@@ -40,6 +40,7 @@ public class OptionsManager : MonoBehaviour
         slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfTiles");
         UpdateSliderText();
 
+        // If background skin wasn't set yet, sets it to the default value
         if (PlayerPrefs.HasKey("backgroundSkin"))
         {
             dropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(PlayerPrefs.GetInt("backgroundSkin"));
@@ -66,6 +67,9 @@ public class OptionsManager : MonoBehaviour
         text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
     }
 
+    /// <summary>
+    /// Updates PlayerPrefs background value when the dropdown was interacted with.
+    /// </summary>
     public void SetNewBackground()
     {
         int chosenBackground = dropdown.GetComponent<TMP_Dropdown>().value;
