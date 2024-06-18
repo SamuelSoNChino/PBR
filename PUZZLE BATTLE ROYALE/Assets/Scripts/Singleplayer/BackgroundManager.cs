@@ -1,38 +1,37 @@
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
-/// <summary>
-/// Manages the loading of the background skin.
-/// </summary>
 public class BackgroundManager : NetworkBehaviour
 {
-    /// <summary>
-    /// The background GameObject in the scene.
-    /// </summary>
-    [SerializeField] private GameObject background;
 
-    /// <summary>
-    /// Array of available background skins.
-    /// </summary>
+    [SerializeField] private GameObject background;
     [SerializeField] private Sprite[] backgroundSkins;
 
-    /// <summary>
-    /// Loads the selected background on Awake to ensure PanZoom calculates borders correctly on Start.
-    /// </summary>
+    private Dictionary<ulong, int> playerBackgrounds = new();
     private void Awake()
     {
         LoadOriginalBackground();
     }
 
-    /// <summary>
-    /// Loads the original background skin based on player preferences.
-    /// </summary>
     public void LoadOriginalBackground()
     {
-        // If background wasn't selected in options yet, selects a default value
         if (!PlayerPrefs.HasKey("backgroundSkin"))
         {
             PlayerPrefs.SetInt("backgroundSkin", 0);
         }
+
+        Sprite chosenBackground = backgroundSkins[PlayerPrefs.GetInt("backgroundSkin")];
+        SpriteRenderer backgroundSpriteRenderer = background.GetComponent<SpriteRenderer>();
+        backgroundSpriteRenderer.sprite = chosenBackground;
+    }
+
+    public void LoadNewBackground(int newBackground)
+    {
+        Sprite chosenBackground = backgroundSkins[newBackground];
+        SpriteRenderer backgroundSpriteRenderer = background.GetComponent<SpriteRenderer>();
+        backgroundSpriteRenderer.sprite = chosenBackground;
     }
 }
