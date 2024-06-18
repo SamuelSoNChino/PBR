@@ -143,7 +143,7 @@ public class MultiplayerManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
 
             // If is a server, collects all background skins
-            backgroundManager.CollectPlayersBackgrounds();
+            backgroundManager.CollectPlayersBackgroundsRpc();
 
             // Sends an RPC to all clients (including itself) to start the game
             StartGameClientRpc();
