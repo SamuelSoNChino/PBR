@@ -36,9 +36,6 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
         backgroundSpriteRenderer.sprite = chosenBackground;
     }
 
-
-
-    // Server methods
     [Rpc(SendTo.ClientsAndHost)]
     public void CollectPlayersBackgroundsRpc()
     {
@@ -56,10 +53,6 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
 
     public int GetPlayerBackground(ulong clientId)
     {
-        foreach (var kvp in playerBackgrounds)
-        {
-            Debug.Log($"{kvp.Key}:{kvp.Value}");
-        }
         return playerBackgrounds[clientId];
     }
 }
