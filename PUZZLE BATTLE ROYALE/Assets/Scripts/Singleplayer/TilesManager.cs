@@ -7,11 +7,6 @@ using UnityEngine;
 public class TilesManager : MonoBehaviour
 {
     /// <summary>
-    /// Indicates whether any tile is currently being dragged (moved).
-    /// </summary>
-    private bool anyTileDragging = false;
-
-    /// <summary>
     /// Top right bound of the area where tiles can be shuffled.
     /// </summary>
     [SerializeField] private Vector3 topRightShuffleBound;
@@ -152,24 +147,6 @@ public class TilesManager : MonoBehaviour
             puzzleTile.UnsnapFromGrid();
 
         }
-    }
-
-    /// <summary>
-    /// Checks if any tile is currently being dragged.
-    /// </summary>
-    /// <returns>True if any tile is being dragged, false otherwise.</returns>
-    public bool IsAnyTileDragging()
-    {
-        return anyTileDragging;
-    }
-
-    /// <summary>
-    /// Sets the dragging state of any tile.
-    /// </summary>
-    /// <param name="newState">The new dragging state.</param>
-    public void SetAnyTileDragging(bool newState)
-    {
-        anyTileDragging = newState;
     }
 
     /// <summary>
