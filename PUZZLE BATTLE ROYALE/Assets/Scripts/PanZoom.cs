@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 /// <summary>
 /// The <c>PanZoom</c> class handles the camera's panning and zooming functionality of the game.
@@ -39,15 +36,9 @@ public class PanZoom : MonoBehaviour
     /// </summary>
     [SerializeField] private GameObject background;
 
-    [SerializeField] private TilesManagerMultiplayer tilesManager;
 
 
 
-
-    /// <summary>
-    /// The initial touch position for panning.
-    /// </summary>
-    private Vector3 touchStart;
 
     /// <summary>
     /// The bottom-left boundary of the background.
@@ -58,6 +49,16 @@ public class PanZoom : MonoBehaviour
     /// The top-right boundary of the background.
     /// </summary>
     private Vector3 topRightBound;
+
+    /// <summary>
+    /// The initial touch position for panning.
+    /// </summary>
+    private Vector3 touchStart;
+
+    /// <summary>
+    /// Indicates whether any tile is currently being dragged (moved).
+    /// </summary>
+    private bool anyTileDragging = false;
 
     /// <summary>
     /// Determines if player can Pan and Zoom. False by default, needs to be enabled before the start of the game.
@@ -137,11 +138,8 @@ public class PanZoom : MonoBehaviour
         // Checks if player can pan and zoom
         if (touchInputEnabled)
         {
-            // Stores whether the player is dragging a puzzle tile
-            bool tileDragging = tilesManager.IsAnyTileDragging();
-
             // Triggers on MouseDown when the player isn't dragging a puzzle tile, stores the initial position for Pan
-            if (Input.GetMouseButtonDown(0) && !tileDragging)
+            if (Input.GetMouseButtonDown(0) && !anyTileDragging)
             {
                 touchStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             }
@@ -152,16 +150,31 @@ public class PanZoom : MonoBehaviour
                 Zoom(Input.GetTouch(0), Input.GetTouch(1));
             }
             // Triggers when the player is dragging without holding a puzzle tile
-            else if (Input.GetMouseButton(0) && !tileDragging)
+            else if (Input.GetMouseButton(0) && !anyTileDragging)
             {
-                // Deselectes all puzzle tiles, since player is trying to pan
-                tilesManager.DeselectAllTiles();
-
                 // Pan using touchStart and current mouse position
                 Pan(touchStart, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             }
         }
 
+    }
+
+    /// <summary>
+    /// Checks if any tile is currently being dragged.
+    /// </summary>
+    /// <returns>True if any tile is being dragged, false otherwise.</returns>
+    public bool IsAnyTileDragging()
+    {
+        return anyTileDragging;
+    }
+
+    /// <summary>
+    /// Sets the dragging state of any tile.
+    /// </summary>
+    /// <param name="newState">The new dragging state.</param>
+    public void SetAnyTileDragging(bool newState)
+    {
+        anyTileDragging = newState;
     }
 
     /// <summary>
