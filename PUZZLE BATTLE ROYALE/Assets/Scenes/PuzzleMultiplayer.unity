@@ -700,7 +700,7 @@ MonoBehaviour:
   GlobalObjectIdHash: 3237066758
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
+  SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
@@ -719,13 +719,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serverUrl: samuelsonchino.eu.pythonanywhere.com
+  puzzleManager: {fileID: 2097520473}
   puzzleGenerator: {fileID: 637174948}
   tilesManager: {fileID: 1557589170}
   gridManager: {fileID: 1323705368}
   backgroundManager: {fileID: 1758580829}
   startScreenManagerMultiplayer: {fileID: 1978394548}
   endScreenManagerMultiplayer: {fileID: 798844538}
-  panZoom: {fileID: 1619521031}
   numberOfTiles: 2
 --- !u!4 &368472933
 Transform:
@@ -1460,6 +1460,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 637174947}
+  - component: {fileID: 637174949}
   - component: {fileID: 637174948}
   m_Layer: 0
   m_Name: Puzzle
@@ -1501,6 +1502,28 @@ MonoBehaviour:
   grid: {fileID: 1323705365}
   puzzleSize: 1000
   serverUrl: SamuelSoNChino.eu.pythonanywhere.com
+  puzzleManager: {fileID: 2097520473}
+--- !u!114 &637174949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637174944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1967179305
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &669191133
 GameObject:
   m_ObjectHideFlags: 0
@@ -1777,6 +1800,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 798844539}
+  - component: {fileID: 798844540}
   - component: {fileID: 798844538}
   m_Layer: 0
   m_Name: EndScreenManager
@@ -1815,6 +1839,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &798844540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 798844537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1447283039
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &810193459
 GameObject:
   m_ObjectHideFlags: 0
@@ -2946,7 +2991,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8904eca8f924efb458a2c34dfc29be31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  singleplayerManager: {fileID: 0}
   multiplayerManager: {fileID: 368472932}
   peekManager: {fileID: 1840344303}
 --- !u!1 &1429146144
@@ -3394,9 +3438,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5711678702eb085408d0452e6b6f826a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  puzzleManager: {fileID: 2097520473}
+  puzzleSize: 1000
   topRightShuffleBound: {x: 1000, y: 0, z: 0}
   bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
-  puzzleSize: 1000
 --- !u!1 &1619521030
 GameObject:
   m_ObjectHideFlags: 0
@@ -3428,12 +3473,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e9fc3df194d98742b4edf2b5dc44d94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startingPos: {x: 500, y: 0, z: 0}
+  incrementScale: 1
+  startingZoom: 1100
   maxZoom: 1250
   minZoom: 750
-  incrementScale: 1
   background: {fileID: 551972559}
-  startingZoom: 1100
-  startingPos: {x: 500, y: 0, z: 0}
+  tilesManager: {fileID: 1557589170}
 --- !u!81 &1619521032
 AudioListener:
   m_ObjectHideFlags: 0
@@ -4066,6 +4112,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1978394549}
+  - component: {fileID: 1978394550}
   - component: {fileID: 1978394548}
   m_Layer: 0
   m_Name: StartScreenManager
@@ -4086,6 +4133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f73639a13939ef74799a2e490398beb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startScreen: {fileID: 557488099}
   startScreenText: {fileID: 1032277423}
   cyclingInterval: 0.5
   matchmakingText: Looking for an opponent
@@ -4108,6 +4156,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1978394550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1978394547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2328841989
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!1 &2097520472
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2097520474}
+  - component: {fileID: 2097520475}
+  - component: {fileID: 2097520473}
+  m_Layer: 0
+  m_Name: PuzzleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2097520473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2097520472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0869b1dddf903664182305db1f93f61e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilesManager: {fileID: 1557589170}
+  gridManager: {fileID: 1323705368}
+  panZoom: {fileID: 1619521031}
+--- !u!4 &2097520474
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2097520472}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 500, y: 0, z: 100}
+  m_LocalScale: {x: 333, y: 333, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2097520475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2097520472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3347921434
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -4121,4 +4259,5 @@ SceneRoots:
   - {fileID: 1978394549}
   - {fileID: 798844539}
   - {fileID: 1680857454}
+  - {fileID: 2097520474}
   - {fileID: 1758580827}
