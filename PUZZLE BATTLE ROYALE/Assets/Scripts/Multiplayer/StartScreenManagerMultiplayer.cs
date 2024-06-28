@@ -1,15 +1,17 @@
 using System.Collections;
-using System.Threading.Tasks;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
 /// Manages the start screen, the matchmaking text, and the countdown before the match.
-/// WORKS ONLY WITH MULTIPLAYER.
+/// Works only with multiplayer.
 /// </summary>
-public class StartScreenManagerMultiplayer : MonoBehaviour
+public class StartScreenManagerMultiplayer : NetworkBehaviour
 {
+    [SerializeField] private GameObject startScreen;
+    
     /// <summary>
     /// Text component to display the matchmaking and countdown messages.
     /// </summary>
@@ -86,7 +88,8 @@ public class StartScreenManagerMultiplayer : MonoBehaviour
     /// <summary>
     /// Stops the matchmaking message cycle.
     /// </summary>
-    public void StopMatchmakingCycle()
+    [Rpc(SendTo.ClientsAndHost)]
+    public void StopMatchmakingCycleRpc()
     {
         stopCycling = true;
     }
@@ -108,14 +111,22 @@ public class StartScreenManagerMultiplayer : MonoBehaviour
     }
 
     /// <summary>
+    /// Starts the countdown sequence on all clients and the host.
+    /// </summary>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void StartCountdownRpc()
+    {
+        StartCoroutine(StartCountdown());
+    }
+
+    /// <summary>
     /// Starts the countdown sequence.
     /// </summary>
-    /// <param name="countdownFinished">Task completion source to signal when the countdown is finished.</param>
     /// <returns>Coroutine enumerator.</returns>
-    public IEnumerator StartCountdown(TaskCompletionSource<bool> countdownFinished)
+    public IEnumerator StartCountdown()
     {
         // Activates the start screen object, making it visible (needed for a Rematch)
-        gameObject.SetActive(true);
+        startScreen.SetActive(true);
 
         // Counts down from the countdown start
         for (int i = countdownStart; i >= 0; i--)
@@ -132,9 +143,6 @@ public class StartScreenManagerMultiplayer : MonoBehaviour
         yield return new WaitForSeconds(countdownInterval);
 
         // Deactivates the start screen object, making it not visible
-        gameObject.SetActive(false);
-
-        // Sets the countdown task completion source to completed
-        countdownFinished.SetResult(true);
+        startScreen.SetActive(false);
     }
 }
