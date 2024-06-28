@@ -1,20 +1,67 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Handles all of the grid tile in the scene.
+/// Handles all of the grid tiles in the scene for a multiplayer game.
 /// </summary>
 public class GridManagerMultiplayer : MonoBehaviour
 {
-
-    [SerializeField] private SingleplayerManager singleplayerManager;
+    /// <summary>
+    /// Reference to the MultiplayerManager script.
+    /// </summary>
     [SerializeField] private MultiplayerManager multiplayerManager;
+
+    /// <summary>
+    /// Reference to the PeekManager script.
+    /// </summary>
     [SerializeField] private PeekManager peekManager;
 
     /// <summary>
-    /// Checks whether all the puzzle tiles are placed correctly using each grid tile's status. Ends the game if yes.
+    /// Finds a grid tile by its unique ID.
     /// </summary>
-    public void CheckCompleteness()
+    /// <param name="tileId">The ID of the tile to find.</param>
+    /// <returns>The GameObject of the grid tile if found, otherwise null.</returns>
+    public GameObject FindTileById(int tileId)
+    {
+        // Iterates through all the grid tiles
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform gridTileObject = transform.GetChild(i);
+            GridTileMultiplayer gridTile = gridTileObject.GetComponent<GridTileMultiplayer>();
+
+            // If the corresponding grid tile is found, return it
+            if (gridTile.GetId() == tileId)
+            {
+                return gridTileObject.gameObject;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Gets all grid tiles in the scene.
+    /// </summary>
+    /// <returns>A list of all grid tile GameObjects.</returns>
+    public List<GameObject> GetAllGridTiles()
+    {
+        // Prepares a list for all the grid tiles, which will be returned in the end
+        List<GameObject> gridTiles = new();
+
+        // Iterates through all the grid tiles
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            // Adds the gridTileObject to the list
+            GameObject gridTileObject = transform.GetChild(i).gameObject;
+            gridTiles.Add(gridTileObject);
+        }
+        return gridTiles;
+    }
+
+    /// <summary>
+    /// Checks if all grid tiles have correctly placed puzzle tiles for a specific client.
+    /// </summary>
+    /// <param name="clientId">The ID of the client to check the completeness for.</param>
+    public void CheckCompleteness(ulong clientId)
     {
         // Assumes that all the grid tiles have a correct puzzle tile placed on them
         bool allCorrect = true;
@@ -22,45 +69,21 @@ public class GridManagerMultiplayer : MonoBehaviour
         // Iterates through all grid tiles
         for (int i = 0; i < transform.childCount; i++)
         {
-            Transform child = transform.GetChild(i);
-            GridTile gridTile = child.GetComponent<GridTile>();
+            Transform gridTileObject = transform.GetChild(i);
+            GridTileMultiplayer gridTile = gridTileObject.GetComponent<GridTileMultiplayer>();
 
-            // Checks whether the grid tile has a correctly placed puzzle tile (status = 2)
-            if (gridTile.GetStatus() != 2)
+            // Checks whether the grid tile has a correctly placed puzzle tile
+            if (!gridTile.GetClientStatus(clientId))
             {
-                // Assumption was wrong, one tile is placed incorrectly or unoccupied, no need to continue
                 allCorrect = false;
                 break;
             }
         }
+
         // If all are placed correctly, end the game
         if (allCorrect)
         {
-            // Checks if the the player is currently playign singleplayer or multiplayer and calls the correct EndGame method.
-            if (singleplayerManager != null)
-            {
-                singleplayerManager.EndGame();
-            }
-            else if (!peekManager.GetPeekingStatus())
-            {
-                multiplayerManager.EndGame();
-            }
-
-        }
-    }
-
-    /// <summary>
-    /// Resets the status to unnocupied for all grid tiles.
-    /// </summary
-    public void ResetCompleteness()
-    {
-        // Iterates through all grid tiles
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            // Sets the status for each grid tile to 0 - unoccupied
-            Transform child = transform.GetChild(i);
-            GridTile gridTile = child.GetComponent<GridTile>();
-            gridTile.SetStatus(0);
+            multiplayerManager.EndGame(clientId);
         }
     }
 }
