@@ -22,6 +22,11 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private string serverUrl;
 
     /// <summary>
+    /// Reference to the PuzzleManager script.
+    /// </summary>
+    [SerializeField] private PuzzleManager puzzleManager;
+
+    /// <summary>
     /// Reference to the PuzzleGenerator script.
     /// </summary>
     [SerializeField] private PuzzleGeneratorMultiplayer puzzleGenerator;
@@ -30,11 +35,6 @@ public class MultiplayerManager : NetworkBehaviour
     /// Reference to the TilesManager script.
     /// </summary>
     [SerializeField] private TilesManagerMultiplayer tilesManager;
-
-    /// <summary>
-    /// Reference to the GridManager script.
-    /// </summary>
-    [SerializeField] private GridManagerMultiplayer gridManager;
 
     /// <summary>
     /// Reference to the BackgroundManager script.
@@ -52,11 +52,6 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
 
     /// <summary>
-    /// Reference to the PanZoom script.
-    /// </summary>
-    [SerializeField] private PanZoom panZoom;
-
-    /// <summary>
     /// Number of tiles of the puzzle.
     /// </summary>    
     [SerializeField] private int numberOfTiles;
@@ -67,11 +62,6 @@ public class MultiplayerManager : NetworkBehaviour
     private string role;
 
     /// <summary>
-    /// Seed used for generating the puzzle.
-    /// </summary>
-    private int seed;
-
-    /// <summary>
     /// Relay join code for connecting to the relay server.
     /// </summary>
     private string relayJoinCode;
@@ -80,6 +70,8 @@ public class MultiplayerManager : NetworkBehaviour
     /// TaskCompletionSource used to signal when a client has connected.
     /// </summary>
     private TaskCompletionSource<bool> connectionCompleted;
+
+
 
     /// |---------------------------------|
     /// |           MATCHMAKING           |
@@ -142,11 +134,8 @@ public class MultiplayerManager : NetworkBehaviour
             // Removes callback after successful connection to prevent problems in other multiplayer sessions
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
 
-            // If is a server, collects all background skins
-            backgroundManager.CollectPlayersBackgroundsRpc();
-
-            // Sends an RPC to all clients (including itself) to start the game
-            StartGameClientRpc();
+            // Starts the coruoutine for the server to start the game
+            StartCoroutine(StartNewGameServer());
         }
 
         // If the matchmaking server assigned CLIENT role
@@ -154,6 +143,8 @@ public class MultiplayerManager : NetworkBehaviour
         {
             // Waits until successfully connected to the relay using the relay join code from the server
             await JoinRelay();
+
+            // Then waits for Rpc instructions from the server
         }
     }
 
@@ -196,12 +187,11 @@ public class MultiplayerManager : NetworkBehaviour
         // Splits the information from the server and saves the role and seed
         string[] information = matchRequest.downloadHandler.text.Split(",");
         role = information[0];
-        seed = int.Parse(information[1]);
 
         // If the device's role is client, information also contains relay join code
         if (role == "CLIENT")
         {
-            relayJoinCode = information[2];
+            relayJoinCode = information[1];
         }
         Debug.Log("Requested match successfully: " + information);
 
@@ -217,7 +207,7 @@ public class MultiplayerManager : NetworkBehaviour
     private IEnumerator UploadRelayJoinCode(TaskCompletionSource<bool> uploadCompleted)
     {
         // Sends a request to upload the relay join code and seed to the Python server
-        string requestUrl = $"{serverUrl}/upload_relay_join_code?relay_join_code={relayJoinCode}&seed={seed}";
+        string requestUrl = $"{serverUrl}/upload_relay_join_code?relay_join_code={relayJoinCode}";
         UnityWebRequest uploadRequest = UnityWebRequest.Get(requestUrl);
         yield return uploadRequest.SendWebRequest();
 
@@ -329,7 +319,7 @@ public class MultiplayerManager : NetworkBehaviour
     private IEnumerator RequestJoinCodeRemoval(TaskCompletionSource<bool> codeRemovalCompleted)
     {
         // Sends a request to remove the relay join code and seed from the server
-        string requestUrl = $"{serverUrl}/request_join_code_removal?relay_join_code={relayJoinCode}&seed={seed}";
+        string requestUrl = $"{serverUrl}/request_join_code_removal?relay_join_code={relayJoinCode}";
         UnityWebRequest webRequest = UnityWebRequest.Get(requestUrl);
         yield return webRequest.SendWebRequest();
 
@@ -351,46 +341,61 @@ public class MultiplayerManager : NetworkBehaviour
     /// |---------------------------------|
 
     /// <summary>
-    /// Sends an RPC to all clients to start the game.
+    /// Starts a new game, handling countdown, puzzle generation etc.
     /// </summary>
-    [Rpc(SendTo.ClientsAndHost)]
-    private void StartGameClientRpc()
+    private IEnumerator StartNewGameServer()
     {
-        // Starts a coroutine for a new game
-        StartCoroutine(StartNewGame());
-    }
+        // Stops the matchmaking matchmaking cycle and starts countdown for all the clients
+        startScreenManagerMultiplayer.StopMatchmakingCycleRpc();
+        startScreenManagerMultiplayer.StartCountdownRpc();
 
-    /// <summary>
-    /// Starts a new game, handles countdown, and puzzle generation.
-    /// </summary>
-    /// <returns>IEnumerator for the coroutine.</returns>
-    private IEnumerator StartNewGame()
-    {
-        // Stops the matchmaking starting screen
-        startScreenManagerMultiplayer.StopMatchmakingCycle();
-
-        // Starts the countdown on the start screen and tracks whether it is finished 
+        // Sets up an independent timer on the server to keep track of the countdown
         TaskCompletionSource<bool> countdownFinished = new();
-        StartCoroutine(startScreenManagerMultiplayer.StartCountdown(countdownFinished));
+        StartCoroutine(StartTimer(countdownFinished, 4));
 
-        // Sets the number of tiles for puzzle generation, only a temporary solution (2 for debugging)
+        // Collects all the players backgrounds
+        backgroundManager.CollectPlayerBackgroundsRpc();
+
+        // Generates a new puzzle key (tile and grid IDs)
+        puzzleManager.GenerateNewPuzzleKey(numberOfTiles);
+
+        // Sets the number of tiles for puzzle generation and generates a seed
         puzzleGenerator.SetNumberOfTiles(numberOfTiles);
+        int seed = Random.Range(1, 999999);
 
         // Request both puzzle and grid images and waits until they are downloaded
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
 
-        // Generates both puzzle and grid tiles and shuffles puzzle tiles
+        // Generates both puzzle and grid tiles
         puzzleGenerator.GenerateGridTiles();
         puzzleGenerator.GeneratePuzzleTiles();
+
+        // Initializes all the necessary information about the clients
+        puzzleManager.InitializeClientPositions();
+        puzzleManager.InitializeClientStatuses();
+        puzzleManager.InitializeClientMovementPermissions();
+
+        // Shuffles all the puzzle tiles
         tilesManager.ShuffleAllTiles(seed);
 
         // Waits until the countdown has finished
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 
         // Enables touch input and tile manipulation
-        tilesManager.EnableAllColliders();
-        panZoom.EnableTouchInput();
+        puzzleManager.EnableTileMovement();
+        puzzleManager.EnableTouchInput();
+    }
+
+    /// <summary>
+    /// Starts a simple timer and keeps track of its state using TSC.
+    /// </summary>
+    /// <param name="timerCompleted">TSC that keeps tracks of whether the duration has passed.</param>
+    /// <param name="timerDuration">The duration the timer should run for.</param>
+    private IEnumerator StartTimer(TaskCompletionSource<bool> timerCompleted, float timerDuration)
+    {
+        yield return new WaitForSeconds(timerDuration);
+        timerCompleted.SetResult(true);
     }
 
     /// |---------------------------------|
@@ -430,99 +435,51 @@ public class MultiplayerManager : NetworkBehaviour
     public void AcceptRematchServerRpc()
     {
         // Starts the coroutine for the server to set up the rematch
-        StartCoroutine(AcceptRematch());
+        StartCoroutine(StartRematchServer());
     }
 
     /// <summary>
-    /// Sets up the rematch by requesting a new seed and starting a new game.
+    /// Starts a rematch, handling countdown, puzzle generation etc.
     /// </summary>
     /// <returns>IEnumerator for the coroutine.</returns>
-    private IEnumerator AcceptRematch()
+    private IEnumerator StartRematchServer()
     {
-        // Requests a new seed and waits until it has been given by the Python server
-        yield return StartCoroutine(RequestNewSeed());
+        // Unloads the end screen on all clients and starts the countdown
+        endScreenManagerMultiplayer.UnloadEndScreenRpc();
+        startScreenManagerMultiplayer.StartCountdownRpc();
 
-        // Sends the seed to all the clients
-        SetNewSeedClientRpc(seed);
-
-        // Starts a rematch for all the clients
-        StartRematchClientRpc();
-    }
-
-    /// <summary>
-    /// Requests a new seed from the server.
-    /// </summary>
-    /// <returns>IEnumerator for the coroutine.</returns>
-    private IEnumerator RequestNewSeed()
-    {
-        // Sends a request for a new seed to the Python server
-        UnityWebRequest seedRequest = UnityWebRequest.Get($"{serverUrl}/request_new_seed");
-        yield return seedRequest.SendWebRequest();
-
-        // If the request wasn't successful, breaks the coroutine
-        if (seedRequest.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log("Failed to request a new seed");
-            yield break;
-        }
-
-        // Downloads the new seed and sets it for the host (server)
-        seed = int.Parse(seedRequest.downloadHandler.text);
-        Debug.Log("Requested the new seed successfully.");
-    }
-
-    /// <summary>
-    /// Sends a client RPC to set the new seed on the clients.
-    /// </summary>
-    /// <param name="newSeed">The new seed value.</param>
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SetNewSeedClientRpc(int newSeed)
-    {
-        // Sets the new seed
-        seed = newSeed;
-        Debug.Log("New seed: " + seed);
-    }
-
-    /// <summary>
-    /// Sends a client RPC to start the rematch on the clients.
-    /// </summary>
-    [Rpc(SendTo.ClientsAndHost)]
-    public void StartRematchClientRpc()
-    {
-        // Starts the coroutine for a rematch for all clients
-        StartCoroutine(StartRematch());
-    }
-
-    /// <summary>
-    /// Starts a rematch, handling countdown, and puzzle generation.
-    /// </summary>
-    /// <returns>IEnumerator for the coroutine.</returns>
-    private IEnumerator StartRematch()
-    {
-        // Unloads the end screen
-        endScreenManagerMultiplayer.UnloadEndScreen();
-
-        // Starts the countdown on the start screen and tracks whether it is finished 
+        // Sets up an independent timer on the server to keep track of the countdown
         TaskCompletionSource<bool> countdownFinished = new();
-        StartCoroutine(startScreenManagerMultiplayer.StartCountdown(countdownFinished));
+        StartCoroutine(StartTimer(countdownFinished, 4));
 
-        // Destroys all the puzzle tiles from last game and resets the grid to prepare for the rematch
-        tilesManager.DestroyAllTiles();
-        gridManager.ResetCompleteness();
+        // Destroys all the tiles, including all the server information about clients, except moving permissions
+        puzzleManager.DestroyAllTilesClientRpc();
+        puzzleManager.DestroyAllTilesServer();
+
+        // Sets the number of tiles for puzzle generation and generates a seed
+        puzzleManager.GenerateNewPuzzleKey(numberOfTiles);
+        int seed = Random.Range(1, 999999);
 
         // Requests a new puzzle image based on the new seed and waits until it's downloaded
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
 
         // Generates the new puzzle tiles and shuffles them
         puzzleGenerator.GeneratePuzzleTiles();
+        puzzleGenerator.GenerateGridTiles();
+
+        // Initializes the destroyed information about clients again
+        puzzleManager.InitializeClientPositions();
+        puzzleManager.InitializeClientStatuses();
+
+        // Shuffles all the puzzle tiles
         tilesManager.ShuffleAllTiles(seed);
 
         // Waits until the countdown is finished
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 
         // Enables touch input and manipulating with the tiles
-        tilesManager.EnableAllColliders();
-        panZoom.EnableTouchInput();
+        puzzleManager.EnableTileMovement();
+        puzzleManager.EnableTouchInput();
     }
 
     /// |---------------------------------|
@@ -530,47 +487,23 @@ public class MultiplayerManager : NetworkBehaviour
     /// |---------------------------------|
 
     /// <summary>
-    /// Notifies the server that the player has completed the puzzle.
+    /// Ends the game by disabling the touch input and loading the relevant end screen for all clients.
     /// </summary>
-    public void EndGame()
+    /// /// <param name="winningClientId">The ID of the client that has completed the puzzle first.</param>
+    public void EndGame(ulong winningClientId)
     {
-        // Informs the server that this player has completed the puzzle
-        NotifyServerGameOverServerRpc(NetworkManager.Singleton.LocalClientId);
-    }
+        puzzleManager.DisableTileMovement();
+        puzzleManager.DisableTouchInput();
 
-    /// <summary>
-    /// Sends a server RPC to notify that the game is over.
-    /// </summary>
-    /// <param name="clientId">The ID of the client that completed the puzzle.</param>
-    [Rpc(SendTo.Server)]
-    private void NotifyServerGameOverServerRpc(ulong clientId)
-    {
-        // Informs all other players that the game is over, sending them the ID of the winning player
-        ulong winnerClientId = clientId;
-        NotifyClientsGameOverClientRpc(winnerClientId);
-    }
+        endScreenManagerMultiplayer.LoadWinningScreenRpc(winningClientId);
 
-    /// <summary>
-    /// Sends a client RPC to notify clients that the game is over and handle the end screen.
-    /// </summary>
-    /// <param name="winningClientId">The ID of the winning client.</param>
-    [Rpc(SendTo.ClientsAndHost)]
-    private void NotifyClientsGameOverClientRpc(ulong winningClientId)
-    {
-        // Disables all touch input and tile manipulation
-        tilesManager.DisableAllColliders();
-        panZoom.DisableTouchInput();
-
-        // If the client isn't the winning player
-        if (NetworkManager.Singleton.LocalClientId != winningClientId)
+        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            // Loads the losing screen
-            endScreenManagerMultiplayer.LoadLosingScreen();
+            if (winningClientId != clientId)
+            {
+                endScreenManagerMultiplayer.LoadLosingScreenRpc(clientId);
+            }
         }
-        else
-        {
-            // Loads the winning screen
-            endScreenManagerMultiplayer.LoadWinningScreen();
-        }
+
     }
 }
