@@ -1,27 +1,15 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Networking;
 
 /// <summary>
-/// Handles the generation of puzzle images and tiles from a server.
+/// Handles the generation of puzzle images and tiles from a server in a multiplayer environment.
 /// </summary>
-public class PuzzleGeneratorMultiplayer : MonoBehaviour
+public class PuzzleGeneratorMultiplayer : NetworkBehaviour
 {
-    /// <summary>
-    /// The texture of the puzzle image.
-    /// </summary>
-    private Texture2D puzzleImage;
-
-    /// <summary>
-    /// The texture of the grid image.
-    /// </summary>
-    private Texture2D gridImage;
-
-    /// <summary>
-    /// The number of tiles the puzzle is divided into.
-    /// </summary>
-    private int numberOfTiles;
-
     /// <summary>
     /// The parent GameObject for puzzle tiles.
     /// </summary>
@@ -43,9 +31,38 @@ public class PuzzleGeneratorMultiplayer : MonoBehaviour
     [SerializeField] private string serverUrl;
 
     /// <summary>
+    /// The PuzzleManager component that manages the puzzle.
+    /// </summary>
+    [SerializeField] private PuzzleManager puzzleManager;
+
+    /// <summary>
+    /// The texture of the puzzle image.
+    /// </summary>
+    private Texture2D puzzleImage;
+
+    /// <summary>
+    /// The texture of the grid image.
+    /// </summary>
+    private Texture2D gridImage;
+
+    /// <summary>
+    /// The number of tiles the puzzle is divided into.
+    /// </summary>
+    private int numberOfTiles;
+
+    /// <summary>
+    /// Sets a new value for the number of tiles.
+    /// </summary>
+    /// <param name="newNumberOfTiles">New number of tiles.</param>
+    public void SetNumberOfTiles(int newNumberOfTiles)
+    {
+        numberOfTiles = newNumberOfTiles;
+    }
+
+    /// <summary>
     /// Requests and downloads the puzzle image from the server.
     /// </summary>
-    /// <param name="seed">The seed value used for image generation.</param>
+    /// <param name="seed">The seed value used for image generation (default is 0).</param>
     /// <returns>An IEnumerator for the coroutine.</returns>
     public IEnumerator RequestPuzzleImage(int seed = 0)
     {
@@ -54,14 +71,14 @@ public class PuzzleGeneratorMultiplayer : MonoBehaviour
         UnityWebRequest puzzleImageRequest = UnityWebRequestTexture.GetTexture(puzzleImageUrl);
         yield return puzzleImageRequest.SendWebRequest();
 
-        // If the request wasn't successful prints an error and ends the coroutine
+        // If the request wasn't successful, prints an error and ends the coroutine
         if (puzzleImageRequest.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError("Failed to download puzzle image: " + puzzleImageRequest.error);
             yield break;
         }
 
-        // If the request was successful downloads the texture
+        // If the request was successful, downloads the texture
         puzzleImage = DownloadHandlerTexture.GetContent(puzzleImageRequest);
     }
 
@@ -76,24 +93,33 @@ public class PuzzleGeneratorMultiplayer : MonoBehaviour
         UnityWebRequest gridImageRequest = UnityWebRequestTexture.GetTexture(gridImageUrl);
         yield return gridImageRequest.SendWebRequest();
 
-        // If the request wasn't successful prints an error and ends the coroutine
+        // If the request wasn't successful, prints an error and ends the coroutine
         if (gridImageRequest.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError("Failed to download grid image: " + gridImageRequest.error);
             yield break;
         }
 
-        // If the request was successful downloads the texture
+        // If the request was successful, downloads the texture
         gridImage = DownloadHandlerTexture.GetContent(gridImageRequest);
     }
 
     /// <summary>
-    /// Generates the puzzle tiles from the downloaded image.
+    /// Generates the puzzle tiles from the downloaded puzzle image.
     /// </summary>
     public void GeneratePuzzleTiles()
     {
-        // Initial Z position for the first puzzle tiles, will be incremented for each new tile
-        int puzzleTileZPosition = 1;
+        // Prepares a list of possible Z positions for the tiles, which will be distributed randomly later
+        List<int> possibleZPositions = new();
+        for (int i = 1; i <= numberOfTiles * numberOfTiles; i++)
+        {
+            possibleZPositions.Add(i);
+        }
+
+        // Prepares lists for all the information about the tiles, which will be distributed randomly later
+        List<int> tileIds = new(puzzleManager.GetPuzzleTileIds());
+        List<int> zPositions = new();
+        List<Texture2D> tileTextures = new();
 
         // Iterates through each tile needed to be created
         for (int i = 0; i < numberOfTiles; i++)
@@ -105,28 +131,96 @@ public class PuzzleGeneratorMultiplayer : MonoBehaviour
                 int x = puzzleSize / numberOfTiles * i;
                 int y = puzzleSize / numberOfTiles * j;
 
-                // Width and Height need to be calculated this way so that the the resulting puzzle
-                // actually coresponds to puzzleSize
+                // Width and Height need to be calculated this way so that the resulting puzzle
+                // actually corresponds to puzzleSize
                 int nextX = puzzleSize / numberOfTiles * (i + 1);
                 int nextY = puzzleSize / numberOfTiles * (j + 1);
                 int tileWidth = nextX - x;
                 int tileHeight = nextY - y;
 
-                // Creates a puzzle tile and increments the Z position
-                CreatePuzzleTile(i, j, x, y, tileWidth, tileHeight, puzzleTileZPosition);
-                puzzleTileZPosition++;
+                // Creates the texture for the tile from the puzzle image
+                Color[] puzzleTilePixels = puzzleImage.GetPixels(x, y, tileWidth, tileHeight);
+                Texture2D puzzleTileTexture = new(tileWidth, tileHeight);
+                puzzleTileTexture.SetPixels(puzzleTilePixels);
+                puzzleTileTexture.Apply();
+                tileTextures.Add(puzzleTileTexture);
+
+                // Picks a random Z position from the list of possible ones
+                int zPositionIndex = UnityEngine.Random.Range(0, possibleZPositions.Count - 1);
+                int zPosition = possibleZPositions[zPositionIndex];
+                possibleZPositions.RemoveAt(zPositionIndex);
+                zPositions.Add(zPosition);
             }
+        }
+
+        // Sends each tile to clients in a random order
+        for (int i = 0; i < numberOfTiles * numberOfTiles; i++)
+        {
+            // Picks a random index of the tile information
+            int tileIndex = UnityEngine.Random.Range(0, tileIds.Count);
+
+            // Loads the information from the lists
+            int tileId = tileIds[tileIndex];
+            int zPosition = zPositions[tileIndex];
+            Texture2D tileTexture = tileTextures[tileIndex];
+            byte[] tileTextureData = TextureToByteArray(tileTexture);
+
+            tileIds.RemoveAt(tileIndex);
+            zPositions.RemoveAt(tileIndex);
+            tileTextures.RemoveAt(tileIndex);
+
+            // Sends the RPC to everyone to create the tile using the randomly picked information
+            CreatePuzzleTileRpc(tileId, zPosition, tileTextureData);
         }
     }
 
     /// <summary>
-    /// Generates the grid tiles from the downloaded image.
+    /// Creates a puzzle tile on all clients.
+    /// </summary>
+    /// <param name="tileId">The ID of the tile.</param>
+    /// <param name="zPosition">The Z position of the tile.</param>
+    /// <param name="textureData">The texture data of the tile.</param>
+    [Rpc(SendTo.Everyone)]
+    public void CreatePuzzleTileRpc(int tileId, int zPosition, byte[] textureData)
+    {
+        // Creates the tile game object and sets its basic properties
+        GameObject tile = new();
+        tile.transform.position = new Vector3(0, 0, zPosition);
+        tile.name = $"Puzzle Tile-{tileId}";
+        tile.transform.parent = tiles.transform;
+
+        // Attaches the PuzzleTileMultiplayer script and sets the tile ID
+        PuzzleTileMultiplayer puzzleTile = tile.AddComponent<PuzzleTileMultiplayer>();
+        puzzleTile.SetId(tileId);
+
+        // If not a dedicated server
+        if (IsClient || IsHost)
+        {
+            // Creates a sprite from the tile texture and sets it to the tile
+            Texture2D tileTexture = ReconstructTexture(textureData);
+            Sprite tileSprite = CreateSprite(tileTexture, 0, 0, tileTexture.width, tileTexture.height);
+            SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = tileSprite;
+
+            // Attaches a collider to the tile to allow interaction, defaultly set to disabled
+            BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
+            collider.size = new Vector2(tileSprite.texture.width, tileSprite.texture.height);
+            collider.enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Generates the grid tiles from the downloaded grid image.
     /// </summary>
     public void GenerateGridTiles()
     {
         // Constant Z position of all grid tiles, located right behind the last puzzle tile
         int gridZPosition = numberOfTiles * numberOfTiles + 1;
 
+        // Prepares the list of grid tile IDs and an index which will be used to iterate through it
+        List<int> tileIds = new(puzzleManager.GetGridTileIds());
+        int tileIdIndex = 0;
+
         // Iterates through each tile needed to be created
         for (int i = 0; i < numberOfTiles; i++)
         {
@@ -137,15 +231,24 @@ public class PuzzleGeneratorMultiplayer : MonoBehaviour
                 int x = puzzleSize / numberOfTiles * i;
                 int y = puzzleSize / numberOfTiles * j;
 
-                // Width and Height need to be calculated this way so that the the resulting puzzle
-                // actually coresponds to puzzleSize
+                // Width and Height need to be calculated this way so that the resulting puzzle
+                // actually corresponds to puzzleSize
                 int nextX = puzzleSize / numberOfTiles * (i + 1);
                 int nextY = puzzleSize / numberOfTiles * (j + 1);
                 int tileWidth = nextX - x;
                 int tileHeight = nextY - y;
+                
+                // Creates the texture for the tile from the puzzle image
+                Color[] gridTilePixels = gridImage.GetPixels(x, y, tileWidth, tileHeight);
+                Texture2D gridTileTexture = new(tileWidth, tileHeight);
+                gridTileTexture.SetPixels(gridTilePixels);
+                gridTileTexture.Apply();
+                byte[] gridTileTextureData = TextureToByteArray(gridTileTexture);
 
-                // Creates a grid tile
-                CreateGridTile(i, j, x, y, tileWidth, tileHeight, gridZPosition);
+                // Picks an ID for the tile and sends an RPC to everyone to create the tile
+                int tileId = tileIds[tileIdIndex];
+                CreateGridTileRpc(tileId, x, y, gridZPosition, gridTileTextureData);
+                tileIdIndex++;
             }
         }
     }
@@ -153,63 +256,33 @@ public class PuzzleGeneratorMultiplayer : MonoBehaviour
     /// <summary>
     /// Creates a grid tile at the specified position.
     /// </summary>
-    /// <param name="indexX">The X index of the grid tile.</param>
-    /// <param name="indexY">The Y index of the grid tile.</param>
+    /// <param name="tileId">The ID of the tile.</param>
     /// <param name="x">The X coordinate of the tile in the image.</param>
     /// <param name="y">The Y coordinate of the tile in the image.</param>
-    /// <param name="width">The width of the tile.</param>
-    /// <param name="height">The height of the tile.</param>
     /// <param name="zPosition">The Z position of the tile.</param>
-    private void CreateGridTile(int indexX, int indexY, int x, int y, int width, int height, int zPosition)
+    /// <param name="textureData">The texture data of the tile.</param>
+    [Rpc(SendTo.Everyone)]
+    private void CreateGridTileRpc(int tileId, int x, int y, int zPosition, byte[] textureData)
     {
-        // Sets basic attributes and the Grid parent
+        // Creates the grid tile game objects and sets its basic attributes
         GameObject tile = new();
         tile.transform.position = new Vector3(x, y, zPosition);
-        tile.name = $"Grid Tile-{indexX}-{indexY}";
+        tile.name = $"Grid Tile-{tileId}";
         tile.transform.parent = grid.transform;
 
-        // Attaches the GridTile class to the object and sets its indexes
-        GridTile gridTile = tile.AddComponent<GridTile>();
-        gridTile.SetIndexes(indexX, indexY);
+        // Attaches the GridTileMultiplayer script to the object and sets its ID
+        GridTileMultiplayer gridTile = tile.AddComponent<GridTileMultiplayer>();
+        gridTile.SetId(tileId);
 
-        // Creates the sprite for the tile and attaches it to the tile
-        Sprite gridSprite = CreateSprite(gridImage, x, y, width, height);
-        SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
-        spriteRenderer.sprite = gridSprite;
-    }
-
-    /// <summary>
-    /// Creates a puzzle tile at the specified position.
-    /// </summary>
-    /// <param name="indexX">The X index of the puzzle tile.</param>
-    /// <param name="indexY">The Y index of the puzzle tile.</param>
-    /// <param name="x">The X coordinate of the tile in the image.</param>
-    /// <param name="y">The Y coordinate of the tile in the image.</param>
-    /// <param name="width">The width of the tile.</param>
-    /// <param name="height">The height of the tile.</param>
-    /// <param name="zPosition">The Z position of the tile.</param>
-    public void CreatePuzzleTile(int indexX, int indexY, int x, int y, int width, int height, int zPosition)
-    {
-        // Sets basic attributes and the Tiles parent
-        GameObject tile = new();
-        tile.transform.position = new Vector3(x, y, zPosition);
-        tile.name = $"Puzzle Tile-{indexX}-{indexY}";
-        tile.transform.parent = tiles.transform;
-
-        // Attaches the PuzzleTile class to the object and sets its indexes
-        PuzzleTile puzzleTile = tile.AddComponent<PuzzleTile>();
-        puzzleTile.SetIndexes(indexX, indexY);
-
-        // Creates the sprite for the tile and attaches it to the tile
-        Sprite tileSprite = CreateSprite(puzzleImage, x, y, width, height);
-        SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
-        spriteRenderer.sprite = tileSprite;
-
-        // Creates a collider for tile tile, so it can be interacted with
-        BoxCollider2D collider = tile.AddComponent<BoxCollider2D>();
-        collider.size = new Vector2(width, height);
-        // Starts with a disabled collider, needs to be activated in TileManager before the start of the game
-        collider.enabled = false;
+        // If not a dedicated server
+        if (IsClient || IsHost)
+        {
+            // Creates a sprite from the tile texture and sets it to the tile
+            Texture2D gridTileTexture = ReconstructTexture(textureData);
+            Sprite gridTileSprite = CreateSprite(gridTileTexture, 0, 0, gridTileTexture.width, gridTileTexture.height);
+            SpriteRenderer spriteRenderer = tile.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = gridTileSprite;
+        }
     }
 
     /// <summary>
@@ -227,11 +300,36 @@ public class PuzzleGeneratorMultiplayer : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets a new value for the number of tiles.
+    /// Converts a texture to a byte array.
     /// </summary>
-    /// <param name="newNumberOfTiles">New number of tiles.</param>
-    public void SetNumberOfTiles(int newNumberOfTiles)
+    /// <param name="texture">The texture to convert.</param>
+    /// <returns>A byte array representing the texture.</returns>
+    public byte[] TextureToByteArray(Texture texture)
     {
-        numberOfTiles = newNumberOfTiles;
+        RenderTexture renderTexture = new(texture.width, texture.height, 32);
+        Graphics.Blit(texture, renderTexture);
+
+        RenderTexture previousRenderTexture = RenderTexture.active;
+        RenderTexture.active = renderTexture;
+
+        Texture2D newTexture = new Texture2D(texture.width, texture.height);
+        newTexture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        newTexture.Apply();
+
+        RenderTexture.active = previousRenderTexture;
+        byte[] bytes = newTexture.EncodeToPNG();
+        return bytes;
+    }
+
+    /// <summary>
+    /// Reconstructs a texture from a byte array.
+    /// </summary>
+    /// <param name="textureData">The byte array representing the texture.</param>
+    /// <returns>A Texture2D object created from the byte array.</returns>
+    private Texture2D ReconstructTexture(byte[] textureData)
+    {
+        Texture2D texture = new(1, 1);
+        texture.LoadImage(textureData);
+        return texture;
     }
 }
