@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,7 +7,7 @@ using UnityEngine.SceneManagement;
 /// and managing rematch requests and responses.
 /// WORKS ONLY WITH MULTIPLAYER.
 /// </summary>
-public class EndScreenManagerMultiplayer : MonoBehaviour
+public class EndScreenManagerMultiplayer : NetworkBehaviour
 {
     /// <summary>
     /// GameObject representing the winning screen.
@@ -37,32 +35,47 @@ public class EndScreenManagerMultiplayer : MonoBehaviour
     private bool rematchPending;
 
     /// <summary>
-    /// Loads and displays the winning screen.
+    /// Loads the winning screen on the client specified by clientId. If clientId is not specified, targets all clients.
     /// </summary>
-    public void LoadWinningScreen()
+    /// <param name="clientId">The ID of the client to display the winning screen. Defaults to all clients.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void LoadWinningScreenRpc(ulong clientId = 1234567890)
     {
-        currentEndScreen = winningScreen;
-        DisableRematchText();
-        currentEndScreen.SetActive(true);
+        if (clientId == NetworkManager.Singleton.LocalClientId || clientId == 1234567890)
+        {
+            currentEndScreen = winningScreen;
+            DisableRematchText();
+            currentEndScreen.SetActive(true);
+        }
     }
 
     /// <summary>
-    /// Loads and displays the losing screen.
+    /// Loads the losing screen on the client specified by clientId. If clientId is not specified, targets all clients.
     /// </summary>
-    public void LoadLosingScreen()
+    /// <param name="clientId">The ID of the client to display the losing screen. Defaults to all clients.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void LoadLosingScreenRpc(ulong clientId = 1234567890)
     {
-        currentEndScreen = losingScreen;
-        DisableRematchText();
-        currentEndScreen.SetActive(true);
+        if (clientId == NetworkManager.Singleton.LocalClientId || clientId == 1234567890)
+        {
+            currentEndScreen = losingScreen;
+            DisableRematchText();
+            currentEndScreen.SetActive(true);
+        }
     }
 
     /// <summary>
-    /// Unloads and hides the current end screen.
+    /// Unloads the current end screen on the client specified by clientId. If clientId is not specified, targets all clients.
     /// </summary>
-    public void UnloadEndScreen()
+    /// <param name="clientId">The ID of the client to unload the end screen. Defaults to all clients.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UnloadEndScreenRpc(ulong clientId = 1234567890)
     {
-        currentEndScreen.SetActive(false);
-        currentEndScreen = null;
+        if (clientId == NetworkManager.Singleton.LocalClientId || clientId == 1234567890)
+        {
+            currentEndScreen.SetActive(false);
+            currentEndScreen = null;
+        }
     }
 
     /// <summary>
@@ -115,7 +128,7 @@ public class EndScreenManagerMultiplayer : MonoBehaviour
     {
         Debug.Log("Rematch pending status:" + rematchPending);
 
-        // If the rematch request is already pending from other device
+        // If the rematch request is already pending from another device
         if (rematchPending)
         {
             // Disables the rematch text and pending status
