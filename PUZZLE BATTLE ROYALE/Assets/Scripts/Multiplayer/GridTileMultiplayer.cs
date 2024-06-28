@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,75 +8,90 @@ using UnityEngine;
 public class GridTileMultiplayer : MonoBehaviour
 {
     /// <summary>
-    /// Represents the status of the grid tile:
-    /// 0 - unoccupied, 1 - occupied, not correct, 2 - occupied, correct.
+    /// Unique ID of the grid tile.
     /// </summary>
-    private int status;
+    private int tileId;
 
     /// <summary>
-    /// X index matching with the correct puzzle tile.
+    /// Sets the ID of the grid tile.
     /// </summary>
-    private int indexX;
-
-    /// <summary>
-    /// Y index matching with the correct puzzle tile.
-    /// </summary>
-    private int indexY;
-
-    /// <summary>
-    /// Initializes the grid tile's status to unoccupied (0).
-    /// </summary>
-    void Start()
+    /// <param name="newTileId">The new ID to set.</param>
+    public void SetId(int newTileId)
     {
-        status = 0;
+        tileId = newTileId;
     }
 
     /// <summary>
-    /// Updates the status of the grid tile when a puzzle tile was snapped to it.
+    /// Gets the ID of the grid tile.
     /// </summary>
-    /// <param name="tileIndexX">The X index of the puzzle tile.</param>
-    /// <param name="tileIndexY">The Y index of the puzzle tile.</param>
-    public void UpdateStatus(int tileIndexX, int tileIndexY)
+    /// <returns>The ID of the grid tile.</returns>
+    public int GetId()
     {
-        // If the puzzle tile indexes and grid tile indexes are the same (puzzle tile being in the correct position)
-        if (indexX == tileIndexX && indexY == tileIndexY)
-        {
-            // Sets the status to occupied, correct
-            status = 2;
-        }
-        else
-        {
-            // Sets the status to occupied, not correct
-            status = 1;
-        }
+        return tileId;
+    }
+
+    /// |---------------------------------|
+    /// |              SERVER             |
+    /// |---------------------------------|
+
+    /// <summary>
+    /// Dictionary to store client statuses for this grid tile.
+    /// </summary>
+    private Dictionary<ulong, bool> clientStatuses = new Dictionary<ulong, bool>();
+
+    /// <summary>
+    /// Initializes the client status for a given client ID.
+    /// </summary>
+    /// <param name="clientId">The ID of the client to initialize.</param>
+    public void InitializeClientStatus(ulong clientId)
+    {
+        clientStatuses.Add(clientId, false); // Default status is false (not correct)
     }
 
     /// <summary>
-    /// Sets the X and Y indexes for the grid tile.
+    /// Modifies the client status for a given client ID.
     /// </summary>
-    /// <param name="x">The X index to set.</param>
-    /// <param name="y">The Y index to set.</param>
-    public void SetIndexes(int x, int y)
-    {
-        indexX = x;
-        indexY = y;
-    }
-
-    /// <summary>
-    /// Gets the current status of the grid tile.
-    /// </summary>
-    /// <returns>The status of the grid tile.</returns>
-    public int GetStatus()
-    {
-        return status;
-    }
-
-    /// <summary>
-    /// Sets a new status for the grid tile.
-    /// </summary>
+    /// <param name="clientId">The ID of the client to modify.</param>
     /// <param name="newStatus">The new status to set.</param>
-    public void SetStatus(int newStatus)
+    public void ModifyClientStatus(ulong clientId, bool newStatus)
     {
-        status = newStatus;
+        clientStatuses[clientId] = newStatus;
+    }
+
+    /// <summary>
+    /// Gets the client status for a given client ID.
+    /// </summary>
+    /// <param name="clientId">The ID of the client to get status for.</param>
+    /// <returns>The status of the client for this grid tile.</returns>
+    public bool GetClientStatus(ulong clientId)
+    {
+        return clientStatuses[clientId];
+    }
+
+    /// |---------------------------------|
+    /// |             CLIENT              |
+    /// |---------------------------------|
+
+    /// <summary>
+    /// Flag indicating if this grid tile is occupied by a puzzle piece.
+    /// </summary>
+    private bool isOccupied;
+
+    /// <summary>
+    /// Checks if this grid tile is occupied by a puzzle piece.
+    /// </summary>
+    /// <returns>True if the tile is occupied, false otherwise.</returns>
+    public bool IsOccupied()
+    {
+        return isOccupied;
+    }
+
+    /// <summary>
+    /// Sets the occupied state of this grid tile.
+    /// </summary>
+    /// <param name="newState">The new state to set (true for occupied, false for not).</param>
+    public void SetOccupied(bool newState)
+    {
+        isOccupied = newState;
     }
 }
