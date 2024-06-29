@@ -373,6 +373,7 @@ public class MultiplayerManager : NetworkBehaviour
 
         // Initializes all the necessary information about the clients
         puzzleManager.InitializeClientPositions();
+        puzzleManager.InitializeClientSnappedGridTiles();
         puzzleManager.InitializeClientStatuses();
         puzzleManager.InitializeClientMovementPermissions();
 
@@ -469,6 +470,7 @@ public class MultiplayerManager : NetworkBehaviour
 
         // Initializes the destroyed information about clients again
         puzzleManager.InitializeClientPositions();
+        puzzleManager.InitializeClientSnappedGridTiles();
         puzzleManager.InitializeClientStatuses();
 
         // Shuffles all the puzzle tiles
