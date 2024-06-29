@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Represents an individual grid tile. This class manages determining whether  
+/// Represents an individual grid tile. This class manages determining whether 
 /// the puzzle tiles are placed correctly and checking whether the puzzle is completed.
 /// </summary>
 public class GridTileMultiplayer : MonoBehaviour
@@ -30,6 +30,15 @@ public class GridTileMultiplayer : MonoBehaviour
         return tileId;
     }
 
+    /// <summary>
+    /// Gets the position of the grid tile in the game world.
+    /// </summary>
+    /// <returns>The position of the grid tile.</returns>
+    public Vector3 GetPosition()
+    {
+        return transform.position;
+    }
+
     /// |---------------------------------|
     /// |              SERVER             |
     /// |---------------------------------|
@@ -37,7 +46,7 @@ public class GridTileMultiplayer : MonoBehaviour
     /// <summary>
     /// Dictionary to store client statuses for this grid tile.
     /// </summary>
-    private Dictionary<ulong, bool> clientStatuses = new Dictionary<ulong, bool>();
+    private Dictionary<ulong, bool> clientStatuses = new();
 
     /// <summary>
     /// Initializes the client status for a given client ID.
