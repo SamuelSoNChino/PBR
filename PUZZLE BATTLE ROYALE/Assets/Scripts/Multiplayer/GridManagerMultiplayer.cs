@@ -12,49 +12,69 @@ public class GridManagerMultiplayer : MonoBehaviour
     [SerializeField] private MultiplayerManager multiplayerManager;
 
     /// <summary>
-    /// Reference to the PeekManager script.
+    /// Gets a list of all grid tiles in the scene.
     /// </summary>
-    [SerializeField] private PeekManager peekManager;
-
-    /// <summary>
-    /// Finds a grid tile by its unique ID.
-    /// </summary>
-    /// <param name="tileId">The ID of the tile to find.</param>
-    /// <returns>The GameObject of the grid tile if found, otherwise null.</returns>
-    public GameObject FindTileById(int tileId)
-    {
-        // Iterates through all the grid tiles
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            Transform gridTileObject = transform.GetChild(i);
-            GridTileMultiplayer gridTile = gridTileObject.GetComponent<GridTileMultiplayer>();
-
-            // If the corresponding grid tile is found, return it
-            if (gridTile.GetId() == tileId)
-            {
-                return gridTileObject.gameObject;
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Gets all grid tiles in the scene.
-    /// </summary>
-    /// <returns>A list of all grid tile GameObjects.</returns>
+    /// <returns>A list of all grid tile game objects.</returns>
     public List<GameObject> GetAllGridTiles()
     {
-        // Prepares a list for all the grid tiles, which will be returned in the end
+        // Prepares the list for all the grid tiles
         List<GameObject> gridTiles = new();
 
         // Iterates through all the grid tiles
         for (int i = 0; i < transform.childCount; i++)
         {
-            // Adds the gridTileObject to the list
+            // Adds the grid tile to the list
             GameObject gridTileObject = transform.GetChild(i).gameObject;
             gridTiles.Add(gridTileObject);
         }
         return gridTiles;
+    }
+
+    /// <summary>
+    /// Finds a grid tile by its ID.
+    /// </summary>
+    /// <param name="tileId">The ID of the grid tile to find.</param>
+    /// <returns>The grid tile game object if found; otherwise, null.</returns>
+    public GameObject FindTileById(int tileId)
+    {
+        // Iterates through all the grid tiles
+        foreach (GameObject gridTileObject in GetAllGridTiles())
+        {
+            GridTileMultiplayer gridTile = gridTileObject.GetComponent<GridTileMultiplayer>();
+
+            // If the corresponding grid tile is found, returns it
+            if (gridTile.GetId() == tileId)
+            {
+                return gridTileObject.gameObject;
+            }
+        }
+
+        // Otherwise returns null
+        return null;
+    }
+
+    /// <summary>
+    /// Finds a grid tile by its 2D position.
+    /// </summary>
+    /// <param name="position2D">The 2D position of the grid tile to find.</param>
+    /// <returns>The grid tile game object if found; otherwise, null.</returns>
+    public GameObject FindTileBy2DPosition(Vector2 position2D)
+    {
+        // Iterates through all the grid tiles
+        foreach (GameObject gridTileObject in GetAllGridTiles())
+        {
+            GridTileMultiplayer gridTile = gridTileObject.GetComponent<GridTileMultiplayer>();
+            Vector2 gridTilePosition2D = new Vector2(gridTile.GetPosition().x, gridTile.GetPosition().y);
+
+            // If the corresponding grid tile is found, returns it
+            if (gridTilePosition2D == position2D)
+            {
+                return gridTileObject;
+            }
+        }
+
+        // Otherwise returns null
+        return null;
     }
 
     /// <summary>
@@ -63,13 +83,13 @@ public class GridManagerMultiplayer : MonoBehaviour
     /// <param name="clientId">The ID of the client to check the completeness for.</param>
     public void CheckCompleteness(ulong clientId)
     {
+        Debug.Log("Checking correctness");
         // Assumes that all the grid tiles have a correct puzzle tile placed on them
         bool allCorrect = true;
 
         // Iterates through all grid tiles
-        for (int i = 0; i < transform.childCount; i++)
+        foreach (GameObject gridTileObject in GetAllGridTiles())
         {
-            Transform gridTileObject = transform.GetChild(i);
             GridTileMultiplayer gridTile = gridTileObject.GetComponent<GridTileMultiplayer>();
 
             // Checks whether the grid tile has a correctly placed puzzle tile
