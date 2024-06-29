@@ -67,15 +67,12 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
     [SerializeField] private Sprite[] backgroundSkins;
 
     /// <summary>
-    /// Initializes the background on the client or host when the script is loaded.
+    /// Initializes the background when the script is loaded.
     /// </summary>
     private void Awake()
     {
         // Loads the background on awake to allow PanZoom to calculate the borders
-        if (IsClient || IsHost)
-        {
-            LoadOriginalBackground();
-        }
+        LoadOriginalBackground();
     }
 
     /// <summary>
