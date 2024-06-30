@@ -722,7 +722,6 @@ MonoBehaviour:
   puzzleManager: {fileID: 2097520473}
   puzzleGenerator: {fileID: 637174948}
   tilesManager: {fileID: 1557589170}
-  gridManager: {fileID: 1323705368}
   backgroundManager: {fileID: 1758580829}
   startScreenManagerMultiplayer: {fileID: 1978394548}
   endScreenManagerMultiplayer: {fileID: 798844538}
@@ -2992,7 +2991,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   multiplayerManager: {fileID: 368472932}
-  peekManager: {fileID: 1840344303}
 --- !u!1 &1429146144
 GameObject:
   m_ObjectHideFlags: 0
@@ -3439,9 +3437,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   puzzleManager: {fileID: 2097520473}
-  puzzleSize: 1000
-  topRightShuffleBound: {x: 1000, y: 0, z: 0}
-  bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
 --- !u!1 &1619521030
 GameObject:
   m_ObjectHideFlags: 0
@@ -3479,7 +3474,6 @@ MonoBehaviour:
   maxZoom: 1250
   minZoom: 750
   background: {fileID: 551972559}
-  tilesManager: {fileID: 1557589170}
 --- !u!81 &1619521032
 AudioListener:
   m_ObjectHideFlags: 0
@@ -4209,6 +4203,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilesManager: {fileID: 1557589170}
   gridManager: {fileID: 1323705368}
+  topRightShuffleBound: {x: 1000, y: 0, z: 0}
+  bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
+  puzzleSize: 1000
   panZoom: {fileID: 1619521031}
 --- !u!4 &2097520474
 Transform:
