@@ -378,7 +378,7 @@ public class MultiplayerManager : NetworkBehaviour
         puzzleManager.InitializeClientMovementPermissions();
 
         // Shuffles all the puzzle tiles
-        tilesManager.ShuffleAllTiles(seed);
+        puzzleManager.ShuffleAllTiles(seed);
 
         // Waits until the countdown has finished
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
@@ -474,7 +474,7 @@ public class MultiplayerManager : NetworkBehaviour
         puzzleManager.InitializeClientStatuses();
 
         // Shuffles all the puzzle tiles
-        tilesManager.ShuffleAllTiles(seed);
+        puzzleManager.ShuffleAllTiles(seed);
 
         // Waits until the countdown is finished
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
