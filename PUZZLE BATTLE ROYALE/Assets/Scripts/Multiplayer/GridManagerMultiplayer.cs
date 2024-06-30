@@ -83,7 +83,6 @@ public class GridManagerMultiplayer : MonoBehaviour
     /// <param name="clientId">The ID of the client to check the completeness for.</param>
     public void CheckCompleteness(ulong clientId)
     {
-        Debug.Log("Checking correctness");
         // Assumes that all the grid tiles have a correct puzzle tile placed on them
         bool allCorrect = true;
 
