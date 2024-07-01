@@ -3920,6 +3920,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45938b944040b64c8f3360dcb1e6302, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  puzzleManager: {fileID: 2097520473}
   tilesManager: {fileID: 1557589170}
   backgroundManager: {fileID: 1758580829}
   peekButton: {fileID: 850709670}
@@ -4206,6 +4207,7 @@ MonoBehaviour:
   topRightShuffleBound: {x: 1000, y: 0, z: 0}
   bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
   puzzleSize: 1000
+  peekManager: {fileID: 1840344303}
   panZoom: {fileID: 1619521031}
 --- !u!4 &2097520474
 Transform:
