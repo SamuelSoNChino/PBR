@@ -45,9 +45,18 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
     /// </summary>
     /// <param name="clientId">The ID of the client.</param>
     /// <returns>The background skin ID.</returns>
-    public int GetPlayerBackground(ulong clientId)
+    public int GetClientBackground(ulong clientId)
     {
         return playerBackgrounds[clientId];
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetClientBackgroundRpc(ulong clientId, int backgroundSkin)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            SetNewBackground(backgroundSkin);
+        }
     }
 
 
@@ -71,32 +80,19 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
     /// </summary>
     private void Awake()
     {
-        // Loads the background on awake to allow PanZoom to calculate the borders
-        LoadOriginalBackground();
-    }
-
-    /// <summary>
-    /// Loads the originally chosen background skin for the client.
-    /// </summary>
-    public void LoadOriginalBackground()
-    {
-        // If the background skin wasn't yet chosen in options, set it to the default value
         if (!PlayerPrefs.HasKey("backgroundSkin"))
         {
             PlayerPrefs.SetInt("backgroundSkin", 0);
         }
 
-        // Loads the background skin sprite from PlayerPrefs to the background game object
-        Sprite chosenBackground = backgroundSkins[PlayerPrefs.GetInt("backgroundSkin")];
-        SpriteRenderer backgroundSpriteRenderer = background.GetComponent<SpriteRenderer>();
-        backgroundSpriteRenderer.sprite = chosenBackground;
+        SetNewBackground(PlayerPrefs.GetInt("backgroundSkin"));
     }
 
     /// <summary>
     /// Loads a new background skin for the client.
     /// </summary>
     /// <param name="newBackground">The ID of the new background skin to load.</param>
-    public void LoadNewBackground(int newBackground)
+    public void SetNewBackground(int newBackground)
     {
         // Loads a new background skin sprite to the background game object
         Sprite chosenBackground = backgroundSkins[newBackground];

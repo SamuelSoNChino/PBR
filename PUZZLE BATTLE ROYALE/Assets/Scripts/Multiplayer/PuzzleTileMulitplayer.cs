@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -6,6 +8,76 @@ using UnityEngine;
 /// </summary>
 public class PuzzleTileMultiplayer : MonoBehaviour
 {
+
+    /// |---------------------------------|
+    /// |            UNIVERSAL            |
+    /// |---------------------------------|
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private int tileId;
+
+    /// <summary>
+    /// Ge
+    /// </summary>
+    public int GetId()
+    {
+        return tileId;
+    }
+
+    /// <summary>
+    /// S
+    /// </summary>
+    public void SetId(int newTileId)
+    {
+        tileId = newTileId;
+    }
+
+
+
+    /// |---------------------------------|
+    /// |              SERVER             |
+    /// |---------------------------------|
+
+    private Dictionary<ulong, Vector3> clientPositions = new();
+
+    public void InitializeClientPosition(ulong clientId)
+    {
+        clientPositions.Add(clientId, transform.position);
+    }
+
+    public void ModifyClientPosition(ulong clientId, Vector3 newPosition)
+    {
+        clientPositions[clientId] = newPosition;
+    }
+
+    public Vector3 GetClientPosition(ulong clientId)
+    {
+        return clientPositions[clientId];
+    }
+
+    private Dictionary<ulong, GameObject> clientSnappedGridTiles = new();
+
+    public void InitializeClientSnappedGridTile(ulong clientId)
+    {
+        clientSnappedGridTiles.Add(clientId, null);
+    }
+
+    public void ModifyClientSnappeedGridTile(ulong clientId, GameObject snappedGridTile)
+    {
+        clientSnappedGridTiles[clientId] = snappedGridTile;
+    }
+
+    public GameObject GetClientSnappedGridTile(ulong clientId)
+    {
+        return clientSnappedGridTiles[clientId];
+    }
+
+    /// |---------------------------------|
+    /// |             CLIENT              |
+    /// |---------------------------------|
+
     /// <summary>
     /// The vector between the puzzle tile and mouse position.
     /// </summary>
@@ -22,31 +94,42 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     private bool isSelected = false;
 
     /// <summary>
-    /// X index matching with the correct grid tile.
-    /// </summary>
-    private int indexX;
-
-    /// <summary>
-    /// Y index matching with the correct grid tile.
-    /// </summary>
-    private int indexY;
-
-    /// <summary>
     /// The grid tile the puzzle tile is snapped to (placed on).
     /// </summary>
-    private GridTile snappedGridTile;
+    private GridTileMultiplayer snappedGridTile;
 
     /// <summary>
     /// The parent class containing methods for managing all puzzle tiles.
     /// </summary>
-    private TilesManager tilesManager;
+    private TilesManagerMultiplayer tilesManager;
+
+    private PuzzleManager puzzleManager;
 
     /// <summary>
     /// Loads the specific tile manager.
     /// </summary>
     private void Start()
     {
-        tilesManager = transform.parent.GetComponent<TilesManager>();
+        tilesManager = transform.parent.GetComponent<TilesManagerMultiplayer>();
+        puzzleManager = GameObject.Find("PuzzleManager").GetComponent<PuzzleManager>();
+    }
+
+    /// <summary>
+    /// Sets a new position of the puzzle tile.
+    /// </summary>
+    /// <param name="newPosition">The new position.</param>
+    public void SetPosition(Vector3 newPosition)
+    {
+        transform.position = newPosition;
+    }
+
+    /// <summary>
+    /// Gets the current position of the puzzle tile.
+    /// </summary>
+    /// <returns>The current position of the puzzle tile.</returns>
+    public Vector3 GetPosition()
+    {
+        return transform.position;
     }
 
     /// <summary>
@@ -94,64 +177,15 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     }
 
     /// <summary>
-    /// Gets the grid tile the puzzle tile is snapped to.
-    /// </summary>
-    /// <returns>The snapped grid tile.</returns>
-    public GridTile GetSnappedGridTile()
-    {
-        return snappedGridTile;
-    }
-
-    /// <summary>
-    /// Sets the grid tile the puzzle tile is snapped to.
-    /// </summary>
-    /// <param name="newGridTile">The new grid tile.</param>
-    public void SetSnappedGridTile(GridTile newGridTile)
-    {
-        snappedGridTile = newGridTile;
-    }
-
-    /// <summary>
-    /// Clears the snapped grid tile, setting its status to unoccupied.
-    /// </summary>
-    public void UnsnapFromGrid()
-    {
-        if (snappedGridTile != null)
-        {
-            snappedGridTile.SetStatus(0);
-        }
-        snappedGridTile = null;
-    }
-
-    /// <summary>
-    /// Gets the indexes of the tile.
-    /// </summary>
-    /// <returns>An array containing the X and Y indexes.</returns>
-    public int[] GetIndexes()
-    {
-        int[] output = { indexX, indexY };
-        return output;
-    }
-
-    /// <summary>
-    /// Sets the indexes of the tile.
-    /// </summary>
-    /// <param name="x">The X index.</param>
-    /// <param name="y">The Y index.</param>
-    public void SetIndexes(int x, int y)
-    {
-        indexX = x;
-        indexY = y;
-    }
-
-    /// <summary>
     /// Moves the puzzle tile to a new position with an optional offset without changing the Z value.
     /// </summary>
     /// <param name="newPosition">The new position.</param>
     /// <param name="offset">The offset to apply.</param>
     public void Move(Vector3 newPosition, Vector3 offset = default)
     {
-        transform.position = new Vector3(newPosition.x + offset.x, newPosition.y + offset.y, transform.position.z);
+        Vector3 movedPosition = new(newPosition.x + offset.x, newPosition.y + offset.y, transform.position.z);
+        SetPosition(movedPosition);
+        puzzleManager.UpdateServerPosition(GetId(), movedPosition);
 
         // Unsnaps itself from the grid tile
         if (snappedGridTile)
@@ -161,21 +195,33 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets a new position of the puzzle tile, also changing the Z value unlike to Move method.
+    /// Increments the Z position of the tile.
     /// </summary>
-    /// <param name="newPosition">The new position.</param>
-    public void SetPosition(Vector3 newPosition)
+    public void IncrementZ()
     {
-        transform.position = new Vector3(newPosition.x, newPosition.y, newPosition.z);
+        SetPosition(new Vector3(transform.position.x, transform.position.y, transform.position.z + 1));
     }
 
     /// <summary>
-    /// Gets the current position of the puzzle tile.
+    /// Moves this puzzle tile to the front.
     /// </summary>
-    /// <returns>The current position of the puzzle tile.</returns>
-    public Vector3 GetPosition()
+    public void MoveToFront()
     {
-        return new Vector3(transform.position.x, transform.position.y, transform.position.z);
+        // Iterates through all other puzzle tiles 
+        for (int i = 0; i < transform.parent.childCount; i++)
+        {
+            Transform puzzleTileTransform = transform.parent.GetChild(i);
+            // Moves each tile that's in front of this one back (by incrementing z)
+            if (puzzleTileTransform.position.z < transform.position.z)
+            {
+                PuzzleTileMultiplayer puzzleTile = puzzleTileTransform.GetComponent<PuzzleTileMultiplayer>();
+                puzzleTile.IncrementZ();
+                puzzleManager.UpdateServerPosition(puzzleTile.GetId(), puzzleTile.GetPosition());
+            }
+        }
+        // Moves this puzzle tile in the front spot (z=1)
+        SetPosition(new Vector3(transform.position.x, transform.position.y, 1));
+        puzzleManager.UpdateServerPosition(GetId(), GetPosition());
     }
 
     /// <summary>
@@ -194,50 +240,42 @@ public class PuzzleTileMultiplayer : MonoBehaviour
         // Iterates through each grid tile
         for (int j = 0; j < grid.childCount; j++)
         {
-            Transform gridChild = grid.GetChild(j);
-            SpriteRenderer gridSRenderer = gridChild.GetComponent<SpriteRenderer>();
-            GridTile gridTile = gridChild.GetComponent<GridTile>();
+            Transform gridChildObject = grid.GetChild(j);
+            SpriteRenderer gridSRenderer = gridChildObject.GetComponent<SpriteRenderer>();
+            GridTileMultiplayer gridTile = gridChildObject.GetComponent<GridTileMultiplayer>();
 
             // If the grid tile sprite contains tileCenter and it is unoccupied
-            if (gridSRenderer.bounds.Contains(tileCenter) && gridTile.GetStatus() == 0)
+            if (gridSRenderer.bounds.Contains(tileCenter) && !gridTile.IsOccupied())
             {
                 // Moves the puzzle tile to the same position as the grid tile (preserving the puzzle tile's Z value), which contains tileCenter and is unoccupied
-                Move(new Vector3(gridChild.position.x, gridChild.position.y, transform.position.z));
+                Move(new Vector3(gridChildObject.position.x, gridChildObject.position.y, transform.position.z));
                 SetSnappedGridTile(gridTile);
-                gridTile.UpdateStatus(indexX, indexY);
+                gridTile.SetOccupied(true);
                 // Doesnt need to continue as it can always snap only to a single grid tile
                 break;
             }
         }
-        // Checks if the puzzle is completed
-        GameObject.Find("Grid").GetComponent<GridManager>().CheckCompleteness();
     }
 
     /// <summary>
-    /// Increments the Z position of the tile.
+    /// Sets the grid tile the puzzle tile is snapped to.
     /// </summary>
-    public void IncrementZ()
+    /// <param name="newGridTile">The new grid tile.</param>
+    public void SetSnappedGridTile(GridTileMultiplayer newGridTile)
     {
-        transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + 1);
+        snappedGridTile = newGridTile;
     }
 
     /// <summary>
-    /// Moves this puzzle tile to the front.
+    /// Clears the snapped grid tile, setting its status to unoccupied.
     /// </summary>
-    public void MoveToFront()
+    public void UnsnapFromGrid()
     {
-        // Iterates through all other puzzle tiles 
-        for (int i = 0; i < transform.parent.childCount; i++)
+        if (snappedGridTile != null)
         {
-            Transform sibling = transform.parent.GetChild(i);
-            // Moves each tile that's in front of this one back (by incrementing z)
-            if (sibling.position.z < transform.position.z)
-            {
-                sibling.GetComponent<PuzzleTile>().IncrementZ();
-            }
+            snappedGridTile.SetOccupied(false);
         }
-        // Moves this puzzle tile in the front spot (z=1)
-        transform.position = new Vector3(transform.position.x, transform.position.y, 1);
+        snappedGridTile = null;
     }
 
     /// <summary>
@@ -268,7 +306,7 @@ public class PuzzleTileMultiplayer : MonoBehaviour
             originalPosition = transform.position;
 
             // Lets other components know that a tile is being dragged (or just clicked)
-            tilesManager.SetAnyTileDragging(true);
+            Camera.main.GetComponent<PanZoom>().SetAnyTileDragging(true);
 
             // Calculates offsets for all selected tiles, otherwise only for itself
             if (isSelected)
@@ -312,7 +350,7 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     private void OnMouseUp()
     {
         // Lets other components know that the tile is not being dragged anymore
-        tilesManager.SetAnyTileDragging(false);
+        Camera.main.GetComponent<PanZoom>().SetAnyTileDragging(false);
 
         // Triggers only when the tile was clicked without changing position
         if (transform.position == originalPosition)
