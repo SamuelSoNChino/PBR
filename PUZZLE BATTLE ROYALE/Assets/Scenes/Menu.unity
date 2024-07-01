@@ -552,7 +552,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1262292116}
         m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
-        m_MethodName: swipeLeftButton
+        m_MethodName: swipeLeft
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -910,7 +910,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1262292116}
         m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
-        m_MethodName: swipeRightButton
+        m_MethodName: swipeRight
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
