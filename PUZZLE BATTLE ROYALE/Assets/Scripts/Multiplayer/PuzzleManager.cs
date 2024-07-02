@@ -77,7 +77,7 @@ public class PuzzleManager : NetworkBehaviour
 
         if (puzzleTile.GetClientSnappedGridTile(clientId) != null)
         {
-            GridTileMultiplayer gridTile = gridTileObject.GetComponent<GridTileMultiplayer>();
+            GridTileMultiplayer gridTile = puzzleTile.GetClientSnappedGridTile(clientId).GetComponent<GridTileMultiplayer>();
             gridTile.ModifyClientStatus(clientId, false);
             puzzleTile.ModifyClientSnappeedGridTile(clientId, null);
         }
@@ -244,7 +244,7 @@ public class PuzzleManager : NetworkBehaviour
                 SetNewTilePositionRpc(clientId, puzzleTile.GetId(), puzzleTile.GetClientPosition(clientId));
             }
         }
-        
+
     }
 
     [Rpc(SendTo.ClientsAndHost)]
