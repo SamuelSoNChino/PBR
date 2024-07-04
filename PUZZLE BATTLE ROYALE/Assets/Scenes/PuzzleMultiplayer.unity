@@ -3628,7 +3628,8 @@ MonoBehaviour:
   startingZoom: 1100
   maxZoom: 1250
   minZoom: 750
-  background: {fileID: 551972559}
+  bottomLeftBound: {x: -300, y: 1300, z: 0}
+  topRightBound: {x: -1300, y: 1300, z: 0}
 --- !u!81 &1619521032
 AudioListener:
   m_ObjectHideFlags: 0

@@ -32,23 +32,16 @@ public class PanZoom : MonoBehaviour
     [SerializeField] private float minZoom;
 
     /// <summary>
-    /// The background game object used to set boundaries for panning.
-    /// </summary>
-    [SerializeField] private GameObject background;
-
-
-
-
-
-    /// <summary>
     /// The bottom-left boundary of the background.
     /// </summary>
-    private Vector3 bottomLeftBound;
+    [SerializeField] private Vector3 bottomLeftBound;
 
     /// <summary>
     /// The top-right boundary of the background.
     /// </summary>
-    private Vector3 topRightBound;
+    [SerializeField] private Vector3 topRightBound;
+
+
 
     /// <summary>
     /// The initial touch position for panning.
@@ -67,17 +60,12 @@ public class PanZoom : MonoBehaviour
 
     /// <summary>
     /// Initializes the starting zoom and position of the camera.
-    /// Sets the boundaries based on the background sprite.
     /// </summary>
     void Start()
     {
         // Initializes the starting zoom and position of the camera
         Camera.main.orthographicSize = startingZoom;
         Camera.main.transform.position = startingPos;
-
-        // Sets the boundaries based on the background sprite
-        bottomLeftBound = background.GetComponent<SpriteRenderer>().bounds.min;
-        topRightBound = background.GetComponent<SpriteRenderer>().bounds.max;
     }
 
     /// <summary>
