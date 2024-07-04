@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Represents an individual grid tile.
+/// Represents an individual grid tile. Is only used on client side.
 /// </summary>
 public class GridTileMultiplayer : MonoBehaviour
 {
@@ -28,12 +28,12 @@ public class GridTileMultiplayer : MonoBehaviour
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Flag indicating if this grid tile is occupied by a puzzle piece.
+    /// Flag indicating if this grid tile is occupied by a puzzle piece to determine local snapping to grid.
     /// </summary>
     private bool isOccupied;
 
     /// <summary>
-    /// Gets or sets the occupied state of this grid tile.
+    /// Gets or sets the occupied state of this grid tile, which is used to determine local snapping to grid.
     /// </summary>
     public bool IsOccupied
     {
