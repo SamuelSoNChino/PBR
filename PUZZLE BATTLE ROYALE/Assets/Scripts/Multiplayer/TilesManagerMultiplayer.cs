@@ -1,19 +1,16 @@
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
-/// Manages all the puzzle tiles in the scene, handling their mass selection, movement, and snapping to the grid.
+/// Manages all the puzzle tiles in the scene, handling their mass selection, movement, and snapping to the grid. 
+/// This manager is only used on the client side.
 /// </summary>
 public class TilesManagerMultiplayer : MonoBehaviour
 {
-
-    /// |---------------------------------|
-    /// |            UNIVERSAL            |
-    /// |---------------------------------|
-
-    [SerializeField] private PuzzleManager puzzleManager;
-
+    /// <summary>
+    /// Retrieves all puzzle tiles in the scene.
+    /// </summary>
+    /// <returns>A list of all puzzle tile GameObjects.</returns>
     public List<GameObject> GetAllPuzzleTiles()
     {
         List<GameObject> puzzleTiles = new();
@@ -25,12 +22,17 @@ public class TilesManagerMultiplayer : MonoBehaviour
         return puzzleTiles;
     }
 
-    public GameObject FindTileById(int tileId)
+    /// <summary>
+    /// Finds a puzzle tile by its unique ID.
+    /// </summary>
+    /// <param name="puzzleTileId">The ID of the puzzle tile to find.</param>
+    /// <returns>The GameObject of the puzzle tile with the specified ID, or null if not found.</returns>
+    public GameObject FindPuzzleTileById(int puzzleTileId)
     {
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
-            if (puzzleTile.GetId() == tileId)
+            if (puzzleTile.TileId == puzzleTileId)
             {
                 return puzzleTileObject;
             }
@@ -38,30 +40,27 @@ public class TilesManagerMultiplayer : MonoBehaviour
         return null;
     }
 
-    /// |---------------------------------|
-    /// |             CLIENT              |
-    /// |---------------------------------|
+    // -----------------------------------------------------------------------
+    // Collider Management
+    // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Disables all the colliders to prevent manipulating the tiles.
+    /// Disables all the colliders on the puzzle tiles to prevent interaction.
     /// </summary>
     public void DisableAllColliders()
     {
-        // Iterate through each puzzle tile
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
-            // Disable the collider
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
             puzzleTile.DisableCollider();
         }
     }
 
     /// <summary>
-    /// Enables all the colliders to allow manipulating the tiles.
+    /// Enables all the colliders on the puzzle tiles to allow interaction.
     /// </summary>
     public void EnableAllColliders()
     {
-        // Iterate through each puzzle tile
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
@@ -69,22 +68,24 @@ public class TilesManagerMultiplayer : MonoBehaviour
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Tile Selection and Movement
+    // -----------------------------------------------------------------------
+
     /// <summary>
-    /// Moves all selected tiles to the current mouse position.
+    /// Moves all selected puzzle tiles to the current mouse position.
     /// </summary>
-    public void MoveSelectedToMouse()
+    public void MoveSelectedWithMouse()
     {
-        // Iterate through each puzzle tile
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
 
-            // Move each selected tile to the mouse position
-            if (puzzleTile.IsSelected())
+            if (puzzleTile.IsSelected)
             {
                 Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector3 childOffset = puzzleTile.GetMouseOffset();
-                puzzleTile.Move(mousePosition, childOffset);
+                Vector3 mouseOffset = puzzleTile.MouseOffset;
+                puzzleTile.Move(mousePosition, mouseOffset);
             }
         }
     }
@@ -94,11 +95,10 @@ public class TilesManagerMultiplayer : MonoBehaviour
     /// </summary>
     public void DeselectAllTiles()
     {
-        // Iterate through each puzzle tile
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
-            puzzleTile.DeselectTile();
+            puzzleTile.IsSelected = false;
         }
     }
 
@@ -107,7 +107,6 @@ public class TilesManagerMultiplayer : MonoBehaviour
     /// </summary>
     public void CalculateAllMouseOffsets()
     {
-        // Iterate through each puzzle tile
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
@@ -115,32 +114,30 @@ public class TilesManagerMultiplayer : MonoBehaviour
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Grid Snapping
+    // -----------------------------------------------------------------------
+
     /// <summary>
-    /// Snaps all tiles to the grid.
+    /// Snaps all puzzle tiles to the grid.
     /// </summary>
     public void SnapAllToGrid()
     {
-        // Iterate through each puzzle tile
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
-
-            // Snap each tile to the grid
             puzzleTile.SnapToGrid();
         }
     }
 
     /// <summary>
-    /// Unsnaps all tiles from the grid.
+    /// Unsnaps all puzzle tiles from the grid.
     /// </summary>
     public void UnsnapAllFromGrid()
     {
-        // Iterate through each puzzle tile
         foreach (GameObject puzzleTileObject in GetAllPuzzleTiles())
         {
             PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
-
-            // Unsnaps each tile to the grid
             puzzleTile.UnsnapFromGrid();
         }
     }
