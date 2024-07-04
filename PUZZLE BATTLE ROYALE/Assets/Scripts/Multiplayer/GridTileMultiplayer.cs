@@ -1,8 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Represents an individual grid tile. This class manages determining whether 
-/// the puzzle tiles are placed correctly and checking whether the puzzle is completed.
+/// Represents an individual grid tile.
 /// </summary>
 public class GridTileMultiplayer : MonoBehaviour
 {
