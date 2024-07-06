@@ -5,10 +5,13 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// Manages the end screen for multiplayer matches, handling the display of winning or losing screens,
 /// and managing rematch requests and responses.
-/// WORKS ONLY WITH MULTIPLAYER.
 /// </summary>
 public class EndScreenManagerMultiplayer : NetworkBehaviour
 {
+    // -----------------------------------------------------------------------
+    // End Screens
+    // -----------------------------------------------------------------------
+
     /// <summary>
     /// GameObject representing the winning screen.
     /// </summary>
@@ -20,19 +23,9 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
     [SerializeField] private GameObject losingScreen;
 
     /// <summary>
-    /// Reference to the MultiplayerManager script.
-    /// </summary>
-    [SerializeField] private MultiplayerManager multiplayerManager;
-
-    /// <summary>
     /// Currently active end screen (either winning or losing screen).
     /// </summary>
     private GameObject currentEndScreen;
-
-    /// <summary>
-    /// Indicates if a rematch is currently pending.
-    /// </summary>
-    private bool rematchPending;
 
     /// <summary>
     /// Loads the winning screen on the client specified by clientId. If clientId is not specified, targets all clients.
@@ -78,13 +71,26 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Rematch Management
+    // -----------------------------------------------------------------------
+
     /// <summary>
-    /// Returns to the main menu, shutting down the network manager.
+    /// Reference to the MultiplayerManager script.
     /// </summary>
-    public void BackToMenu()
+    [SerializeField] private MultiplayerManager multiplayerManager;
+
+    /// <summary>
+    /// Indicates if a rematch is currently pending.
+    /// </summary>
+    private bool rematchPending;
+
+    /// <summary>
+    /// Enables the rematch text on the current end screen.
+    /// </summary>
+    private void EnableRematchText()
     {
-        NetworkManager.Singleton.Shutdown();
-        SceneManager.LoadScene("Menu");
+        currentEndScreen?.transform.Find("RematchText").gameObject.SetActive(true);
     }
 
     /// <summary>
@@ -92,15 +98,7 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
     /// </summary>
     private void DisableRematchText()
     {
-        currentEndScreen.transform.Find("RematchText").gameObject.SetActive(false);
-    }
-
-    /// <summary>
-    /// Enables the rematch text on the current end screen.
-    /// </summary>
-    private void EnableRematchText()
-    {
-        currentEndScreen.transform.Find("RematchText").gameObject.SetActive(true);
+        currentEndScreen?.transform.Find("RematchText").gameObject.SetActive(false);
     }
 
     /// <summary>
@@ -128,19 +126,27 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
     {
         Debug.Log("Rematch pending status:" + rematchPending);
 
-        // If the rematch request is already pending from another device
         if (rematchPending)
         {
-            // Disables the rematch text and pending status
             DisableRematchPending();
-
-            // Informs the server that the pending rematch was accepted
             multiplayerManager.AcceptRematchServerRpc();
         }
         else
         {
-            // Sends a request for a rematch to the server
             multiplayerManager.RequestRematchServerRpc(NetworkManager.Singleton.LocalClientId);
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Menu Navigation
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns to the main menu, shutting down the network manager.
+    /// </summary>
+    public void BackToMenu()
+    {
+        NetworkManager.Singleton.Shutdown();
+        SceneManager.LoadScene("Menu");
     }
 }

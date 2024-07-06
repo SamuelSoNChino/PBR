@@ -1,106 +1,55 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Represents an individual grid tile. This class manages determining whether 
-/// the puzzle tiles are placed correctly and checking whether the puzzle is completed.
+/// Represents an individual grid tile. Is only used on client side.
 /// </summary>
 public class GridTileMultiplayer : MonoBehaviour
 {
+    // -----------------------------------------------------------------------
+    // Ids
+    // -----------------------------------------------------------------------
+
     /// <summary>
     /// Unique ID of the grid tile.
     /// </summary>
     private int tileId;
 
     /// <summary>
-    /// Sets the ID of the grid tile.
+    /// Gets or sets the unique ID of the grid tile.
     /// </summary>
-    /// <param name="newTileId">The new ID to set.</param>
-    public void SetId(int newTileId)
+    public int TileId
     {
-        tileId = newTileId;
+        get { return tileId; }
+        set { tileId = value; }
     }
 
-    /// <summary>
-    /// Gets the ID of the grid tile.
-    /// </summary>
-    /// <returns>The ID of the grid tile.</returns>
-    public int GetId()
-    {
-        return tileId;
-    }
+    // -----------------------------------------------------------------------
+    // Occupied State
+    // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Gets the position of the grid tile in the game world.
-    /// </summary>
-    /// <returns>The position of the grid tile.</returns>
-    public Vector3 GetPosition()
-    {
-        return transform.position;
-    }
-
-    /// |---------------------------------|
-    /// |              SERVER             |
-    /// |---------------------------------|
-
-    /// <summary>
-    /// Dictionary to store client statuses for this grid tile.
-    /// </summary>
-    private Dictionary<ulong, bool> clientStatuses = new();
-
-    /// <summary>
-    /// Initializes the client status for a given client ID.
-    /// </summary>
-    /// <param name="clientId">The ID of the client to initialize.</param>
-    public void InitializeClientStatus(ulong clientId)
-    {
-        clientStatuses.Add(clientId, false); // Default status is false (not correct)
-    }
-
-    /// <summary>
-    /// Modifies the client status for a given client ID.
-    /// </summary>
-    /// <param name="clientId">The ID of the client to modify.</param>
-    /// <param name="newStatus">The new status to set.</param>
-    public void ModifyClientStatus(ulong clientId, bool newStatus)
-    {
-        clientStatuses[clientId] = newStatus;
-    }
-
-    /// <summary>
-    /// Gets the client status for a given client ID.
-    /// </summary>
-    /// <param name="clientId">The ID of the client to get status for.</param>
-    /// <returns>The status of the client for this grid tile.</returns>
-    public bool GetClientStatus(ulong clientId)
-    {
-        return clientStatuses[clientId];
-    }
-
-    /// |---------------------------------|
-    /// |             CLIENT              |
-    /// |---------------------------------|
-
-    /// <summary>
-    /// Flag indicating if this grid tile is occupied by a puzzle piece.
+    /// Flag indicating if this grid tile is occupied by a puzzle piece to determine local snapping to grid.
     /// </summary>
     private bool isOccupied;
 
     /// <summary>
-    /// Checks if this grid tile is occupied by a puzzle piece.
+    /// Gets or sets the occupied state of this grid tile, which is used to determine local snapping to grid.
     /// </summary>
-    /// <returns>True if the tile is occupied, false otherwise.</returns>
-    public bool IsOccupied()
+    public bool IsOccupied
     {
-        return isOccupied;
+        get { return isOccupied; }
+        set { isOccupied = value; }
     }
 
+    // -----------------------------------------------------------------------
+    // Positions
+    // -----------------------------------------------------------------------
+
     /// <summary>
-    /// Sets the occupied state of this grid tile.
+    /// Gets the position of the grid tile.
     /// </summary>
-    /// <param name="newState">The new state to set (true for occupied, false for not).</param>
-    public void SetOccupied(bool newState)
+    public Vector3 Position
     {
-        isOccupied = newState;
+        get { return transform.position; }
     }
 }

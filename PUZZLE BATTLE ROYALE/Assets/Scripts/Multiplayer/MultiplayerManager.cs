@@ -22,6 +22,11 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private string serverUrl;
 
     /// <summary>
+    /// Reference to the PlayerManager script.
+    /// </summary>
+    [SerializeField] private PlayerManager playerManager;
+
+    /// <summary>
     /// Reference to the PuzzleManager script.
     /// </summary>
     [SerializeField] private PuzzleManager puzzleManager;
@@ -30,11 +35,6 @@ public class MultiplayerManager : NetworkBehaviour
     /// Reference to the PuzzleGenerator script.
     /// </summary>
     [SerializeField] private PuzzleGeneratorMultiplayer puzzleGenerator;
-
-    /// <summary>
-    /// Reference to the TilesManager script.
-    /// </summary>
-    [SerializeField] private TilesManagerMultiplayer tilesManager;
 
     /// <summary>
     /// Reference to the BackgroundManager script.
@@ -71,47 +71,37 @@ public class MultiplayerManager : NetworkBehaviour
     /// </summary>
     private TaskCompletionSource<bool> connectionCompleted;
 
-
-
-    /// |---------------------------------|
-    /// |           MATCHMAKING           |
-    /// |---------------------------------|
+    // -----------------------------------------------------------------------
+    // Matchmaking
+    // -----------------------------------------------------------------------
 
     /// <summary>
     /// Initializes matchmaking, signs in anonymously if not already signed in, requests a match, and handles relay setup.
     /// </summary>
     private async void Start()
     {
-        // Starts the matchmaking message cycle on the start screen
         startScreenManagerMultiplayer.StartMatchmakingCycle();
 
-        // Initializes UnityServices
         await UnityServices.InitializeAsync();
-
-        // Logs player's ID after they log in in the debug console
         AuthenticationService.Instance.SignedIn += () =>
         {
             Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
         };
-
-        // If the player isn't signed in, signs in anonymously
         if (!AuthenticationService.Instance.IsSignedIn)
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
 
-        // Requests a new match and waits until the request is completed
         TaskCompletionSource<bool> matchRequestCompleted = new();
         StartCoroutine(RequestMatch(matchRequestCompleted));
         await matchRequestCompleted.Task;
 
-        // If the matchmaking server assigned HOST role
         if (role == "HOST")
         {
-            // Creates a new relay as a host
+            playerManager.AddNewPlayer(new Player("Vajdik", NetworkManager.Singleton.LocalClientId, 0));
+
             await CreateRelay();
 
-            // Uploads the relay join code on the matchmaking server and waits until the request has been completed
             TaskCompletionSource<bool> uploadRequestCompleted = new();
             StartCoroutine(UploadRelayJoinCode(uploadRequestCompleted));
             await uploadRequestCompleted.Task;
@@ -125,23 +115,17 @@ public class MultiplayerManager : NetworkBehaviour
             // The button enables the player to cancel matchmaking, when it is taking too long
             startScreenManagerMultiplayer.EnableCancelButton();
 
-            // Waits until the client has connected
             await connectionCompleted.Task;
 
-            // After the client has connected, the player can no longer use the button to cancel matchmaking
             startScreenManagerMultiplayer.DisableCancelButton();
 
             // Removes callback after successful connection to prevent problems in other multiplayer sessions
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
 
-            // Starts the coruoutine for the server to start the game
             StartCoroutine(StartNewGameServer());
         }
-
-        // If the matchmaking server assigned CLIENT role
         else if (role == "CLIENT")
         {
-            // Waits until successfully connected to the relay using the relay join code from the server
             await JoinRelay();
 
             // Then waits for Rpc instructions from the server
@@ -160,6 +144,7 @@ public class MultiplayerManager : NetworkBehaviour
             // Ensure the TaskCompletionSource is not already completed (probably doesn't even need to be here)
             if (connectionCompleted != null && !connectionCompleted.Task.IsCompleted)
             {
+                playerManager.AddNewPlayer(new Player("pepis", clientId, 1));
                 // When a client successfully connects, sets the result to completed
                 connectionCompleted.SetResult(true);
             }
@@ -173,29 +158,25 @@ public class MultiplayerManager : NetworkBehaviour
     /// <returns>IEnumerator for the coroutine.</returns>
     private IEnumerator RequestMatch(TaskCompletionSource<bool> requestCompleted)
     {
-        // Sends a request for a match to the Python server and waits until it was processed
         UnityWebRequest matchRequest = UnityWebRequest.Get($"{serverUrl}/request_match");
         yield return matchRequest.SendWebRequest();
 
-        // If the request wasn't successful, breaks the coroutine
         if (matchRequest.result != UnityWebRequest.Result.Success)
         {
             Debug.Log("Failed to request a match.");
             yield break;
         }
 
-        // Splits the information from the server and saves the role and seed
+
         string[] information = matchRequest.downloadHandler.text.Split(",");
         role = information[0];
-
-        // If the device's role is client, information also contains relay join code
         if (role == "CLIENT")
         {
             relayJoinCode = information[1];
         }
+
         Debug.Log("Requested match successfully: " + information);
 
-        // Sets requestCompleted to completed, allowing the rest of the code to continue
         requestCompleted.SetResult(true);
     }
 
@@ -206,19 +187,16 @@ public class MultiplayerManager : NetworkBehaviour
     /// <returns>IEnumerator for the coroutine.</returns>
     private IEnumerator UploadRelayJoinCode(TaskCompletionSource<bool> uploadCompleted)
     {
-        // Sends a request to upload the relay join code and seed to the Python server
         string requestUrl = $"{serverUrl}/upload_relay_join_code?relay_join_code={relayJoinCode}";
         UnityWebRequest uploadRequest = UnityWebRequest.Get(requestUrl);
         yield return uploadRequest.SendWebRequest();
 
-        // If the request wasn't successful, breaks the coroutine
         if (uploadRequest.result != UnityWebRequest.Result.Success)
         {
             Debug.Log("Failed to upload the relay join code.");
             yield break;
         }
 
-        // If the response wasn't "OK", breaks the coroutine
         string response = uploadRequest.downloadHandler.text;
         if (response != "OK")
         {
@@ -227,7 +205,6 @@ public class MultiplayerManager : NetworkBehaviour
         }
         Debug.Log("Uploaded the join code successfully");
 
-        // Sets uploadCompleted to completed, allowing the rest of the code to continue
         uploadCompleted.SetResult(true);
     }
 
@@ -253,7 +230,6 @@ public class MultiplayerManager : NetworkBehaviour
             // Starts the Netcode session as a host using the relayServerData
             NetworkManager.Singleton.StartHost();
         }
-        // If something went wrong, logs the exception in the debug console
         catch (RelayServiceException e)
         {
             Debug.Log(e);
@@ -279,34 +255,29 @@ public class MultiplayerManager : NetworkBehaviour
             // Starts the Netcode session as a client using the relayServerData
             NetworkManager.Singleton.StartClient();
         }
-        // If something went wrong, logs the exception in the debug console
         catch (RelayServiceException e)
         {
             Debug.Log(e);
         }
     }
 
-    /// |---------------------------------|
-    /// |        CANCELING A MATCH        |
-    /// |---------------------------------|
+
+    // -----------------------------------------------------------------------
+    // Canceling a Match
+    // -----------------------------------------------------------------------
 
     /// <summary>
     /// Cancels the matchmaking process and returns to the main menu.
     /// </summary>
     public async void CancelMatchmaking()
     {
-        //  Only the host can cancel the matchmaking
         if (role == "HOST")
         {
-            // Asks the server to remove the relay join code, so no client will try to connect to it
             TaskCompletionSource<bool> codeRemovalCompleted = new();
             StartCoroutine(RequestJoinCodeRemoval(codeRemovalCompleted));
             await codeRemovalCompleted.Task;
 
-            // Shuts down all the network connections
             NetworkManager.Singleton.Shutdown();
-
-            // Sends the player back to menu
             SceneManager.LoadScene("Menu");
         }
     }
@@ -318,12 +289,10 @@ public class MultiplayerManager : NetworkBehaviour
     /// <returns>IEnumerator for the coroutine.</returns>
     private IEnumerator RequestJoinCodeRemoval(TaskCompletionSource<bool> codeRemovalCompleted)
     {
-        // Sends a request to remove the relay join code and seed from the server
         string requestUrl = $"{serverUrl}/request_join_code_removal?relay_join_code={relayJoinCode}";
         UnityWebRequest webRequest = UnityWebRequest.Get(requestUrl);
         yield return webRequest.SendWebRequest();
 
-        // If the request wasn't successful, breaks the coroutine
         if (webRequest.result != UnityWebRequest.Result.Success)
         {
             Debug.Log("Failed to remove the join code from the server");
@@ -332,58 +301,40 @@ public class MultiplayerManager : NetworkBehaviour
 
         Debug.Log("Removed the join code successfully.");
 
-        // Sets codeRemovalCompleted to completed, allowing the rest of the code to continue
         codeRemovalCompleted.SetResult(true);
     }
 
-    /// |---------------------------------|
-    /// |           GAME START            |
-    /// |---------------------------------|
+    // -----------------------------------------------------------------------
+    // Game Start
+    // -----------------------------------------------------------------------
 
     /// <summary>
     /// Starts a new game, handling countdown, puzzle generation etc.
     /// </summary>
     private IEnumerator StartNewGameServer()
     {
-        // Stops the matchmaking matchmaking cycle and starts countdown for all the clients
         startScreenManagerMultiplayer.StopMatchmakingCycleRpc();
         startScreenManagerMultiplayer.StartCountdownRpc();
 
-        // Sets up an independent timer on the server to keep track of the countdown
         TaskCompletionSource<bool> countdownFinished = new();
+        // Sets up an independent timer on the server to keep track of the countdown
         StartCoroutine(StartTimer(countdownFinished, 4));
 
-        // Collects all the players backgrounds
-        backgroundManager.CollectPlayerBackgroundsRpc();
-
-        // Generates a new puzzle key (tile and grid IDs)
         puzzleManager.GenerateNewPuzzleKey(numberOfTiles);
 
-        // Sets the number of tiles for puzzle generation and generates a seed
         puzzleGenerator.SetNumberOfTiles(numberOfTiles);
         int seed = Random.Range(1, 999999);
 
-        // Request both puzzle and grid images and waits until they are downloaded
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
         yield return StartCoroutine(puzzleGenerator.RequestGridImage());
 
-        // Generates both puzzle and grid tiles
         puzzleGenerator.GenerateGridTiles();
         puzzleGenerator.GeneratePuzzleTiles();
 
-        // Initializes all the necessary information about the clients
-        puzzleManager.InitializeClientPositions();
-        puzzleManager.InitializeClientSnappedGridTiles();
-        puzzleManager.InitializeClientStatuses();
-        puzzleManager.InitializeClientMovementPermissions();
-
-        // Shuffles all the puzzle tiles
         puzzleManager.ShuffleAllTiles(seed);
 
-        // Waits until the countdown has finished
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 
-        // Enables touch input and tile manipulation
         puzzleManager.EnableTileMovement();
         puzzleManager.EnableTouchInput();
     }
@@ -455,7 +406,6 @@ public class MultiplayerManager : NetworkBehaviour
 
         // Destroys all the tiles, including all the server information about clients, except moving permissions
         puzzleManager.DestroyAllTilesClientRpc();
-        puzzleManager.DestroyAllTilesServer();
 
         // Sets the number of tiles for puzzle generation and generates a seed
         puzzleManager.GenerateNewPuzzleKey(numberOfTiles);
@@ -469,9 +419,12 @@ public class MultiplayerManager : NetworkBehaviour
         puzzleGenerator.GenerateGridTiles();
 
         // Initializes the destroyed information about clients again
-        puzzleManager.InitializeClientPositions();
-        puzzleManager.InitializeClientSnappedGridTiles();
-        puzzleManager.InitializeClientStatuses();
+        foreach (Player player in playerManager.GetAllPlayers())
+        {
+            player.ClearGridTilesCorrectlyOccupied();
+            player.ClearPuzzleTilesPositions();
+            player.ClearPuzzleTilesSnappedGridTiles();
+        }
 
         // Shuffles all the puzzle tiles
         puzzleManager.ShuffleAllTiles(seed);
@@ -484,9 +437,10 @@ public class MultiplayerManager : NetworkBehaviour
         puzzleManager.EnableTouchInput();
     }
 
-    /// |---------------------------------|
-    /// |            GAME END             |
-    /// |---------------------------------|
+
+    // -----------------------------------------------------------------------
+    // Game End
+    // -----------------------------------------------------------------------
 
     /// <summary>
     /// Ends the game by disabling the touch input and loading the relevant end screen for all clients.
