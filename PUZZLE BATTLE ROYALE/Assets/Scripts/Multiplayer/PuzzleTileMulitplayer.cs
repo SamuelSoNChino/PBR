@@ -216,7 +216,7 @@ public class PuzzleTileMultiplayer : MonoBehaviour
 
             if (gridSRenderer.bounds.Contains(tileCenter) && !gridTile.IsOccupied)
             {
-                Move(new Vector3(gridTileObejct.transform.position.x, gridTileObejct.transform.position.y, Position.z));
+                Move(new Vector3(gridTile.Position.x, gridTile.Position.y, Position.z));
                 SnappedGridTile = gridTile;
                 break;
             }
