@@ -54,8 +54,8 @@ public class PeekManager : NetworkBehaviour
             userClientIds.Add(userClientId);
             targetClientIds.Add(targetClientId);
 
-            int targetClientBackgroundSkin = backgroundManager.GetClientBackground(targetClientId);
-            backgroundManager.SetClientBackgroundRpc(userClientId, targetClientBackgroundSkin);
+            //int targetClientBackgroundSkin = backgroundManager.GetClientBackground(targetClientId);
+            //backgroundManager.SetClientBackgroundRpc(userClientId, targetClientBackgroundSkin);
 
             puzzleManager.DisableTileMovement(userClientId);
             puzzleManager.DeselectAllClientTilesRpc(userClientId);
@@ -128,13 +128,13 @@ public class PeekManager : NetworkBehaviour
             }
 
             puzzleManager.SetOtherClientsPositions(userClientId, userClientId);
-            puzzleManager.UpdateGridForAllTilesRpc(userClientId);
+            puzzleManager.UpdateGridForAllTiles(userClientId);
             puzzleManager.DeselectAllClientTilesRpc(userClientId);
             puzzleManager.EnableTileMovement(userClientId);
             puzzleManager.ResetClientsSnappedTilesRpc(userClientId);
 
-            int originalBackground = backgroundManager.GetClientBackground(userClientId);
-            backgroundManager.SetClientBackgroundRpc(userClientId, originalBackground);
+            //int originalBackground = backgroundManager.GetClientBackground(userClientId);
+            // backgroundManager.SetClientBackgroundRpc(userClientId, originalBackground);
             StopPeekRoutineUserRpc(userClientId);
 
             userClientIds.RemoveAt(peekSessionIndex);
