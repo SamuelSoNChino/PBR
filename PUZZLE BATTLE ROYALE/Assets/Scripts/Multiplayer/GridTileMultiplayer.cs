@@ -40,4 +40,16 @@ public class GridTileMultiplayer : MonoBehaviour
         get { return isOccupied; }
         set { isOccupied = value; }
     }
+
+    // -----------------------------------------------------------------------
+    // Positions
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the position of the grid tile.
+    /// </summary>
+    public Vector3 Position
+    {
+        get { return transform.position; }
+    }
 }
