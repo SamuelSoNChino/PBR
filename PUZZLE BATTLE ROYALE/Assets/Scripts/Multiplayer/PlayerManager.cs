@@ -21,6 +21,16 @@ public class PlayerManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Removes a player from the list of players.
+    /// </summary>
+    /// <param name="clientId">Id of the client to remove.</param>
+    public void RemovePlayer(ulong clientId)
+    {
+        Player player = FindPlayerByClientId(clientId);
+        players.Remove(player);
+    }
+
+    /// <summary>
     /// Retrieves a list of all players.
     /// </summary>
     /// <returns>A list of all players.</returns>
