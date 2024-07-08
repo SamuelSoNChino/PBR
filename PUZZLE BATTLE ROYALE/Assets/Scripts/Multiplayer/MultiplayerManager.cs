@@ -57,6 +57,11 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private int numberOfTiles;
 
     /// <summary>
+    /// Number of players requested to be in the match.
+    /// </summary>    
+    [SerializeField] private int numberOfPlayers;
+
+    /// <summary>
     /// Role of the player (HOST or CLIENT) in the multiplayer session.
     /// </summary>
     private string role;
@@ -69,7 +74,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// <summary>
     /// TaskCompletionSource used to signal when a client has connected.
     /// </summary>
-    private TaskCompletionSource<bool> connectionCompleted;
+    private TaskCompletionSource<bool> allPlayersConnected;
 
     // -----------------------------------------------------------------------
     // Matchmaking
@@ -107,15 +112,15 @@ public class MultiplayerManager : NetworkBehaviour
             await uploadRequestCompleted.Task;
 
             // Initializes the TCS field that tracks whether the client connected to the relay or not
-            connectionCompleted = new TaskCompletionSource<bool>();
+            allPlayersConnected = new TaskCompletionSource<bool>();
 
-            // When a client connects to the relay, calls OnClientConnected method, setting the connectionCompleted as done
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
             // The button enables the player to cancel matchmaking, when it is taking too long
             startScreenManagerMultiplayer.EnableCancelButton();
 
-            await connectionCompleted.Task;
+            await allPlayersConnected.Task;
 
             startScreenManagerMultiplayer.DisableCancelButton();
 
@@ -133,21 +138,35 @@ public class MultiplayerManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Called when a client connects to the relay. Sets the connectionCompleted TaskCompletionSource as done.
+    /// Adds a new player to player database and ends the matchmaking if the numebr of players has been reached.
     /// </summary>
     /// <param name="clientId">The ID of the client that connected.</param>
     private void OnClientConnected(ulong clientId)
     {
-        // Condition to exclude the host from triggering it
+        Debug.Log($"Client connected: {clientId}. Total connected clients: {NetworkManager.Singleton.ConnectedClients.Count}");
+
         if (clientId != NetworkManager.Singleton.LocalClientId)
         {
-            // Ensure the TaskCompletionSource is not already completed (probably doesn't even need to be here)
-            if (connectionCompleted != null && !connectionCompleted.Task.IsCompleted)
+            playerManager.AddNewPlayer(new Player("pepis", clientId, 1));
+
+            Debug.Log($"New player added. Current connected clients: {NetworkManager.Singleton.ConnectedClients.Count}");
+
+            if (NetworkManager.Singleton.ConnectedClients.Count == numberOfPlayers)
             {
-                playerManager.AddNewPlayer(new Player("pepis", clientId, 1));
-                // When a client successfully connects, sets the result to completed
-                connectionCompleted.SetResult(true);
+                allPlayersConnected.SetResult(true);
             }
+        }
+    }
+
+    /// <summary>
+    /// Removes the disconnected player from the player database
+    /// </summary>
+    /// <param name="clientId">.</param>
+    private void OnClientDisconnected(ulong clientId)
+    {
+        if (clientId != NetworkManager.Singleton.LocalClientId)
+        {
+            playerManager.RemovePlayer(clientId);
         }
     }
 
@@ -158,7 +177,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// <returns>IEnumerator for the coroutine.</returns>
     private IEnumerator RequestMatch(TaskCompletionSource<bool> requestCompleted)
     {
-        UnityWebRequest matchRequest = UnityWebRequest.Get($"{serverUrl}/request_match");
+        UnityWebRequest matchRequest = UnityWebRequest.Get($"{serverUrl}/request_match?number_of_players={numberOfPlayers}");
         yield return matchRequest.SendWebRequest();
 
         if (matchRequest.result != UnityWebRequest.Result.Success)
@@ -187,7 +206,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// <returns>IEnumerator for the coroutine.</returns>
     private IEnumerator UploadRelayJoinCode(TaskCompletionSource<bool> uploadCompleted)
     {
-        string requestUrl = $"{serverUrl}/upload_relay_join_code?relay_join_code={relayJoinCode}";
+        string requestUrl = $"{serverUrl}/upload_relay_join_code?relay_join_code={relayJoinCode}&number_of_players={numberOfPlayers}";
         UnityWebRequest uploadRequest = UnityWebRequest.Get(requestUrl);
         yield return uploadRequest.SendWebRequest();
 
@@ -217,7 +236,7 @@ public class MultiplayerManager : NetworkBehaviour
         try
         {
             // Creates allocation for 1 client to join in
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1);
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(numberOfPlayers - 1);
 
             // Gets the relay join code from the allocation
             relayJoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
@@ -289,7 +308,7 @@ public class MultiplayerManager : NetworkBehaviour
     /// <returns>IEnumerator for the coroutine.</returns>
     private IEnumerator RequestJoinCodeRemoval(TaskCompletionSource<bool> codeRemovalCompleted)
     {
-        string requestUrl = $"{serverUrl}/request_join_code_removal?relay_join_code={relayJoinCode}";
+        string requestUrl = $"{serverUrl}/request_join_code_removal?number_of_players={numberOfPlayers}";
         UnityWebRequest webRequest = UnityWebRequest.Get(requestUrl);
         yield return webRequest.SendWebRequest();
 
@@ -407,16 +426,14 @@ public class MultiplayerManager : NetworkBehaviour
         // Destroys all the tiles, including all the server information about clients, except moving permissions
         puzzleManager.DestroyAllTilesClientRpc();
 
+        puzzleManager.ResetGridTilesByPositions();
+
         // Sets the number of tiles for puzzle generation and generates a seed
         puzzleManager.GenerateNewPuzzleKey(numberOfTiles);
         int seed = Random.Range(1, 999999);
 
         // Requests a new puzzle image based on the new seed and waits until it's downloaded
         yield return StartCoroutine(puzzleGenerator.RequestPuzzleImage(seed));
-
-        // Generates the new puzzle tiles and shuffles them
-        puzzleGenerator.GeneratePuzzleTiles();
-        puzzleGenerator.GenerateGridTiles();
 
         // Initializes the destroyed information about clients again
         foreach (Player player in playerManager.GetAllPlayers())
@@ -425,6 +442,10 @@ public class MultiplayerManager : NetworkBehaviour
             player.ClearPuzzleTilesPositions();
             player.ClearPuzzleTilesSnappedGridTiles();
         }
+
+        // Generates the new puzzle tiles and shuffles them
+        puzzleGenerator.GeneratePuzzleTiles();
+        puzzleGenerator.GenerateGridTiles();
 
         // Shuffles all the puzzle tiles
         puzzleManager.ShuffleAllTiles(seed);
