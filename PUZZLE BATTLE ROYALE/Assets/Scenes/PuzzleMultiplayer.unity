@@ -725,6 +725,7 @@ MonoBehaviour:
   startScreenManagerMultiplayer: {fileID: 557488105}
   endScreenManagerMultiplayer: {fileID: 972601263}
   numberOfTiles: 2
+  numberOfPlayers: 3
 --- !u!4 &368472933
 Transform:
   m_ObjectHideFlags: 0
@@ -1453,10 +1454,10 @@ MonoBehaviour:
   startScreenText: {fileID: 1032277423}
   cyclingInterval: 0.5
   matchmakingText: Looking for an opponent
+  cancelButton: {fileID: 511780105}
   countdownText: Match starting in
   countdownStart: 3
   countdownInterval: 1
-  cancelButton: {fileID: 511780105}
 --- !u!1 &601091127
 GameObject:
   m_ObjectHideFlags: 0
@@ -1624,11 +1625,11 @@ MonoBehaviour:
   gridManager: {fileID: 1323705368}
   playerManager: {fileID: 1562048576}
   multiplayerManager: {fileID: 368472932}
+  panZoom: {fileID: 1619521031}
+  peekManager: {fileID: 1832081630}
   topRightShuffleBound: {x: 1000, y: 0, z: 0}
   bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
   puzzleSize: 1000
-  peekManager: {fileID: 1832081630}
-  panZoom: {fileID: 1619521031}
 --- !u!1 &669191133
 GameObject:
   m_ObjectHideFlags: 0
