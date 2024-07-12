@@ -352,6 +352,8 @@ public class MultiplayerManager : NetworkBehaviour
 
         puzzleManager.ShuffleAllTiles(seed);
 
+        backgroundManager.SetAllClientsDefaultBackgrounds();
+
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 
         puzzleManager.EnableTileMovement();
