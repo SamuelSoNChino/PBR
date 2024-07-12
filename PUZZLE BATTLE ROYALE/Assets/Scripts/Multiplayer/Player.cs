@@ -70,6 +70,25 @@ public class Player
     }
 
     // -----------------------------------------------------------------------
+    // Progress
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// PLayer's current percentual progress.
+    /// </summary>
+    private int progress = 0;
+
+    /// <summary>
+    /// Gets or sets pLayer's current percentual progress.
+    /// </summary>
+    public int Progress
+    {
+        get { return progress; }
+        set { progress = value; }
+
+    }
+
+    // -----------------------------------------------------------------------
     // Abilities
     // -----------------------------------------------------------------------
 
@@ -161,7 +180,7 @@ public class Player
     }
 
     /// <summary>
-    /// Gets the grid tile that a specific puzzle tile is snapped to.
+    /// Gets the grid tile that a specific puzzle tile is snapped to. -1 means there is currently none.
     /// </summary>
     /// <param name="puzzleTileId">The ID of the puzzle tile.</param>
     /// <returns>The ID of the grid tile.</returns>
