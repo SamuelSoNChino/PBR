@@ -1505,8 +1505,8 @@ MonoBehaviour:
   startingZoom: 1100
   maxZoom: 1250
   minZoom: 750
-  bottomLeftBound: {x: -300, y: 1300, z: 0}
-  topRightBound: {x: -1300, y: 1300, z: 0}
+  bottomLeftBound: {x: -320, y: -1250, z: 0}
+  topRightBound: {x: 1320, y: 1250, z: 0}
 --- !u!114 &1595168191
 MonoBehaviour:
   m_ObjectHideFlags: 0
