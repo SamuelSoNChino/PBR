@@ -17,6 +17,16 @@ public class BackgroundManagerMultiplayer : NetworkBehaviour
     /// </summary>
     [SerializeField] private Sprite[] backgroundSkins;
 
+    [SerializeField] private PlayerManager playerManager;
+
+    public void SetAllClientsDefaultBackgrounds()
+    {
+        foreach (Player player in playerManager.GetAllPlayers())
+        {
+            SetClientBackgroundRpc(player.ClientId, player.BackgroundSkinId);
+        }
+    }
+
     /// <summary>
     /// Sets the background skin for the specified client. This method is called via an RPC (Remote Procedure Call).
     /// </summary>

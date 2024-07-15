@@ -158,16 +158,16 @@ public class PuzzleGeneratorMultiplayer : NetworkBehaviour
         // Sends each tile to clients in a random order
         for (int i = 0; i < numberOfTiles * numberOfTiles; i++)
         {
-            int tileIndex = Random.Range(0, tileIds.Count);
+            int randomTileIndex = Random.Range(0, tileIds.Count);
 
-            int tileId = tileIds[tileIndex];
-            int zPosition = zPositions[tileIndex];
-            Texture2D tileTexture = tileTextures[tileIndex];
+            int tileId = tileIds[randomTileIndex];
+            int zPosition = zPositions[randomTileIndex];
+            Texture2D tileTexture = tileTextures[randomTileIndex];
             byte[] tileTextureData = TextureToByteArray(tileTexture);
 
-            tileIds.RemoveAt(tileIndex);
-            zPositions.RemoveAt(tileIndex);
-            tileTextures.RemoveAt(tileIndex);
+            tileIds.RemoveAt(randomTileIndex);
+            zPositions.RemoveAt(randomTileIndex);
+            tileTextures.RemoveAt(randomTileIndex);
 
             // Initializes information about individual players' puzzle tiles
             foreach (Player player in playerManager.GetAllPlayers())

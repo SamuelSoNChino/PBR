@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Manages the puzzle game, including tile generation, movement, shuffling, and player interactions.
@@ -121,6 +123,8 @@ public class PuzzleManager : NetworkBehaviour
     /// </summary>
     private Dictionary<Vector2, int> gridTilesByPositions = new();
 
+    [SerializeField] private LeaderboardManager leaderboardManager;
+
     /// <summary>
     /// Adds a grid tile to the dictionary by its position.
     /// </summary>
@@ -157,17 +161,19 @@ public class PuzzleManager : NetworkBehaviour
             {
                 player.ModifyGridTileCorrectlyOccupied(gridTileId, true);
                 CheckGridCompleteness(player);
-                player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, gridTileId);
             }
+            player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, gridTileId);
+            UpdatePlayerProgress(player);
         }
         // -1 means that the puzzle tile is not snapped on any grid tile
         else if (player.GetPuzzleTileSnappedGridTile(puzzleTileId) != -1)
         {
             int snappedGridTileId = player.GetPuzzleTileSnappedGridTile(puzzleTileId);
             player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, false);
-            player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, snappedGridTileId);
-        }
+            player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, -1);
 
+            UpdatePlayerProgress(player);
+        }
     }
 
     /// <summary>
@@ -524,6 +530,168 @@ public class PuzzleManager : NetworkBehaviour
         {
             tilesManager.UnsnapAllFromGrid();
             tilesManager.SnapAllToGrid();
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Progress Tracking
+    // -----------------------------------------------------------------------
+
+
+    /// <summary>
+    /// Reference to the TextMeshProUGUI component for displaying the progress.
+    /// </summary>
+    [SerializeField] private TextMeshProUGUI progressText;
+
+    /// <summary>
+    /// Gets the neighbouring tiles of a given tile in the grid.
+    /// </summary>
+    /// <param name="tileIds">List of tile IDs in the grid.</param>
+    /// <param name="tileId">The tile ID to find neighbours for.</param>
+    /// <returns>A list of neighbouring tile IDs in the format [TOP, BOTTOM, LEFT, RIGTH], Id is -1 if the neigbour doesn't exist.</returns>
+    private List<int> GetNeighbouringTiles(List<int> tileIds, int tileId)
+    {
+        List<int> neighbouringTiles = new() { -1, -1, -1, -1 }; // Initialize with -1
+
+        int numberOfTiles = (int)Math.Sqrt(tileIds.Count);
+
+        int mainTileIndex = tileIds.IndexOf(tileId);
+        int row = mainTileIndex / numberOfTiles;
+        int column = mainTileIndex % numberOfTiles;
+
+        // Top neighbor
+        if (row != 0)
+        {
+            neighbouringTiles[0] = tileIds[mainTileIndex - numberOfTiles];
+        }
+
+        // Bottom neighbor
+        if (row != numberOfTiles - 1)
+        {
+            neighbouringTiles[1] = tileIds[mainTileIndex + numberOfTiles];
+        }
+
+        // Left neighbor
+        if (column != 0)
+        {
+            neighbouringTiles[2] = tileIds[mainTileIndex - 1];
+        }
+
+        // Right neighbor
+        if (column != numberOfTiles - 1)
+        {
+            neighbouringTiles[3] = tileIds[mainTileIndex + 1];
+        }
+
+        return neighbouringTiles;
+    }
+
+    /// <summary>
+    /// Gets the neighbouring puzzle tiles of a given puzzle tile.
+    /// </summary>
+    /// <param name="puzzleTileId">The puzzle tile ID to find neighbours for.</param>
+    /// <returns>A list of neighbouring puzzle tile IDs in the format [TOP, BOTTOM, LEFT, RIGTH], Id is -1 if the neigbour doesn't exist.</returns>
+    private List<int> GetNeighbouringPuzzleTiles(int puzzleTileId)
+    {
+        return GetNeighbouringTiles(puzzleTileIds, puzzleTileId);
+    }
+
+    /// <summary>
+    /// Gets the neighbouring grid tiles of a given grid tile.
+    /// </summary>
+    /// <param name="gridTileId">The grid tile ID to find neighbours for.</param>
+    /// <returns>A list of neighbouring grid tile IDs in the format [TOP, BOTTOM, LEFT, RIGTH], Id is -1 if the neigbour doesn't exist.</returns>
+    private List<int> GetNeighbouringGridTiles(int gridTileId)
+    {
+        return GetNeighbouringTiles(gridTileIds, gridTileId);
+    }
+
+    /// <summary>
+    /// Counts the number of correct neighbouring tiles for a given puzzle tile.
+    /// </summary>
+    /// <param name="player">The player to check.</param>
+    /// <param name="puzzleTileId">The puzzle tile ID to check.</param>
+    /// <param name="snappedGridTileId">The snapped grid tile ID.</param>
+    /// <returns>The number of correct neighbouring tiles.</returns>
+    private int CountCorrectNeighbours(Player player, int puzzleTileId, int snappedGridTileId)
+    {
+        List<int> neighbouringPuzzleTiles = GetNeighbouringPuzzleTiles(puzzleTileId);
+        List<int> neighbouringGridTiles = GetNeighbouringGridTiles(snappedGridTileId);
+
+        int numberOfCorrectNeighbours = 0;
+
+        for (int i = 0; i < 4; i++)
+        {
+            int neighbouringPuzzleTileId = neighbouringPuzzleTiles[i];
+            int neighbouringGridTileId = neighbouringGridTiles[i];
+
+            // If the neighbouring puzzle tile exists, it checks whether its snapped grid tiles equals 
+            // the center tile's grid neigbour in the same direction
+            if (neighbouringPuzzleTileId != -1)
+            {
+                int neighbouringPuzzleTileSnappedGridTileId = player.GetPuzzleTileSnappedGridTile(neighbouringPuzzleTileId);
+
+                if (neighbouringPuzzleTileSnappedGridTileId != -1 && neighbouringPuzzleTileSnappedGridTileId == neighbouringGridTileId)
+                {
+                    numberOfCorrectNeighbours += 1;
+                }
+            }
+        }
+
+        return numberOfCorrectNeighbours;
+    }
+
+    /// <summary>
+    /// Updates the player's progress based on the number of correctly placed neighbouring tiles.
+    /// </summary>
+    /// <param name="player">The player whose progress is being updated.</param>
+    private void UpdatePlayerProgress(Player player)
+    {
+        int numberOfTiles = (int)Math.Sqrt(puzzleTileIds.Count);
+
+        // Formula for calculating total number of neighbours for n tiles (numberOfTiles):
+        // n: 8 [Corner tiles] + (n-2) * 4 * 3  [Edge tiles] + (n-2)^2 * 4 [Center tiles]
+        int numberOfNeighbours = 8 + (numberOfTiles - 2) * 12 + (int)Math.Pow(numberOfTiles - 2, 2) * 4;
+        int numberOfCorrectNeighbours = 0;
+
+        foreach (int puzzleTileId in puzzleTileIds)
+        {
+            int snappedGridTileId = player.GetPuzzleTileSnappedGridTile(puzzleTileId);
+
+            // If the puzzle tile is snapped to a grid tile
+            if (snappedGridTileId != -1)
+            {
+                numberOfCorrectNeighbours += CountCorrectNeighbours(player, puzzleTileId, snappedGridTileId);
+            }
+        }
+
+        float fractionProgress = (float)numberOfCorrectNeighbours / numberOfNeighbours;
+        int progress = (int)(fractionProgress * 100);
+
+        // If the progress has chaned, it will later update the leaderboard
+        bool progressChanged = player.Progress != progress;
+
+        player.Progress = progress;
+
+        if (progressChanged)
+        {
+            leaderboardManager.UpdateRanking(player);
+        }
+
+        UpdateProgressTextRpc(player.ClientId, progress);
+    }
+
+    /// <summary>
+    /// Updates the progress text display for the player using RPC.
+    /// </summary>
+    /// <param name="clientId">The ID of the client to update.</param>
+    /// <param name="progress">The progress percentage to display.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateProgressTextRpc(ulong clientId, int progress)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            progressText.text = $"{progress} %";
         }
     }
 }
