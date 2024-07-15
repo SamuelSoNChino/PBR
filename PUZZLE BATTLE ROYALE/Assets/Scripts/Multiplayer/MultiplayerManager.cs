@@ -42,6 +42,11 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private BackgroundManagerMultiplayer backgroundManager;
 
     /// <summary>
+    /// Reference to the LeaderboardManager script.
+    /// </summary>
+    [SerializeField] private LeaderboardManager leaderboardManager;
+
+    /// <summary>
     /// Reference to the StartScreenManagerMultiplayer script.
     /// </summary>
     [SerializeField] private StartScreenManagerMultiplayer startScreenManagerMultiplayer;
@@ -353,6 +358,8 @@ public class MultiplayerManager : NetworkBehaviour
         puzzleManager.ShuffleAllTiles(seed);
 
         backgroundManager.SetAllClientsDefaultBackgrounds();
+
+        leaderboardManager.InitializeRanking();
 
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 
