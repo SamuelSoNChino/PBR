@@ -180,10 +180,10 @@ public class Player
     }
 
     /// <summary>
-    /// Gets the grid tile that a specific puzzle tile is snapped to. -1 means there is currently none.
+    /// Gets the grid tile that a specific puzzle tile is snapped to.
     /// </summary>
     /// <param name="puzzleTileId">The ID of the puzzle tile.</param>
-    /// <returns>The ID of the grid tile.</returns>
+    /// <returns>The ID of the grid tile. -1 means there is currently none.</returns>
     public int GetPuzzleTileSnappedGridTile(int puzzleTileId)
     {
         return puzzleTilesSnappedGridTiles[puzzleTileId];
