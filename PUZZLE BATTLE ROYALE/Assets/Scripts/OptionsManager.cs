@@ -9,11 +9,6 @@ using UnityEngine.UI;
 public class OptionsManager : MonoBehaviour
 {
     /// <summary>
-    /// The text object displaying the number of tiles.
-    /// </summary>
-    [SerializeField] private GameObject text;
-
-    /// <summary>
     /// The slider object for selecting the number of tiles.
     /// </summary>
     [SerializeField] private GameObject NOTSlider;
@@ -70,6 +65,8 @@ public class OptionsManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("numberOfPlayers", (int)NOPSlider.GetComponent<Slider>().value);
 
+        Text text = NOPSlider.transform.Find("SliderText").GetComponent<Text>();
+
         text.GetComponent<Text>().text = "Number of players: " + PlayerPrefs.GetInt("numberOfPlayers").ToString();
     }
 
@@ -78,11 +75,11 @@ public class OptionsManager : MonoBehaviour
     /// </summary>
     public void UpdateNOTSlider()
     {
-        // Saves the new value to PlayerPrefs
         PlayerPrefs.SetInt("numberOfTiles", (int)NOTSlider.GetComponent<Slider>().value);
 
-        // Updates the slider text
-        text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
+        Text text = NOTSlider.transform.Find("SliderText").GetComponent<Text>();
+
+        text.GetComponent<Text>().text = "Number of Tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
     }
 
     /// <summary>
