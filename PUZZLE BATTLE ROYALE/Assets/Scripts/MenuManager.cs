@@ -9,12 +9,17 @@ using UnityEngine.SceneManagement;
 public class MenuManager : MonoBehaviour
 {
     public List<GameObject> optionSets;
+    public List<Vector3> setPlacements;
 
     private Vector2 startTouchPosition, currentTouchPosition, endTouchPosition, beforeTouchPosition;
     private bool isSwiping = false;
 
+    Vector3 buttonsPosition;
+
     public float animationDuration = 0.5f;
     private int currentSetIndex = 0;
+    private int prevSetIndex;
+    private int nextSetIndex;
     private bool moveOutMutex = false;
     private bool moveInMutex = false;
 
@@ -24,29 +29,32 @@ public class MenuManager : MonoBehaviour
         for (int i = 0; i < optionSets.Count; i++)
         {
             optionSets[i].SetActive(i == currentSetIndex);
+            setPlacements.Add(optionSets[i].transform.position);
         }
+        UpdateAdjacentSetIndices();
+        UpdateSetPositions();
     }
 
     void Update()
     {
         #if UNITY_EDITOR || UNITY_STANDALONE
         // Simulace swipování myší pro editor a standalone
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !moveInMutex && !moveOutMutex)
         {
             startTouchPosition = Input.mousePosition;
             beforeTouchPosition = startTouchPosition;
             isSwiping = true;
         }
-        else if (Input.GetMouseButton(0) && isSwiping)
+        else if (Input.GetMouseButton(0) && isSwiping && !moveInMutex && !moveOutMutex)
         {
             currentTouchPosition = Input.mousePosition;
             Vector2 swipeDelta = (Vector2)currentTouchPosition - beforeTouchPosition;
 
             // Posuneme aktuální set podle pohybu myši
-            optionSets[currentSetIndex].transform.position += new Vector3(swipeDelta.x, 0, 0);
+            MoveSets(swipeDelta.x);
             beforeTouchPosition = currentTouchPosition; // Aktualizujeme startovní pozici pro další frame
         }
-        else if (Input.GetMouseButtonUp(0) && isSwiping)
+        else if (Input.GetMouseButtonUp(0) && isSwiping && !moveInMutex && !moveOutMutex)
         {
             endTouchPosition = Input.mousePosition;
             isSwiping = false;
@@ -70,7 +78,7 @@ public class MenuManager : MonoBehaviour
                 Vector2 swipeDelta = currentTouchPosition - beforeTouchPosition;
 
                 // Posuneme aktuální set podle pohybu prstu
-                optionSets[currentSetIndex].transform.position += new Vector3(swipeDelta.x, 0, 0);
+                MoveSets(swipeDelta.x);
                 beforeTouchPosition = currentTouchPosition; // Aktualizujeme startovní pozici pro další frame
             }
             else if (touch.phase == TouchPhase.Ended && isSwiping)
@@ -81,6 +89,13 @@ public class MenuManager : MonoBehaviour
             }
         }
         #endif
+    }
+
+    private void MoveSets(float deltaX)
+    {
+        optionSets[currentSetIndex].transform.position += new Vector3(deltaX, 0, 0);
+        optionSets[prevSetIndex].transform.position += new Vector3(deltaX, 0, 0);
+        optionSets[nextSetIndex].transform.position += new Vector3(deltaX, 0, 0);
     }
 
     private void HandleSwipe()
@@ -107,20 +122,37 @@ public class MenuManager : MonoBehaviour
         }
     }
 
+    private void UpdateAdjacentSetIndices()
+    {
+        nextSetIndex = (currentSetIndex + 1) % optionSets.Count;
+        prevSetIndex = (currentSetIndex - 1 + optionSets.Count) % optionSets.Count;
+    }
+
+    private void UpdateSetPositions()
+    {
+        optionSets[currentSetIndex].transform.position = setPlacements[currentSetIndex];
+        optionSets[prevSetIndex].transform.position = setPlacements[prevSetIndex] + Vector3.left * Screen.width;
+        optionSets[nextSetIndex].transform.position = setPlacements[nextSetIndex] + Vector3.right * Screen.width;
+        optionSets[prevSetIndex].SetActive(true);
+        optionSets[nextSetIndex].SetActive(true);
+    }
+
     public void swipeRight()
     {
         if (moveInMutex || moveOutMutex)
         {
             return;
         }
-        int nextSetIndex = (currentSetIndex + 1) % optionSets.Count;
         moveInMutex = true;
         moveOutMutex = true;
-        StartCoroutine(MoveOut(optionSets[currentSetIndex], Vector3.right));
-        StartCoroutine(MoveIn(optionSets[nextSetIndex], Vector3.right));
-        currentSetIndex = nextSetIndex;
-    }
 
+        int setToMove = currentSetIndex;
+        currentSetIndex = (currentSetIndex - 1 + optionSets.Count) % optionSets.Count;
+        UpdateAdjacentSetIndices();
+
+        StartCoroutine(MoveOut(optionSets[setToMove], Vector3.right, setPlacements[setToMove]));
+        StartCoroutine(MoveIn(optionSets[currentSetIndex], Vector3.right, setPlacements[currentSetIndex]));
+    }
 
     public void swipeLeft()
     {
@@ -128,75 +160,95 @@ public class MenuManager : MonoBehaviour
         {
             return;
         }
-        int nextSetIndex = (currentSetIndex - 1 + optionSets.Count) % optionSets.Count;
         moveInMutex = true;
         moveOutMutex = true;
-        StartCoroutine(MoveOut(optionSets[currentSetIndex], Vector3.left));
-        StartCoroutine(MoveIn(optionSets[nextSetIndex], Vector3.left));
-        currentSetIndex = nextSetIndex;
+
+        int setToMove = currentSetIndex;
+        currentSetIndex = (currentSetIndex + 1) % optionSets.Count;
+        UpdateAdjacentSetIndices();
+
+        StartCoroutine(MoveOut(optionSets[setToMove], Vector3.left, setPlacements[setToMove]));
+        StartCoroutine(MoveIn(optionSets[currentSetIndex], Vector3.left, setPlacements[currentSetIndex]));
+
     }
 
-
-    private IEnumerator MoveOut(GameObject obj, Vector3 direction)
+    private IEnumerator MoveOut(GameObject obj, Vector3 direction, Vector3 objPlacement)
     {
-
-        Vector3 buttonsPosition = new(642, 1089.02F, 0);
         Vector3 startPos = obj.transform.position;
-        Vector3 endPos = buttonsPosition + direction * Screen.width; // pohyb mimo obrazovku
+        Vector3 endPos = objPlacement + direction * Screen.width; // pohyb mimo obrazovku
+        float distance = Vector3.Distance(startPos, endPos);
+        float adjustedDuration = animationDuration * (distance / Screen.width); // úprava délky animace na základě vzdálenosti
         float elapsedTime = 0;
 
-        while (elapsedTime < animationDuration)
+        while (elapsedTime < adjustedDuration)
         {
-            obj.transform.position = Vector3.Lerp(startPos, endPos, (elapsedTime / animationDuration));
+            obj.transform.position = Vector3.Lerp(startPos, endPos, elapsedTime / adjustedDuration);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
-        obj.SetActive(false); // Deaktivace objektu po animaci
-        obj.transform.position = buttonsPosition;
+        obj.transform.position = endPos;
         moveOutMutex = false;
     }
 
-    private IEnumerator MoveIn(GameObject obj, Vector3 direction)
+    private IEnumerator MoveIn(GameObject obj, Vector3 direction, Vector3 objPlacement)
     {
-        Vector3 buttonsPosition = new(642, 1089.02F, 0);
         obj.SetActive(true); // Aktivace objektu před animací
-        Vector3 startPos = buttonsPosition - direction * Screen.width; // pozice mimo obrazovku
-        Vector3 endPos = buttonsPosition; // konečná pozice
-        obj.transform.position = startPos;
+        Vector3 startPos = obj.transform.position; // pozice mimo obrazovku
+        Vector3 endPos = objPlacement; // konečná pozice
+        float distance = Vector3.Distance(startPos, endPos);
+        float adjustedDuration = animationDuration * (distance / Screen.width); // úprava délky animace na základě vzdálenosti
         float elapsedTime = 0;
 
-        while (elapsedTime < animationDuration)
+        while (elapsedTime < adjustedDuration)
         {
-            obj.transform.position = Vector3.Lerp(startPos, endPos, (elapsedTime / animationDuration));
+            obj.transform.position = Vector3.Lerp(startPos, endPos, elapsedTime / adjustedDuration);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
         obj.transform.position = endPos;
         moveInMutex = false;
+
+        UpdateSetPositions();
     }
 
     private IEnumerator ResetPosition(GameObject obj)
     {
         Vector3 startPos = obj.transform.position;
-        Vector3 endPos = new Vector3(0, 0, startPos.z); // Původní pozice ve středu
+        Vector3 endPos = setPlacements[currentSetIndex]; // Původní pozice uložená při startu
 
         float elapsedTime = 0;
         while (elapsedTime < animationDuration)
         {
-            obj.transform.position = Vector3.Lerp(startPos, endPos, (elapsedTime / animationDuration));
+            obj.transform.position = Vector3.Lerp(startPos, endPos, elapsedTime / animationDuration);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-
+        UpdateSetPositions();
         obj.transform.position = endPos;
+    }
+
+
+    public void play()
+    {
+        switch (currentSetIndex)
+        {
+        case 0:
+            StartSingleplayer();
+            break;
+        case 1:
+            StartMultiplayer();
+            break;
+        default:
+            break;
+        }
     }
 
     /// <summary>
     /// Loads the singleplayer puzzle scene.
     /// </summary>
-    public void StartSingleplayer()
+    private void StartSingleplayer()
     {
         SceneManager.LoadScene("PuzzleSingleplayer");
     }
@@ -204,7 +256,7 @@ public class MenuManager : MonoBehaviour
     /// <summary>
     /// Loads the multiplayer puzzle scene.
     /// </summary>
-    public void StartMultiplayer()
+    private void StartMultiplayer()
     {
         SceneManager.LoadScene("PuzzleMultiplayer");
     }
@@ -212,7 +264,7 @@ public class MenuManager : MonoBehaviour
     /// <summary>
     /// Loads the options scene.
     /// </summary>
-    public void GoToOptions()
+    private void GoToOptions()
     {
         SceneManager.LoadScene("Options");
     }
