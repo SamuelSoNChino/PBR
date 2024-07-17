@@ -57,14 +57,14 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
 
     /// <summary>
-    /// Number of tiles of the puzzle.
+    /// Number of tiles of the puzzle. 2 is the default value if player haven't yet chosen differently in options.
     /// </summary>    
-    [SerializeField] private int numberOfTiles;
+    [SerializeField] private int numberOfTiles = 2;
 
     /// <summary>
     /// Number of players requested to be in the match.
     /// </summary>    
-    [SerializeField] private int numberOfPlayers;
+    private int numberOfPlayers;
 
     /// <summary>
     /// Role of the player (HOST or CLIENT) in the multiplayer session.
@@ -100,6 +100,11 @@ public class MultiplayerManager : NetworkBehaviour
         if (!AuthenticationService.Instance.IsSignedIn)
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        }
+
+        if (PlayerPrefs.HasKey("numberOfPlayers"))
+        {
+            numberOfPlayers = PlayerPrefs.GetInt("numberOfPlayers");
         }
 
         TaskCompletionSource<bool> matchRequestCompleted = new();
