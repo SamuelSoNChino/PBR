@@ -1033,8 +1033,7 @@ MonoBehaviour:
   leaderboardManager: {fileID: 260242005}
   startScreenManagerMultiplayer: {fileID: 557488105}
   endScreenManagerMultiplayer: {fileID: 972601263}
-  numberOfTiles: 2
-  numberOfPlayers: 2
+  numberOfTiles: 5
 --- !u!4 &368472933
 Transform:
   m_ObjectHideFlags: 0
@@ -4347,7 +4346,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerManager: {fileID: 1562048576}
   puzzleManager: {fileID: 637174950}
-  tilesManager: {fileID: 1557589170}
   backgroundManager: {fileID: 551972563}
   peekButton: {fileID: 850709670}
   stopButton: {fileID: 381408773}

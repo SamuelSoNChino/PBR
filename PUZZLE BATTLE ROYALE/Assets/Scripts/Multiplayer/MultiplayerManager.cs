@@ -57,14 +57,14 @@ public class MultiplayerManager : NetworkBehaviour
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
 
     /// <summary>
-    /// Number of tiles of the puzzle. 2 is the default value if player haven't yet chosen differently in options.
+    /// Number of tiles of the puzzle.
     /// </summary>    
-    [SerializeField] private int numberOfTiles = 2;
+    [SerializeField] private int numberOfTiles;
 
     /// <summary>
-    /// Number of players requested to be in the match.
+    /// Number of players requested to be in the match. 2 is the default value if player haven't yet chosen differently in options.
     /// </summary>    
-    private int numberOfPlayers;
+    private int numberOfPlayers = 2;
 
     /// <summary>
     /// Role of the player (HOST or CLIENT) in the multiplayer session.
