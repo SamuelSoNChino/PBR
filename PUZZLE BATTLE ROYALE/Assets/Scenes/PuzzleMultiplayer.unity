@@ -4345,6 +4345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45938b944040b64c8f3360dcb1e6302, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerManager: {fileID: 1562048576}
   puzzleManager: {fileID: 637174950}
   tilesManager: {fileID: 1557589170}
   backgroundManager: {fileID: 551972563}
