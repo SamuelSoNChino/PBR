@@ -286,6 +286,7 @@ public class PuzzleManager : NetworkBehaviour
             if (player.HasPuzzleTileMovementPermission)
             {
                 targetOfPeekPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
+                UpdateGridForPuzzleTile(targetOfPeekPlayer, puzzleTileId);
             }
             else
             {
