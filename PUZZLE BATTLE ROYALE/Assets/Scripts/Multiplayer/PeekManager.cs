@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 public class PeekManager : NetworkBehaviour
 {
+    [SerializeField] private PlayerManager playerManager;
     [SerializeField] private PuzzleManager puzzleManager;
-    [SerializeField] private TilesManagerMultiplayer tilesManager;
     [SerializeField] private BackgroundManagerMultiplayer backgroundManager;
     [SerializeField] private Button peekButton;
     [SerializeField] private Button stopButton;
@@ -41,7 +41,7 @@ public class PeekManager : NetworkBehaviour
         {
             // Will be replaced with appropriate logic
             ulong targetClientId = 0;
-            foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
             {
                 if (clientId != userClientId)
                 {
@@ -54,51 +54,51 @@ public class PeekManager : NetworkBehaviour
             userClientIds.Add(userClientId);
             targetClientIds.Add(targetClientId);
 
-            //int targetClientBackgroundSkin = backgroundManager.GetClientBackground(targetClientId);
-            //backgroundManager.SetClientBackgroundRpc(userClientId, targetClientBackgroundSkin);
-
             puzzleManager.DisableTileMovement(userClientId);
             puzzleManager.DeselectAllClientTilesRpc(userClientId);
             puzzleManager.SetOtherClientsPositions(userClientId, targetClientId);
 
+            int targetClientBackgroundId = playerManager.FindPlayerByClientId(targetClientId).BackgroundSkinId;
+            backgroundManager.SetClientBackgroundRpc(userClientId, targetClientBackgroundId);
+
             bool targetAlsoPeeking = userClientIds.Contains(targetClientId);
+            UpdatePeekIndicatorRpc(targetClientId, targetAlsoPeeking, true);
             if (targetAlsoPeeking)
             {
-                Debug.Log($"[Server] Target Client {targetClientId} is also peeking.");
-
                 puzzleManager.EnableTileMovement(userClientId);
                 puzzleManager.ResetClientsSnappedTilesRpc(userClientId);
             }
-            UpdatePeekIndicatorRpc(targetClientId, targetAlsoPeeking, true);
 
             bool userBeingPeeked = targetClientIds.Contains(userClientId);
+            UpdatePeekIndicatorRpc(userClientId, true, userBeingPeeked);
             if (userBeingPeeked)
             {
-                Debug.Log($"[Server] User is also being peeked");
-                UpdatePeekIndicatorRpc(userClientId, true, true);
-
-                int peekSessionIndex = targetClientIds.IndexOf(userClientId);
-                ulong peekerClientId = userClientIds[peekSessionIndex];
-                puzzleManager.EnableTileMovement(peekerClientId);
-                puzzleManager.ResetClientsSnappedTilesRpc(peekerClientId);
+                for (int i = 0; i < targetClientIds.Count; i++)
+                {
+                    if (targetClientIds[i] == userClientId)
+                    {
+                        ulong peekerClientId = userClientIds[i];
+                        puzzleManager.EnableTileMovement(peekerClientId);
+                        puzzleManager.ResetClientsSnappedTilesRpc(peekerClientId);
+                    }
+                }
             }
 
-            StartPeekRoutineUserRpc(userClientId, targetClientId);
+            string targetName = playerManager.FindPlayerByClientId(targetClientId).Name;
+            StartPeekRoutineUserRpc(userClientId, targetName);
         }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void StartPeekRoutineUserRpc(ulong userClientId, ulong targetClientId)
+    private void StartPeekRoutineUserRpc(ulong userClientId, string targetName)
     {
         if (NetworkManager.Singleton.LocalClientId == userClientId)
         {
-            Debug.Log($"[Client] Starting peek routine as user. Target: {targetClientId}");
-
             peekButton.gameObject.SetActive(false);
             stopButton.gameObject.SetActive(true);
 
             peekText.gameObject.SetActive(true);
-            peekText.text = $"You are peeking at: {targetClientId}";
+            peekText.text = $"You are peeking at: {targetName}";
         }
     }
 
@@ -112,33 +112,40 @@ public class PeekManager : NetworkBehaviour
         if (userClientIds.Contains(userClientId))
         {
             int peekSessionIndex = userClientIds.IndexOf(userClientId);
-
             ulong targetClientId = targetClientIds[peekSessionIndex];
+
+            userClientIds.RemoveAt(peekSessionIndex);
+            targetClientIds.RemoveAt(peekSessionIndex);
+
             bool targetPeeking = userClientIds.Contains(targetClientId);
-            UpdatePeekIndicatorRpc(targetClientId, targetPeeking, false);
+            bool targetStillBeingPeeked = targetClientIds.Contains(targetClientId);
+            UpdatePeekIndicatorRpc(targetClientId, targetPeeking, targetStillBeingPeeked);
 
             bool userBeingPeeked = targetClientIds.Contains(userClientId);
+            UpdatePeekIndicatorRpc(userClientId, false, userBeingPeeked);
             if (userBeingPeeked)
             {
-                int userBeingPeekedSessionIndex = targetClientIds.IndexOf(userClientId);
-                ulong peekerClientId = userClientIds[userBeingPeekedSessionIndex];
-                puzzleManager.DisableTileMovement(peekerClientId);
-                puzzleManager.DeselectAllClientTilesRpc(peekerClientId);
-                UpdatePeekIndicatorRpc(userClientId, false, userBeingPeeked);
+                for (int i = 0; i < targetClientIds.Count; i++)
+                {
+                    if (targetClientIds[i] == userClientId)
+                    {
+                        ulong peekerClientId = userClientIds[i];
+                        puzzleManager.DisableTileMovement(peekerClientId);
+                        puzzleManager.DeselectAllClientTilesRpc(peekerClientId);
+                    }
+                }
+
             }
 
             puzzleManager.SetOtherClientsPositions(userClientId, userClientId);
-            puzzleManager.UpdateGridForAllTiles(userClientId);
             puzzleManager.DeselectAllClientTilesRpc(userClientId);
             puzzleManager.EnableTileMovement(userClientId);
             puzzleManager.ResetClientsSnappedTilesRpc(userClientId);
 
-            //int originalBackground = backgroundManager.GetClientBackground(userClientId);
-            // backgroundManager.SetClientBackgroundRpc(userClientId, originalBackground);
-            StopPeekRoutineUserRpc(userClientId);
+            int userOriginalBackground = playerManager.FindPlayerByClientId(userClientId).BackgroundSkinId;
+            backgroundManager.SetClientBackgroundRpc(userClientId, userOriginalBackground);
 
-            userClientIds.RemoveAt(peekSessionIndex);
-            targetClientIds.RemoveAt(peekSessionIndex);
+            StopPeekRoutineUserRpc(userClientId);
         }
     }
 
