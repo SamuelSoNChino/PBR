@@ -157,7 +157,15 @@ public class MultiplayerManager : NetworkBehaviour
 
         if (clientId != NetworkManager.Singleton.LocalClientId)
         {
-            playerManager.AddNewPlayer(new Player("pepis", clientId, 1));
+            if (NetworkManager.Singleton.ConnectedClients.Count == 2)
+            {
+                playerManager.AddNewPlayer(new Player("Pepis", clientId, 1));
+            }
+            else
+            {
+                playerManager.AddNewPlayer(new Player("Milan", clientId, 2));
+            }
+
 
             Debug.Log($"New player added. Current connected clients: {NetworkManager.Singleton.ConnectedClients.Count}");
 
