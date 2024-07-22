@@ -1033,7 +1033,7 @@ MonoBehaviour:
   leaderboardManager: {fileID: 260242005}
   startScreenManagerMultiplayer: {fileID: 557488105}
   endScreenManagerMultiplayer: {fileID: 972601263}
-  numberOfTiles: 5
+  numberOfTiles: 3
 --- !u!4 &368472933
 Transform:
   m_ObjectHideFlags: 0
