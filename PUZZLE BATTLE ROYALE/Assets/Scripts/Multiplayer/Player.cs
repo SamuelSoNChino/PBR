@@ -197,6 +197,14 @@ public class Player
         puzzleTilesPositions = new();
     }
 
+    private int heldPuzzleTileId;
+
+    public int HeldPuzzleTileId
+    {
+        get { return heldPuzzleTileId; }
+        set { heldPuzzleTileId = value; }
+    }
+
     // -----------------------------------------------------------------------
     // Grid Tiles
     // -----------------------------------------------------------------------
