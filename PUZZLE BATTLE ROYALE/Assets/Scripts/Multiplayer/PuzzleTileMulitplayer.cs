@@ -7,16 +7,6 @@ using UnityEngine;
 public class PuzzleTileMultiplayer : MonoBehaviour
 {
     /// <summary>
-    /// The parent class containing methods for managing all puzzle tiles.
-    /// </summary>
-    private TilesManagerMultiplayer tilesManager;
-
-    /// <summary>
-    /// The class containing methods for managing all grid tiles.
-    /// </summary>
-    private GridManagerMultiplayer gridManager;
-
-    /// <summary>
     /// The puzzle manager responsible for managing the overall puzzle and communication with server.
     /// </summary>
     private PuzzleManager puzzleManager;
@@ -26,9 +16,7 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        tilesManager = GameObject.Find("Tiles").GetComponent<TilesManagerMultiplayer>();
         puzzleManager = GameObject.Find("Puzzle").GetComponent<PuzzleManager>();
-        gridManager = GameObject.Find("Grid").GetComponent<GridManagerMultiplayer>();
     }
 
     // -----------------------------------------------------------------------
@@ -100,33 +88,6 @@ public class PuzzleTileMultiplayer : MonoBehaviour
         puzzleManager.UpdateServerPosition(TileId, movedPosition);
     }
 
-    /// <summary>
-    /// Increments the Z position of the tile.
-    /// </summary>
-    public void IncrementZ()
-    {
-        Position = new Vector3(transform.position.x, transform.position.y, transform.position.z + 1);
-    }
-
-    /// <summary>
-    /// Moves this puzzle tile to the front.
-    /// </summary>
-    public void MoveToFront()
-    {
-        foreach (GameObject puzzleTileObject in tilesManager.GetAllPuzzleTiles())
-        {
-            PuzzleTileMultiplayer puzzleTile = puzzleTileObject.GetComponent<PuzzleTileMultiplayer>();
-            if (puzzleTile.Position.z < Position.z)
-            {
-                puzzleTile.IncrementZ();
-                puzzleManager.UpdateServerPosition(puzzleTile.TileId, puzzleTile.Position);
-            }
-        }
-        // Moves this puzzle tile to the front spot (z=1)
-        Position = new(transform.position.x, transform.position.y, 1);
-        puzzleManager.UpdateServerPosition(TileId, Position);
-    }
-
     // -----------------------------------------------------------------------
     // Colliders
     // -----------------------------------------------------------------------
@@ -158,11 +119,11 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     {
         if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition only for PC testing
         {
-            MoveToFront();
+            puzzleManager.StartHoldingTile(tileId);
 
             // Lets the PanZoom script know, that a tile is being dragged, so the player doesn't also pan ath the same time
             Camera.main.GetComponent<PanZoom>().SetHoldingTile(true);
-            
+
             CalculateMouseOffset();
         }
     }
