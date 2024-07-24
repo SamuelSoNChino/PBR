@@ -55,7 +55,6 @@ public class PeekManager : NetworkBehaviour
             targetClientIds.Add(targetClientId);
 
             puzzleManager.DisableTileMovement(userClientId);
-            puzzleManager.DeselectAllClientTilesRpc(userClientId);
             puzzleManager.SetOtherClientsPositions(userClientId, targetClientId);
 
             int targetClientBackgroundId = playerManager.FindPlayerByClientId(targetClientId).BackgroundSkinId;
@@ -66,7 +65,7 @@ public class PeekManager : NetworkBehaviour
             if (targetAlsoPeeking)
             {
                 puzzleManager.EnableTileMovement(userClientId);
-                puzzleManager.ResetClientsSnappedTilesRpc(userClientId);
+                puzzleManager.ResetPlayerSnappedTiles(userClientId);
             }
 
             bool userBeingPeeked = targetClientIds.Contains(userClientId);
@@ -79,7 +78,7 @@ public class PeekManager : NetworkBehaviour
                     {
                         ulong peekerClientId = userClientIds[i];
                         puzzleManager.EnableTileMovement(peekerClientId);
-                        puzzleManager.ResetClientsSnappedTilesRpc(peekerClientId);
+                        puzzleManager.ResetPlayerSnappedTiles(peekerClientId);
                     }
                 }
             }
@@ -131,16 +130,14 @@ public class PeekManager : NetworkBehaviour
                     {
                         ulong peekerClientId = userClientIds[i];
                         puzzleManager.DisableTileMovement(peekerClientId);
-                        puzzleManager.DeselectAllClientTilesRpc(peekerClientId);
                     }
                 }
 
             }
 
             puzzleManager.SetOtherClientsPositions(userClientId, userClientId);
-            puzzleManager.DeselectAllClientTilesRpc(userClientId);
             puzzleManager.EnableTileMovement(userClientId);
-            puzzleManager.ResetClientsSnappedTilesRpc(userClientId);
+            puzzleManager.ResetPlayerSnappedTiles(userClientId);
 
             int userOriginalBackground = playerManager.FindPlayerByClientId(userClientId).BackgroundSkinId;
             backgroundManager.SetClientBackgroundRpc(userClientId, userOriginalBackground);
