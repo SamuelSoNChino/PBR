@@ -144,52 +144,6 @@ public class PuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Updates the grid state for a specific puzzle tile based on its position.
-    /// </summary>
-    /// <param name="player">The player object.</param>
-    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
-    public void UpdateGridForPuzzleTile(Player player, int puzzleTileId)
-    {
-        Vector3 puzzleTilePosition = player.GetPuzzleTilePosition(puzzleTileId);
-        Vector2 puzzleTilePosition2D = new(puzzleTilePosition.x, puzzleTilePosition.y);
-
-        if (gridTilesByPositions.Keys.Contains(puzzleTilePosition2D))
-        {
-            int gridTileId = gridTilesByPositions[puzzleTilePosition2D];
-
-            if (CheckTiles(puzzleTileId, gridTileId))
-            {
-                player.ModifyGridTileCorrectlyOccupied(gridTileId, true);
-                CheckGridCompleteness(player);
-            }
-            player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, gridTileId);
-            UpdatePlayerProgress(player);
-        }
-        // -1 means that the puzzle tile is not snapped on any grid tile
-        else if (player.GetPuzzleTileSnappedGridTile(puzzleTileId) != -1)
-        {
-            int snappedGridTileId = player.GetPuzzleTileSnappedGridTile(puzzleTileId);
-            player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, false);
-            player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, -1);
-
-            UpdatePlayerProgress(player);
-        }
-    }
-
-    /// <summary>
-    /// Updates the grid state for all puzzle tiles for a specific client.
-    /// </summary>
-    /// <param name="clientId">The unique ID of the client.</param>
-    public void UpdateGridForAllTiles(ulong clientId)
-    {
-        Player player = playerManager.FindPlayerByClientId(clientId);
-        foreach (int puzzleTileId in puzzleTileIds)
-        {
-            UpdateGridForPuzzleTile(player, puzzleTileId);
-        }
-    }
-
-    /// <summary>
     /// Checks if the entire grid is correctly occupied by puzzle tiles.
     /// </summary>
     /// <param name="player">The player object.</param>
@@ -283,10 +237,13 @@ public class PuzzleManager : NetworkBehaviour
         {
             ulong targetOfPeekClientId = peekManager.GetTargetOfPeekUser(clientId);
             Player targetOfPeekPlayer = playerManager.FindPlayerByClientId(targetOfPeekClientId);
-            if (player.HasPuzzleTileMovementPermission)
+
+            if (player.HasPuzzleTileMovementPermission && player.HeldPuzzleTileId == puzzleTileId)
             {
                 targetOfPeekPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-                UpdateGridForPuzzleTile(targetOfPeekPlayer, puzzleTileId);
+
+                //TODO Vymislioet
+                //UpdateGridForPuzzleTile(targetOfPeekPlayer, puzzleTileId);
             }
             else
             {
@@ -295,10 +252,9 @@ public class PuzzleManager : NetworkBehaviour
         }
         else
         {
-            if (player.HasPuzzleTileMovementPermission)
+            if (player.HasPuzzleTileMovementPermission && player.HeldPuzzleTileId == puzzleTileId)
             {
                 player.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-                UpdateGridForPuzzleTile(player, puzzleTileId);
             }
             else
             {
@@ -320,6 +276,21 @@ public class PuzzleManager : NetworkBehaviour
         {
             PuzzleTileMultiplayer puzzleTile = tilesManager.FindPuzzleTileById(puzzleTileId).GetComponent<PuzzleTileMultiplayer>();
             puzzleTile.Position = newPosition;
+        }
+    }
+
+        /// <summary>
+    /// Sets the positions of the puzzle tiles for a client to match another client's puzzle tiles.
+    /// </summary>
+    /// <param name="clientId">The unique ID of the client.</param>
+    /// <param name="otherClientId">The unique ID of the other client.</param>
+    public void SetOtherClientsPositions(ulong clientId, ulong otherClientId)
+    {
+        Player otherPlayer = playerManager.FindPlayerByClientId(otherClientId);
+
+        foreach (int puzzleTileId in puzzleTileIds)
+        {
+            SetNewTilePositionRpc(clientId, puzzleTileId, otherPlayer.GetPuzzleTilePosition(puzzleTileId));
         }
     }
 
@@ -489,52 +460,6 @@ public class PuzzleManager : NetworkBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Peek Functionality
-    // -----------------------------------------------------------------------
-
-    /// <summary>
-    /// Sets the positions of the puzzle tiles for a client to match another client's puzzle tiles.
-    /// </summary>
-    /// <param name="clientId">The unique ID of the client.</param>
-    /// <param name="otherClientId">The unique ID of the other client.</param>
-    public void SetOtherClientsPositions(ulong clientId, ulong otherClientId)
-    {
-        Player otherPlayer = playerManager.FindPlayerByClientId(otherClientId);
-
-        foreach (int puzzleTileId in puzzleTileIds)
-        {
-            SetNewTilePositionRpc(clientId, puzzleTileId, otherPlayer.GetPuzzleTilePosition(puzzleTileId));
-        }
-    }
-
-    /// <summary>
-    /// RPC to deselect all tiles on the client.
-    /// </summary>
-    /// <param name="clientId">The unique ID of the client.</param>
-    [Rpc(SendTo.ClientsAndHost)]
-    public void DeselectAllClientTilesRpc(ulong clientId)
-    {
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-            tilesManager.DeselectAllTiles();
-        }
-    }
-
-    /// <summary>
-    /// RPC to reset the snapped state of all tiles on the client.
-    /// </summary>
-    /// <param name="clientId">The unique ID of the client.</param>
-    [Rpc(SendTo.ClientsAndHost)]
-    public void ResetClientsSnappedTilesRpc(ulong clientId)
-    {
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-            tilesManager.UnsnapAllFromGrid();
-            tilesManager.SnapAllToGrid();
-        }
-    }
-
-    // -----------------------------------------------------------------------
     // Progress Tracking
     // -----------------------------------------------------------------------
 
@@ -693,6 +618,211 @@ public class PuzzleManager : NetworkBehaviour
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
             progressText.text = $"{progress} %";
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Holding Tiles
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Notifies the server that a player has started holding a puzzle tile.
+    /// </summary>
+    /// <param name="clientId">The client ID of the player.</param>
+    /// <param name="puzzleTileId">The ID of the puzzle tile being held.</param>
+    [Rpc(SendTo.Server)]
+    private void StartHoldingTileRpc(ulong clientId, int puzzleTileId)
+    {
+        Player player = playerManager.FindPlayerByClientId(clientId);
+
+        Debug.Log($"Client: {clientId} started holding tile: {puzzleTileId}");
+
+        if (player.HeldPuzzleTileId == -1)
+        {
+            player.HeldPuzzleTileId = puzzleTileId;
+
+            MovePuzzleTileToFront(player, puzzleTileId);
+
+            if (player.GetPuzzleTileSnappedGridTile(puzzleTileId) != -1)
+            {
+                UnsnapTileFromGrid(player, puzzleTileId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts holding a puzzle tile by the local player.
+    /// </summary>
+    /// <param name="puzzleTileId">The ID of the puzzle tile to be held.</param>
+    public void StartHoldingTile(int puzzleTileId)
+    {
+        StartHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
+    }
+
+    /// <summary>
+    /// Notifies the server that a player has stopped holding a puzzle tile.
+    /// </summary>
+    /// <param name="clientId">The client ID of the player.</param>
+    /// <param name="puzzleTileId">The ID of the puzzle tile that was being held.</param>
+    [Rpc(SendTo.Server)]
+    public void StopHoldingTileRpc(ulong clientId, int puzzleTileId)
+    {
+        Player player = playerManager.FindPlayerByClientId(clientId);
+
+        Debug.Log($"Client: {clientId} stopped holding tile: {puzzleTileId}");
+
+        if (player.HeldPuzzleTileId == puzzleTileId)
+        {
+            player.HeldPuzzleTileId = -1;
+
+            SnapTileToGrid(player, puzzleTileId);
+        }
+    }
+
+    /// <summary>
+    /// Stops holding a puzzle tile by the local player.
+    /// </summary>
+    /// <param name="puzzleTileId">The ID of the puzzle tile to stop holding.</param>
+    public void StopHoldingTile(int puzzleTileId)
+    {
+        StopHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
+    }
+
+    /// <summary>
+    /// Moves the held puzzle tile to the front of the player's view, bringing it to the foreground.
+    /// </summary>
+    /// <param name="player">The player holding the tile.</param>
+    /// <param name="heldPuzzleTileId">The ID of the held puzzle tile.</param>
+    public void MovePuzzleTileToFront(Player player, int heldPuzzleTileId)
+    {
+        Vector3 currentPosition = player.GetPuzzleTilePosition(heldPuzzleTileId);
+
+        foreach (int puzzleTileId in puzzleTileIds)
+        {
+            if (player.GetPuzzleTilePosition(puzzleTileId).z < currentPosition.z)
+            {
+                Vector3 newPosition = player.GetPuzzleTilePosition(puzzleTileId) + new Vector3(0, 0, 1);
+                SetNewTilePositionRpc(player.ClientId, puzzleTileId, newPosition);
+            }
+        }
+
+        Vector3 newHeldPosition = new(currentPosition.x, currentPosition.y, 1);
+        SetNewTilePositionRpc(player.ClientId, heldPuzzleTileId, newHeldPosition);
+    }
+
+    // -----------------------------------------------------------------------
+    // Snapping to Grid
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Snaps a puzzle tile to the closest grid tile if it is within the snapping range.
+    /// </summary>
+    /// <param name="player">The player whose tile is being snapped.</param>
+    /// <param name="puzzleTileId">The ID of the puzzle tile to snap.</param>
+    private void SnapTileToGrid(Player player, int puzzleTileId)
+    {
+        Vector3 puzzleTilePosition = player.GetPuzzleTilePosition(puzzleTileId);
+        Vector2 puzzleTile2DPosition = new(puzzleTilePosition.x, puzzleTilePosition.y);
+
+        // Temporary solution to calculate tile size.
+        float tileSize = gridTilesByPositions.Keys.ToList()[1].y - gridTilesByPositions.Keys.ToList()[0].y;
+
+        Vector2 puzzleTileCenter = new(puzzleTile2DPosition.x + tileSize / 2, puzzleTile2DPosition.y + tileSize / 2);
+
+        foreach (var kvp in gridTilesByPositions)
+        {
+            Vector2 gridTile2DPosition = kvp.Key;
+            int gridTileId = kvp.Value;
+
+            float maxX = gridTile2DPosition.x + tileSize;
+            float maxY = gridTile2DPosition.y + tileSize;
+
+            if (!player.GetGridTileOccupied(gridTileId) &&
+                puzzleTileCenter.x > gridTile2DPosition.x &&
+                puzzleTileCenter.y > gridTile2DPosition.y &&
+                puzzleTileCenter.x < maxX &&
+                puzzleTileCenter.y < maxY)
+            {
+                player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, gridTileId);
+                player.ModifyGridTileOccupied(gridTileId, true);
+
+                Vector3 newPosition = new(gridTile2DPosition.x, gridTile2DPosition.y, puzzleTilePosition.z);
+                player.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
+                SetNewTilePositionRpc(player.ClientId, puzzleTileId, newPosition);
+
+                UpdateGridForPuzzleTile(player, puzzleTileId, gridTileId);
+
+                UpdatePlayerProgress(player);
+
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Unsnap a puzzle tile from its current grid tile, freeing the grid tile for other tiles.
+    /// </summary>
+    /// <param name="player">The player whose tile is being unsnapped.</param>
+    /// <param name="puzzleTileId">The ID of the puzzle tile to unsnap.</param>
+    private void UnsnapTileFromGrid(Player player, int puzzleTileId)
+    {
+        player.ModifyGridTileOccupied(player.GetPuzzleTileSnappedGridTile(puzzleTileId), false);
+        player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, -1);
+        UpdatePlayerProgress(player);
+    }
+
+    /// <summary>
+    /// Snaps all puzzle tiles of the player to the grid.
+    /// </summary>
+    /// <param name="player">The player whose tiles are being snapped.</param>
+    public void SnapAllTilesToGrid(Player player)
+    {
+        foreach (int puzzleTileId in puzzleTileIds)
+        {
+            SnapTileToGrid(player, puzzleTileId);
+        }
+    }
+
+    /// <summary>
+    /// Unsnap all puzzle tiles of the player from the grid.
+    /// </summary>
+    /// <param name="player">The player whose tiles are being unsnapped.</param>
+    public void UnsnapAllTilesFromGrid(Player player)
+    {
+        foreach (int puzzleTileId in puzzleTileIds)
+        {
+            UnsnapTileFromGrid(player, puzzleTileId);
+        }
+    }
+
+    /// <summary>
+    /// Resets the snapped state of all puzzle tiles for a player, reapplying snapping logic.
+    /// </summary>
+    /// <param name="clientId">The client ID of the player.</param>
+    public void ResetPlayerSnappedTiles(ulong clientId)
+    {
+        Player player = playerManager.FindPlayerByClientId(clientId);
+
+        UnsnapAllTilesFromGrid(player);
+        SnapAllTilesToGrid(player);
+    }
+
+    /// <summary>
+    /// Updates the grid state for a specific puzzle tile based on its position.
+    /// </summary>
+    /// <param name="player">The player object.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    /// <param name="snappedGridTileId">The ID of the grid tile the puzzle tile is snapped to.</param>
+    public void UpdateGridForPuzzleTile(Player player, int puzzleTileId, int snappedGridTileId)
+    {
+        if (CheckTiles(puzzleTileId, snappedGridTileId))
+        {
+            player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, true);
+            CheckGridCompleteness(player);
+        }
+        else
+        {
+            player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, false);
         }
     }
 }
