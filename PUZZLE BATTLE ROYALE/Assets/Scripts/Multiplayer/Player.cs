@@ -323,5 +323,31 @@ public class Player
     // Peeking
     // -----------------------------------------------------------------------
 
-    // TODO: Implement peeking functionality for the player.
+    /// <summary>
+    /// Value of whether the player is currently peeking at other player.
+    /// </summary>
+    private bool isPeeking = false;
+
+    /// <summary>
+    /// Gets or sets the value of whether the player is currently peeking at other player.
+    /// </summary>
+    public bool IsPeeking
+    {
+        get { return isPeeking; }
+        set { isPeeking = value; }
+    }
+
+    /// <summary>
+    /// The target of the player's peek. Is null when player is not currently peeking.
+    /// </summary>
+    private Player targetOfPeekPlayer = null;
+
+    /// <summary>
+    /// Gets or sets the target of the player's peek. Is null when player is not currently peeking.
+    /// </summary>
+    public Player TargetOfPeekPlayer
+    {
+        get { return targetOfPeekPlayer; }
+        set { targetOfPeekPlayer = value; }
+    }
 }
