@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
@@ -17,8 +18,8 @@ public class PeekManager : NetworkBehaviour
 
 
 
-    private List<ulong> targetClientIds = new();
-    private List<ulong> userClientIds = new();
+    private List<Player> targetPlayers = new();
+    private List<Player> userPlayers = new();
 
     public void Peek()
     {
@@ -35,56 +36,51 @@ public class PeekManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     private void RequestPeekRpc(ulong userClientId)
     {
-        Debug.Log($"[Server] Received peek request from Client {userClientId}");
+        Player userPlayer = playerManager.FindPlayerByClientId(userClientId);
 
-        if (!userClientIds.Contains(userClientId))
+        if (!userPlayer.IsPeeking)
         {
             // Will be replaced with appropriate logic
-            ulong targetClientId = 0;
-            foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            Player targetPlayer = null;
+            foreach (Player player in playerManager.GetAllPlayers())
             {
-                if (clientId != userClientId)
+                if (player != userPlayer)
                 {
-                    targetClientId = clientId;
+                    targetPlayer = player;
                     break;
                 }
             }
 
-            Debug.Log($"[Server] Client {userClientId} is peeking at Client {targetClientId}.");
-            userClientIds.Add(userClientId);
-            targetClientIds.Add(targetClientId);
+            userPlayers.Add(userPlayer);
+            targetPlayers.Add(targetPlayer);
 
-            puzzleManager.DisableTileMovement(userClientId);
-            puzzleManager.SetOtherClientsPositions(userClientId, targetClientId);
+            userPlayer.IsPeeking = true;
+            userPlayer.TargetOfPeekPlayer = targetPlayer;
 
-            int targetClientBackgroundId = playerManager.FindPlayerByClientId(targetClientId).BackgroundSkinId;
-            backgroundManager.SetClientBackgroundRpc(userClientId, targetClientBackgroundId);
+            puzzleManager.DisableTileMovement(userPlayer);
+            puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
 
-            bool targetAlsoPeeking = userClientIds.Contains(targetClientId);
-            UpdatePeekIndicatorRpc(targetClientId, targetAlsoPeeking, true);
+            int targetClientBackgroundId = playerManager.FindPlayerByClientId(targetPlayer.ClientId).BackgroundSkinId;
+            backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, targetClientBackgroundId);
+
+            bool targetAlsoPeeking = userPlayers.Contains(targetPlayer);
+            UpdatePeekIndicatorRpc(targetPlayer.ClientId, targetAlsoPeeking, true);
             if (targetAlsoPeeking)
             {
-                puzzleManager.EnableTileMovement(userClientId);
-                puzzleManager.ResetPlayerSnappedTiles(userClientId);
+                puzzleManager.EnableTileMovement(userPlayer);
             }
 
-            bool userBeingPeeked = targetClientIds.Contains(userClientId);
-            UpdatePeekIndicatorRpc(userClientId, true, userBeingPeeked);
+            bool userBeingPeeked = targetPlayers.Contains(userPlayer);
+            UpdatePeekIndicatorRpc(userPlayer.ClientId, true, userBeingPeeked);
             if (userBeingPeeked)
             {
-                for (int i = 0; i < targetClientIds.Count; i++)
+                foreach (Player peekerPlayer in GetPeekersOfTarget(targetPlayer))
                 {
-                    if (targetClientIds[i] == userClientId)
-                    {
-                        ulong peekerClientId = userClientIds[i];
-                        puzzleManager.EnableTileMovement(peekerClientId);
-                        puzzleManager.ResetPlayerSnappedTiles(peekerClientId);
-                    }
+                    puzzleManager.EnableTileMovement(peekerPlayer);
                 }
             }
 
-            string targetName = playerManager.FindPlayerByClientId(targetClientId).Name;
-            StartPeekRoutineUserRpc(userClientId, targetName);
+            StartPeekRoutineUserRpc(userPlayer.ClientId, targetPlayer.Name);
         }
     }
 
@@ -106,43 +102,40 @@ public class PeekManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     private void RequestStopPeekingRpc(ulong userClientId)
     {
-        Debug.Log($"[Server] Received stop peek request from Client {userClientId}");
+        Player userPlayer = playerManager.FindPlayerByClientId(userClientId);
 
-        if (userClientIds.Contains(userClientId))
+        if (userPlayers.Contains(userPlayer))
         {
-            int peekSessionIndex = userClientIds.IndexOf(userClientId);
-            ulong targetClientId = targetClientIds[peekSessionIndex];
+            int peekSessionIndex = userPlayers.IndexOf(userPlayer);
+            Player targetPlayer = targetPlayers[peekSessionIndex];
 
-            userClientIds.RemoveAt(peekSessionIndex);
-            targetClientIds.RemoveAt(peekSessionIndex);
+            userPlayers.RemoveAt(peekSessionIndex);
+            targetPlayers.RemoveAt(peekSessionIndex);
 
-            bool targetPeeking = userClientIds.Contains(targetClientId);
-            bool targetStillBeingPeeked = targetClientIds.Contains(targetClientId);
-            UpdatePeekIndicatorRpc(targetClientId, targetPeeking, targetStillBeingPeeked);
+            userPlayer.IsPeeking = false;
+            userPlayer.TargetOfPeekPlayer = null;
 
-            bool userBeingPeeked = targetClientIds.Contains(userClientId);
-            UpdatePeekIndicatorRpc(userClientId, false, userBeingPeeked);
+            bool targetPeeking = targetPlayer.IsPeeking;
+            bool targetStillBeingPeeked = targetPlayers.Contains(targetPlayer);
+            UpdatePeekIndicatorRpc(targetPlayer.ClientId, targetPeeking, targetStillBeingPeeked);
+
+            bool userBeingPeeked = targetPlayers.Contains(userPlayer);
+            UpdatePeekIndicatorRpc(userPlayer.ClientId, false, userBeingPeeked);
             if (userBeingPeeked)
             {
-                for (int i = 0; i < targetClientIds.Count; i++)
+                foreach (Player peekerPlayer in GetPeekersOfTarget(targetPlayer))
                 {
-                    if (targetClientIds[i] == userClientId)
-                    {
-                        ulong peekerClientId = userClientIds[i];
-                        puzzleManager.DisableTileMovement(peekerClientId);
-                    }
+                    puzzleManager.DisableTileMovement(peekerPlayer);
                 }
-
             }
 
-            puzzleManager.SetOtherClientsPositions(userClientId, userClientId);
-            puzzleManager.EnableTileMovement(userClientId);
-            puzzleManager.ResetPlayerSnappedTiles(userClientId);
+            puzzleManager.SetOtherClientsPositions(userPlayer, userPlayer);
+            puzzleManager.EnableTileMovement(userPlayer);
 
-            int userOriginalBackground = playerManager.FindPlayerByClientId(userClientId).BackgroundSkinId;
-            backgroundManager.SetClientBackgroundRpc(userClientId, userOriginalBackground);
+            int userOriginalBackground = playerManager.FindPlayerByClientId(userPlayer.ClientId).BackgroundSkinId;
+            backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, userOriginalBackground);
 
-            StopPeekRoutineUserRpc(userClientId);
+            StopPeekRoutineUserRpc(userPlayer.ClientId);
         }
     }
 
@@ -187,27 +180,27 @@ public class PeekManager : NetworkBehaviour
         }
     }
 
-    public bool IsClientPeeking(ulong clientId)
+    public List<Player> GetPeekersOfTarget(Player targetPlayer)
     {
-        return userClientIds.Contains(clientId);
-    }
-
-    public ulong GetTargetOfPeekUser(ulong userClientId)
-    {
-        int peekSessionIndex = userClientIds.IndexOf(userClientId);
-        return targetClientIds[peekSessionIndex];
+        List<Player> peekers = new();
+        for (int i = 0; i < userPlayers.Count; i++)
+        {
+            if (targetPlayers[i] == targetPlayer)
+            {
+                peekers.Add(userPlayers[i]);
+            }
+        }
+        return peekers;
     }
 
     private void Update()
     {
-        foreach (ulong userClientId in userClientIds)
+        foreach (Player userPlayer in userPlayers)
         {
-            int peekSessionIndex = userClientIds.IndexOf(userClientId);
-            ulong targetClientId = targetClientIds[peekSessionIndex];
-            bool targetAlsoPeeking = userClientIds.Contains(targetClientId);
-            if (!targetAlsoPeeking)
+            Player targetPlayer = userPlayer.TargetOfPeekPlayer;
+            if (!targetPlayer.IsPeeking)
             {
-                puzzleManager.SetOtherClientsPositions(userClientId, targetClientId);
+                puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
             }
         }
     }
