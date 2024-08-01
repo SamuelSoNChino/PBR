@@ -4,7 +4,6 @@ using System.Linq;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
 /// Manages the puzzle game, including tile generation, movement, shuffling, and player interactions.
@@ -144,6 +143,25 @@ public class PuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// Updates the grid status for a given puzzle tile and grid tile.
+    /// </summary>
+    /// <param name="player">The player placing the tile.</param>
+    /// <param name="puzzleTileId">The ID of the puzzle tile.</param>
+    /// <param name="snappedGridTileId">The ID of the grid tile where the puzzle tile is placed.</param>
+    public void UpdateGridForPuzzleTile(Player player, int puzzleTileId, int snappedGridTileId)
+    {
+        if (CheckTiles(puzzleTileId, snappedGridTileId))
+        {
+            player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, true);
+            CheckGridCompleteness(player);
+        }
+        else
+        {
+            player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, false);
+        }
+    }
+
+    /// <summary>
     /// Checks if the entire grid is correctly occupied by puzzle tiles.
     /// </summary>
     /// <param name="player">The player object.</param>
@@ -223,31 +241,38 @@ public class PuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// RPC to update the position of a tile on the server.
+    /// Updates the position of a tile on the server and handles synchronization with clients.
     /// </summary>
-    /// <param name="clientId">The unique ID of the client.</param>
-    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    /// <param name="clientId">The unique ID of the client requesting the update.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile to update.</param>
     /// <param name="newPosition">The new position of the puzzle tile.</param>
     [Rpc(SendTo.Server)]
     public void UpdateServerPositionRpc(ulong clientId, int puzzleTileId, Vector3 newPosition)
     {
         Player player = playerManager.FindPlayerByClientId(clientId);
 
-        if (peekManager.IsClientPeeking(clientId))
+
+        if (player.IsPeeking)
         {
-            ulong targetOfPeekClientId = peekManager.GetTargetOfPeekUser(clientId);
-            Player targetOfPeekPlayer = playerManager.FindPlayerByClientId(targetOfPeekClientId);
+            Player targetPlayer = player.TargetOfPeekPlayer;
 
             if (player.HasPuzzleTileMovementPermission && player.HeldPuzzleTileId == puzzleTileId)
             {
-                targetOfPeekPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
+                targetPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
 
-                //TODO Vymislioet
-                //UpdateGridForPuzzleTile(targetOfPeekPlayer, puzzleTileId);
+                List<Player> otherPeekUserPlayers = peekManager.GetPeekersOfTarget(targetPlayer);
+
+                foreach (Player otherPeekUserPlayer in otherPeekUserPlayers)
+                {
+                    if (otherPeekUserPlayer != player)
+                    {
+                        SetNewTilePositionRpc(otherPeekUserPlayer.ClientId, puzzleTileId, newPosition);
+                    }
+                }
             }
             else
             {
-                SetNewTilePositionRpc(clientId, puzzleTileId, targetOfPeekPlayer.GetPuzzleTilePosition(puzzleTileId));
+                SetNewTilePositionRpc(clientId, puzzleTileId, targetPlayer.GetPuzzleTilePosition(puzzleTileId));
             }
         }
         else
@@ -279,18 +304,37 @@ public class PuzzleManager : NetworkBehaviour
         }
     }
 
-        /// <summary>
-    /// Sets the positions of the puzzle tiles for a client to match another client's puzzle tiles.
+    /// <summary>
+    /// Synchronizes the tile positions for a player with other clients.
     /// </summary>
-    /// <param name="clientId">The unique ID of the client.</param>
-    /// <param name="otherClientId">The unique ID of the other client.</param>
-    public void SetOtherClientsPositions(ulong clientId, ulong otherClientId)
+    /// <param name="player">The player whose view is being updated.</param>
+    /// <param name="otherPlayer">The other player whose tile positions are being synchronized.</param>
+    public void SetOtherClientsPositions(Player player, Player otherPlayer)
     {
-        Player otherPlayer = playerManager.FindPlayerByClientId(otherClientId);
-
         foreach (int puzzleTileId in puzzleTileIds)
         {
-            SetNewTilePositionRpc(clientId, puzzleTileId, otherPlayer.GetPuzzleTilePosition(puzzleTileId));
+            SetNewTilePositionRpc(player.ClientId, puzzleTileId, otherPlayer.GetPuzzleTilePosition(puzzleTileId));
+        }
+    }
+
+    /// <summary>
+    /// Updates the tile position for a player, either during normal gameplay or when peeking.
+    /// </summary>
+    /// <param name="player">The player whose tile position is being updated.</param>
+    /// <param name="puzzleTileId">The ID of the puzzle tile to update.</param>
+    /// <param name="newPosition">The new position of the puzzle tile.</param>
+    public void UpdateTilePositionForPlayer(Player player, int puzzleTileId, Vector3 newPosition)
+    {
+        if (!player.IsPeeking)
+        {
+            SetNewTilePositionRpc(player.ClientId, puzzleTileId, newPosition);
+        }
+        else
+        {
+            foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
+            {
+                SetNewTilePositionRpc(otherPeekUserPlayer.ClientId, puzzleTileId, newPosition);
+            }
         }
     }
 
@@ -298,27 +342,28 @@ public class PuzzleManager : NetworkBehaviour
     // Tile Movement Permissions
     // -----------------------------------------------------------------------
 
+
     /// <summary>
     /// Disables tile movement for all players or a specific player.
     /// </summary>
-    /// <param name="clientId">The unique ID of the client. Defaults to 1234567890 for all players.</param>
-    public void DisableTileMovement(ulong clientId = 1234567890)
+    /// <param name="targetPlayer">The specific player to disable movement for, or null to disable for all players.</param>
+    public void DisableTileMovement(Player targetPlayer = null)
     {
-        if (clientId == 1234567890)
+        if (targetPlayer == null)
         {
-            foreach (Player targetPlayer in playerManager.GetAllPlayers())
+            foreach (Player player in playerManager.GetAllPlayers())
             {
-                targetPlayer.HasPuzzleTileMovementPermission = false;
-                DisableAllCollidersRpc(targetPlayer.ClientId);
+                player.HasPuzzleTileMovementPermission = false;
+                DisableAllCollidersRpc(player.ClientId);
             }
         }
         else
         {
-            Player targetPlayer = playerManager.FindPlayerByClientId(clientId);
             targetPlayer.HasPuzzleTileMovementPermission = false;
             DisableAllCollidersRpc(targetPlayer.ClientId);
         }
     }
+
 
     /// <summary>
     /// RPC to disable all colliders on the clients.
@@ -333,27 +378,29 @@ public class PuzzleManager : NetworkBehaviour
         }
     }
 
+
+
     /// <summary>
     /// Enables tile movement for all players or a specific player.
     /// </summary>
-    /// <param name="clientId">The unique ID of the client. Defaults to 1234567890 for all players.</param>
-    public void EnableTileMovement(ulong clientId = 1234567890)
+    /// <param name="targetPlayer">The specific player to enable movement for, or null to enable for all players.</param>
+    public void EnableTileMovement(Player targetPlayer = null)
     {
-        if (clientId == 1234567890)
+        if (targetPlayer == null)
         {
-            foreach (Player targetPlayer in playerManager.GetAllPlayers())
+            foreach (Player player in playerManager.GetAllPlayers())
             {
-                targetPlayer.HasPuzzleTileMovementPermission = true;
-                EnableAllCollidersRpc(targetPlayer.ClientId);
+                player.HasPuzzleTileMovementPermission = true;
+                EnableAllCollidersRpc(player.ClientId);
             }
         }
         else
         {
-            Player targetPlayer = playerManager.FindPlayerByClientId(clientId);
             targetPlayer.HasPuzzleTileMovementPermission = true;
             EnableAllCollidersRpc(targetPlayer.ClientId);
         }
     }
+
 
     /// <summary>
     /// RPC to enable all colliders on the clients.
@@ -368,6 +415,69 @@ public class PuzzleManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// RPC to disable the collider of a specific puzzle tile on the client.
+    /// </summary>
+    /// <param name="clientId">The unique ID of the client.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void DisablePuzzleTileColliderRpc(ulong clientId, int puzzleTileId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            PuzzleTileMultiplayer puzzleTile = tilesManager.FindPuzzleTileById(puzzleTileId).GetComponent<PuzzleTileMultiplayer>();
+            puzzleTile.DisableCollider();
+        }
+    }
+
+
+    /// <summary>
+    /// RPC to enable the collider of a specific puzzle tile on the client.
+    /// </summary>
+    /// <param name="clientId">The unique ID of the client.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void EnablePuzzleTileColliderRpc(ulong clientId, int puzzleTileId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            PuzzleTileMultiplayer puzzleTile = tilesManager.FindPuzzleTileById(puzzleTileId).GetComponent<PuzzleTileMultiplayer>();
+            puzzleTile.EnableCollider();
+        }
+    }
+
+    /// <summary>
+    /// Disables the colliders of a specific puzzle tile for all players who are peeking on the target player, except the one initiating the action.
+    /// </summary>
+    /// <param name="player">The player initiating the action, who is peeking.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile whose colliders are to be disabled.</param>
+    private void DisableCollidersForOtherPeekers(Player player, int puzzleTileId)
+    {
+        foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
+        {
+            if (otherPeekUserPlayer != player)
+            {
+                DisablePuzzleTileColliderRpc(otherPeekUserPlayer.ClientId, puzzleTileId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Enables the colliders of a specific puzzle tile for all players who are peeking on the target player, except the one initiating the action.
+    /// </summary>
+    /// <param name="player">The player initiating the action, who is peeking.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile whose colliders are to be enabled.</param>
+    private void EnableCollidersForOtherPeekers(Player player, int puzzleTileId)
+    {
+        foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
+        {
+            if (otherPeekUserPlayer != player)
+            {
+                EnablePuzzleTileColliderRpc(otherPeekUserPlayer.ClientId, puzzleTileId);
+            }
+        }
+    }
+
     // -----------------------------------------------------------------------
     // PanZoom Management
     // -----------------------------------------------------------------------
@@ -375,19 +485,19 @@ public class PuzzleManager : NetworkBehaviour
     /// <summary>
     /// Enables touch input for all players or a specific player.
     /// </summary>
-    /// <param name="clientId">The unique ID of the client. Defaults to 1234567890 for all players.</param>
-    public void EnableTouchInput(ulong clientId = 1234567890)
+    /// <param name="targetPlayer">The specific player to enable touch input for, or null to enable for all players.</param>
+    public void EnableTouchInput(Player targetPlayer = null)
     {
-        if (clientId == 1234567890)
+        if (targetPlayer == null)
         {
-            foreach (Player targetPlayer in playerManager.GetAllPlayers())
+            foreach (Player player in playerManager.GetAllPlayers())
             {
-                EnableTouchInputRpc(targetPlayer.ClientId);
+                EnableTouchInputRpc(player.ClientId);
             }
         }
         else
         {
-            EnableTouchInputRpc(clientId);
+            EnableTouchInputRpc(targetPlayer.ClientId);
         }
     }
 
@@ -407,19 +517,19 @@ public class PuzzleManager : NetworkBehaviour
     /// <summary>
     /// Disables touch input for all players or a specific player.
     /// </summary>
-    /// <param name="clientId">The unique ID of the client. Defaults to 1234567890 for all players.</param>
-    public void DisableTouchInput(ulong clientId = 1234567890)
+    /// <param name="targetPlayer">The specific player to disable touch input for, or null to disable for all players.</param>
+    public void DisableTouchInput(Player targetPlayer = null)
     {
-        if (clientId == 1234567890)
+        if (targetPlayer == null)
         {
-            foreach (Player targetPlayer in playerManager.GetAllPlayers())
+            foreach (Player player in playerManager.GetAllPlayers())
             {
-                DisableTouchInputRpc(targetPlayer.ClientId);
+                DisableTouchInputRpc(player.ClientId);
             }
         }
         else
         {
-            DisableTouchInputRpc(clientId);
+            DisableTouchInputRpc(targetPlayer.ClientId);
         }
     }
 
@@ -474,7 +584,7 @@ public class PuzzleManager : NetworkBehaviour
     /// </summary>
     /// <param name="tileIds">List of tile IDs in the grid.</param>
     /// <param name="tileId">The tile ID to find neighbours for.</param>
-    /// <returns>A list of neighbouring tile IDs in the format [TOP, BOTTOM, LEFT, RIGTH], Id is -1 if the neigbour doesn't exist.</returns>
+    /// <returns>A list of neighbouring tile IDs in the format [TOP, BOTTOM, LEFT, RIGHT], Id is -1 if the neigbour doesn't exist.</returns>
     private List<int> GetNeighbouringTiles(List<int> tileIds, int tileId)
     {
         List<int> neighbouringTiles = new() { -1, -1, -1, -1 }; // Initialize with -1
@@ -626,107 +736,154 @@ public class PuzzleManager : NetworkBehaviour
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Notifies the server that a player has started holding a puzzle tile.
+    /// RPC to start holding a tile on the server.
     /// </summary>
-    /// <param name="clientId">The client ID of the player.</param>
-    /// <param name="puzzleTileId">The ID of the puzzle tile being held.</param>
+    /// <param name="clientId">The unique ID of the client.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     [Rpc(SendTo.Server)]
     private void StartHoldingTileRpc(ulong clientId, int puzzleTileId)
     {
         Player player = playerManager.FindPlayerByClientId(clientId);
+        Player tileOwnerPlayer = player;
 
-        Debug.Log($"Client: {clientId} started holding tile: {puzzleTileId}");
-
-        if (player.HeldPuzzleTileId == -1)
+        if (player.HeldPuzzleTileId != -1 && !player.HasPuzzleTileMovementPermission)
         {
-            player.HeldPuzzleTileId = puzzleTileId;
+            return;
+        }
 
-            MovePuzzleTileToFront(player, puzzleTileId);
+        if (player.IsPeeking)
+        {
+            tileOwnerPlayer = player.TargetOfPeekPlayer;
 
-            if (player.GetPuzzleTileSnappedGridTile(puzzleTileId) != -1)
+            if (IsTileHeldByOtherPeeker(player, puzzleTileId))
             {
-                UnsnapTileFromGrid(player, puzzleTileId);
+                return;
             }
+
+            DisableCollidersForOtherPeekers(player, puzzleTileId);
+        }
+
+        player.HeldPuzzleTileId = puzzleTileId;
+        MovePuzzleTileToFront(player, puzzleTileId);
+
+        if (tileOwnerPlayer.GetPuzzleTileSnappedGridTile(puzzleTileId) != -1)
+        {
+            UnsnapTileFromGrid(player, puzzleTileId);
         }
     }
 
     /// <summary>
-    /// Starts holding a puzzle tile by the local player.
+    /// Starts holding a tile.
     /// </summary>
-    /// <param name="puzzleTileId">The ID of the puzzle tile to be held.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     public void StartHoldingTile(int puzzleTileId)
     {
         StartHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
     }
 
     /// <summary>
-    /// Notifies the server that a player has stopped holding a puzzle tile.
+    /// RPC to stop holding a tile on the server.
     /// </summary>
-    /// <param name="clientId">The client ID of the player.</param>
-    /// <param name="puzzleTileId">The ID of the puzzle tile that was being held.</param>
+    /// <param name="clientId">The unique ID of the client.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     [Rpc(SendTo.Server)]
     public void StopHoldingTileRpc(ulong clientId, int puzzleTileId)
     {
         Player player = playerManager.FindPlayerByClientId(clientId);
 
-        Debug.Log($"Client: {clientId} stopped holding tile: {puzzleTileId}");
-
         if (player.HeldPuzzleTileId == puzzleTileId)
         {
             player.HeldPuzzleTileId = -1;
-
             SnapTileToGrid(player, puzzleTileId);
+
+            if (player.IsPeeking)
+            {
+                EnableCollidersForOtherPeekers(player, puzzleTileId);
+            }
         }
     }
 
     /// <summary>
-    /// Stops holding a puzzle tile by the local player.
+    /// Stops holding a tile.
     /// </summary>
-    /// <param name="puzzleTileId">The ID of the puzzle tile to stop holding.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     public void StopHoldingTile(int puzzleTileId)
     {
         StopHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
     }
 
     /// <summary>
-    /// Moves the held puzzle tile to the front of the player's view, bringing it to the foreground.
+    /// Moves the specified puzzle tile to the front (highest Z-order).
     /// </summary>
-    /// <param name="player">The player holding the tile.</param>
-    /// <param name="heldPuzzleTileId">The ID of the held puzzle tile.</param>
+    /// <param name="player">The player holding the puzzle tile.</param>
+    /// <param name="heldPuzzleTileId">The unique ID of the held puzzle tile.</param>
     public void MovePuzzleTileToFront(Player player, int heldPuzzleTileId)
     {
-        Vector3 currentPosition = player.GetPuzzleTilePosition(heldPuzzleTileId);
+        Player tileOwnerPlayer = player;
 
+        if (player.IsPeeking)
+        {
+            tileOwnerPlayer = player.TargetOfPeekPlayer;
+        }
+
+        Vector3 currentPosition = tileOwnerPlayer.GetPuzzleTilePosition(heldPuzzleTileId);
         foreach (int puzzleTileId in puzzleTileIds)
         {
-            if (player.GetPuzzleTilePosition(puzzleTileId).z < currentPosition.z)
+            if (tileOwnerPlayer.GetPuzzleTilePosition(puzzleTileId).z < currentPosition.z)
             {
-                Vector3 newPosition = player.GetPuzzleTilePosition(puzzleTileId) + new Vector3(0, 0, 1);
-                SetNewTilePositionRpc(player.ClientId, puzzleTileId, newPosition);
+                Vector3 newPosition = tileOwnerPlayer.GetPuzzleTilePosition(puzzleTileId) + new Vector3(0, 0, 1);
+                tileOwnerPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
+
+                UpdateTilePositionForPlayer(player, puzzleTileId, newPosition);
             }
         }
 
         Vector3 newHeldPosition = new(currentPosition.x, currentPosition.y, 1);
-        SetNewTilePositionRpc(player.ClientId, heldPuzzleTileId, newHeldPosition);
+        tileOwnerPlayer.ModifyPuzzleTilePosition(heldPuzzleTileId, newHeldPosition);
+        UpdateTilePositionForPlayer(player, heldPuzzleTileId, newHeldPosition);
+    }
+
+    /// <summary>
+    /// Checks if a puzzle tile is currently held by any player who is peeking.
+    /// </summary>
+    /// <param name="player">The player whose peeking status is being checked.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    /// <returns>True if the tile is held by another peeker; otherwise, false.</returns>
+    private bool IsTileHeldByOtherPeeker(Player player, int puzzleTileId)
+    {
+        foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
+        {
+            if (otherPeekUserPlayer.HeldPuzzleTileId == puzzleTileId)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     // -----------------------------------------------------------------------
     // Snapping to Grid
     // -----------------------------------------------------------------------
 
+
     /// <summary>
-    /// Snaps a puzzle tile to the closest grid tile if it is within the snapping range.
+    /// Snaps a puzzle tile to the nearest grid tile if it fits within the boundaries and the grid tile is unoccupied.
     /// </summary>
-    /// <param name="player">The player whose tile is being snapped.</param>
-    /// <param name="puzzleTileId">The ID of the puzzle tile to snap.</param>
+    /// <param name="player">The player interacting with the puzzle tile.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     private void SnapTileToGrid(Player player, int puzzleTileId)
     {
-        Vector3 puzzleTilePosition = player.GetPuzzleTilePosition(puzzleTileId);
+        Player tileOwnerPlayer = player;
+        if (player.IsPeeking)
+        {
+            tileOwnerPlayer = player.TargetOfPeekPlayer;
+        }
+
+        Vector3 puzzleTilePosition = tileOwnerPlayer.GetPuzzleTilePosition(puzzleTileId);
         Vector2 puzzleTile2DPosition = new(puzzleTilePosition.x, puzzleTilePosition.y);
 
         // Temporary solution to calculate tile size.
         float tileSize = gridTilesByPositions.Keys.ToList()[1].y - gridTilesByPositions.Keys.ToList()[0].y;
-
         Vector2 puzzleTileCenter = new(puzzleTile2DPosition.x + tileSize / 2, puzzleTile2DPosition.y + tileSize / 2);
 
         foreach (var kvp in gridTilesByPositions)
@@ -737,92 +894,44 @@ public class PuzzleManager : NetworkBehaviour
             float maxX = gridTile2DPosition.x + tileSize;
             float maxY = gridTile2DPosition.y + tileSize;
 
-            if (!player.GetGridTileOccupied(gridTileId) &&
+            if (!tileOwnerPlayer.GetGridTileOccupied(gridTileId) &&
                 puzzleTileCenter.x > gridTile2DPosition.x &&
                 puzzleTileCenter.y > gridTile2DPosition.y &&
                 puzzleTileCenter.x < maxX &&
                 puzzleTileCenter.y < maxY)
             {
-                player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, gridTileId);
-                player.ModifyGridTileOccupied(gridTileId, true);
+                tileOwnerPlayer.ModifyPuzzleTileSnappedGridTile(puzzleTileId, gridTileId);
+                tileOwnerPlayer.ModifyGridTileOccupied(gridTileId, true);
 
                 Vector3 newPosition = new(gridTile2DPosition.x, gridTile2DPosition.y, puzzleTilePosition.z);
-                player.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-                SetNewTilePositionRpc(player.ClientId, puzzleTileId, newPosition);
+                tileOwnerPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
 
-                UpdateGridForPuzzleTile(player, puzzleTileId, gridTileId);
+                UpdateGridForPuzzleTile(tileOwnerPlayer, puzzleTileId, gridTileId);
+                UpdatePlayerProgress(tileOwnerPlayer);
 
-                UpdatePlayerProgress(player);
-
+                UpdateTilePositionForPlayer(player, puzzleTileId, newPosition);
                 break;
             }
         }
     }
 
     /// <summary>
-    /// Unsnap a puzzle tile from its current grid tile, freeing the grid tile for other tiles.
+    /// Unsnap a puzzle tile from its current grid tile, marking the grid tile as unoccupied.
     /// </summary>
-    /// <param name="player">The player whose tile is being unsnapped.</param>
-    /// <param name="puzzleTileId">The ID of the puzzle tile to unsnap.</param>
+    /// <param name="player">The player interacting with the puzzle tile.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     private void UnsnapTileFromGrid(Player player, int puzzleTileId)
     {
-        player.ModifyGridTileOccupied(player.GetPuzzleTileSnappedGridTile(puzzleTileId), false);
-        player.ModifyPuzzleTileSnappedGridTile(puzzleTileId, -1);
-        UpdatePlayerProgress(player);
-    }
-
-    /// <summary>
-    /// Snaps all puzzle tiles of the player to the grid.
-    /// </summary>
-    /// <param name="player">The player whose tiles are being snapped.</param>
-    public void SnapAllTilesToGrid(Player player)
-    {
-        foreach (int puzzleTileId in puzzleTileIds)
+        Player tileOwnerPlayer = player;
+        if (player.IsPeeking)
         {
-            SnapTileToGrid(player, puzzleTileId);
+            tileOwnerPlayer = player.TargetOfPeekPlayer;
         }
-    }
 
-    /// <summary>
-    /// Unsnap all puzzle tiles of the player from the grid.
-    /// </summary>
-    /// <param name="player">The player whose tiles are being unsnapped.</param>
-    public void UnsnapAllTilesFromGrid(Player player)
-    {
-        foreach (int puzzleTileId in puzzleTileIds)
-        {
-            UnsnapTileFromGrid(player, puzzleTileId);
-        }
-    }
-
-    /// <summary>
-    /// Resets the snapped state of all puzzle tiles for a player, reapplying snapping logic.
-    /// </summary>
-    /// <param name="clientId">The client ID of the player.</param>
-    public void ResetPlayerSnappedTiles(ulong clientId)
-    {
-        Player player = playerManager.FindPlayerByClientId(clientId);
-
-        UnsnapAllTilesFromGrid(player);
-        SnapAllTilesToGrid(player);
-    }
-
-    /// <summary>
-    /// Updates the grid state for a specific puzzle tile based on its position.
-    /// </summary>
-    /// <param name="player">The player object.</param>
-    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
-    /// <param name="snappedGridTileId">The ID of the grid tile the puzzle tile is snapped to.</param>
-    public void UpdateGridForPuzzleTile(Player player, int puzzleTileId, int snappedGridTileId)
-    {
-        if (CheckTiles(puzzleTileId, snappedGridTileId))
-        {
-            player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, true);
-            CheckGridCompleteness(player);
-        }
-        else
-        {
-            player.ModifyGridTileCorrectlyOccupied(snappedGridTileId, false);
-        }
+        int snappedGridTileId = tileOwnerPlayer.GetPuzzleTileSnappedGridTile(puzzleTileId);
+        tileOwnerPlayer.ModifyGridTileOccupied(snappedGridTileId, false);
+        tileOwnerPlayer.ModifyGridTileCorrectlyOccupied(snappedGridTileId, false);
+        tileOwnerPlayer.ModifyPuzzleTileSnappedGridTile(puzzleTileId, -1);
+        UpdatePlayerProgress(tileOwnerPlayer);
     }
 }
