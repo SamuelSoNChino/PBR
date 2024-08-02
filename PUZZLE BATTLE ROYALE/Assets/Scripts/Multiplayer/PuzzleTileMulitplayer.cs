@@ -119,7 +119,7 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     {
         if (Input.touchCount == 1 || Input.GetMouseButtonDown(0)) // 2nd condition only for PC testing
         {
-            puzzleManager.StartHoldingTile(tileId);
+            puzzleManager.StartHoldingTileOnClient(tileId);
 
             // Lets the PanZoom script know, that a tile is being dragged, so the player doesn't also pan ath the same time
             Camera.main.GetComponent<PanZoom>().SetHoldingTile(true);
@@ -145,7 +145,7 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     /// </summary>
     private void OnMouseUp()
     {
-        puzzleManager.StopHoldingTile(tileId);
+        puzzleManager.StopHoldingTileOnClient(tileId);
 
         // Lets the PanZoom script know, that a tile is not being dragged anymore
         Camera.main.GetComponent<PanZoom>().SetHoldingTile(false);
