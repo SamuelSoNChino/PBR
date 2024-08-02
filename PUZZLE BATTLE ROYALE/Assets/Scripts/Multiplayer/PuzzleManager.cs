@@ -736,6 +736,15 @@ public class PuzzleManager : NetworkBehaviour
     // -----------------------------------------------------------------------
 
     /// <summary>
+    /// Starts holding a tile on the client.
+    /// </summary>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    public void StartHoldingTileOnClient(int puzzleTileId)
+    {
+        StartHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
+    }
+
+    /// <summary>
     /// RPC to start holding a tile on the server.
     /// </summary>
     /// <param name="clientId">The unique ID of the client.</param>
@@ -743,7 +752,16 @@ public class PuzzleManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     private void StartHoldingTileRpc(ulong clientId, int puzzleTileId)
     {
-        Player player = playerManager.FindPlayerByClientId(clientId);
+        StartHoldingTile(playerManager.FindPlayerByClientId(clientId), puzzleTileId);
+    }
+
+    /// <summary>
+    /// Starts holding a tile for the specified player.
+    /// </summary>
+    /// <param name="player">The player holding the puzzle tile.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    private void StartHoldingTile(Player player, int puzzleTileId)
+    {
         Player tileOwnerPlayer = player;
 
         if (player.HeldPuzzleTileId != -1 && !player.HasPuzzleTileMovementPermission)
@@ -773,12 +791,12 @@ public class PuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Starts holding a tile.
+    /// Stops holding a tile on the client.
     /// </summary>
     /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
-    public void StartHoldingTile(int puzzleTileId)
+    public void StopHoldingTileOnClient(int puzzleTileId)
     {
-        StartHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
+        StopHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
     }
 
     /// <summary>
@@ -789,8 +807,16 @@ public class PuzzleManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void StopHoldingTileRpc(ulong clientId, int puzzleTileId)
     {
-        Player player = playerManager.FindPlayerByClientId(clientId);
+        StopHoldingTile(playerManager.FindPlayerByClientId(clientId), puzzleTileId);
+    }
 
+    /// <summary>
+    /// Stops holding a tile for the specified player.
+    /// </summary>
+    /// <param name="player">The player holding the puzzle tile.</param>
+    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
+    public void StopHoldingTile(Player player, int puzzleTileId)
+    {
         if (player.HeldPuzzleTileId == puzzleTileId)
         {
             player.HeldPuzzleTileId = -1;
@@ -801,15 +827,6 @@ public class PuzzleManager : NetworkBehaviour
                 EnableCollidersForOtherPeekers(player, puzzleTileId);
             }
         }
-    }
-
-    /// <summary>
-    /// Stops holding a tile.
-    /// </summary>
-    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
-    public void StopHoldingTile(int puzzleTileId)
-    {
-        StopHoldingTileRpc(NetworkManager.Singleton.LocalClientId, puzzleTileId);
     }
 
     /// <summary>
@@ -842,6 +859,7 @@ public class PuzzleManager : NetworkBehaviour
         tileOwnerPlayer.ModifyPuzzleTilePosition(heldPuzzleTileId, newHeldPosition);
         UpdateTilePositionForPlayer(player, heldPuzzleTileId, newHeldPosition);
     }
+
 
     /// <summary>
     /// Checks if a puzzle tile is currently held by any player who is peeking.
