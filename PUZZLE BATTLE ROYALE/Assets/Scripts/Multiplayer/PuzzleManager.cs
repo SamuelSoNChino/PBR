@@ -251,7 +251,6 @@ public class PuzzleManager : NetworkBehaviour
     {
         Player player = playerManager.FindPlayerByClientId(clientId);
 
-
         if (player.IsPeeking)
         {
             Player targetPlayer = player.TargetOfPeekPlayer;
@@ -354,12 +353,14 @@ public class PuzzleManager : NetworkBehaviour
             foreach (Player player in playerManager.GetAllPlayers())
             {
                 player.HasPuzzleTileMovementPermission = false;
+                player.HeldPuzzleTileId = -1;
                 DisableAllCollidersRpc(player.ClientId);
             }
         }
         else
         {
             targetPlayer.HasPuzzleTileMovementPermission = false;
+            targetPlayer.HeldPuzzleTileId = -1;
             DisableAllCollidersRpc(targetPlayer.ClientId);
         }
     }
