@@ -74,7 +74,7 @@ public class PeekManager : NetworkBehaviour
             UpdatePeekIndicatorRpc(userPlayer.ClientId, true, userBeingPeeked);
             if (userBeingPeeked)
             {
-                foreach (Player peekerPlayer in GetPeekersOfTarget(targetPlayer))
+                foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
                 {
                     puzzleManager.EnableTileMovement(peekerPlayer);
                 }
@@ -123,7 +123,7 @@ public class PeekManager : NetworkBehaviour
             UpdatePeekIndicatorRpc(userPlayer.ClientId, false, userBeingPeeked);
             if (userBeingPeeked)
             {
-                foreach (Player peekerPlayer in GetPeekersOfTarget(targetPlayer))
+                foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
                 {
                     puzzleManager.DisableTileMovement(peekerPlayer);
                 }
