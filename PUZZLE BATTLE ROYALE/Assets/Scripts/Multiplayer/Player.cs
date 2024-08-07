@@ -350,4 +350,32 @@ public class Player
         get { return targetOfPeekPlayer; }
         set { targetOfPeekPlayer = value; }
     }
+
+    /// <summary>
+    /// Value of whether the player's peek use is on cooldown.
+    /// </summary>
+    private bool peekUseOnCooldown = false;
+
+    /// <summary>
+    /// Gets or sets the value of whether the player's peek use is on cooldown.
+    /// </summary>
+    public bool PeekUseOnCooldown
+    {
+        get { return peekUseOnCooldown; }
+        set { peekUseOnCooldown = value; }
+    }
+
+    /// <summary>
+    /// Value of whether the player's peek exit is on cooldown.
+    /// </summary>
+    private bool peekExitOnCooldown = false;
+
+    /// <summary>
+    /// Gets or sets the value of whether the player's peek exit is on cooldown.
+    /// </summary>
+    public bool PeekExitOnCooldown
+    {
+        get { return peekExitOnCooldown; }
+        set { peekExitOnCooldown = value; }
+    }
 }
