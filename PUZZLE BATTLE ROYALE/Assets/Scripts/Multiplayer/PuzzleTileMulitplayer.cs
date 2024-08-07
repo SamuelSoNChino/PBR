@@ -133,7 +133,7 @@ public class PuzzleTileMultiplayer : MonoBehaviour
     /// </summary>
     private void OnMouseDrag()
     {
-        if (Input.touchCount == 1 || Input.GetMouseButton(0)) // 2nd condition only for PC testing
+        if ((Input.touchCount == 1 || Input.GetMouseButton(0)) && GetComponent<BoxCollider2D>().enabled) // 2nd condition only for PC testing
         {
             Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Move(mousePosition, mouseOffset);
