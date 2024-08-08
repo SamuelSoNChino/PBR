@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,14 +9,14 @@ using UnityEngine.UI;
 public class OptionsManager : MonoBehaviour
 {
     /// <summary>
-    /// The text object displaying the number of tiles.
-    /// </summary>
-    [SerializeField] private GameObject text;
-
-    /// <summary>
     /// The slider object for selecting the number of tiles.
     /// </summary>
-    [SerializeField] private GameObject slider;
+    [SerializeField] private GameObject NOTSlider;
+
+    /// <summary>
+    /// The slider object for selecting the number of players.
+    /// </summary>
+    [SerializeField] private GameObject NOPSlider;
 
     /// <summary>
     /// The dropdown object for selecting the background.
@@ -30,17 +28,22 @@ public class OptionsManager : MonoBehaviour
     /// </summary>
     void Start()
     {
-        // If numberOfTiles wasn't set yet, sets it to the default value
         if (!PlayerPrefs.HasKey("numberOfTiles"))
         {
             PlayerPrefs.SetInt("numberOfTiles", 5);
         }
 
-        // Sets the slider value to the stored value in PlayerPrefs and Updates its text
-        slider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfTiles");
-        UpdateSliderText();
+        if (!PlayerPrefs.HasKey("numberOfPlayers"))
+        {
+            PlayerPrefs.SetInt("numberOfPlayers", 2);
+        }
 
-        // If background skin wasn't set yet, sets it to the default value
+        NOTSlider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfTiles");
+        UpdateNOTSlider();
+
+        NOPSlider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfPlayers");
+        UpdateNOPSlider();
+
         if (PlayerPrefs.HasKey("backgroundSkin"))
         {
             dropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(PlayerPrefs.GetInt("backgroundSkin"));
@@ -56,15 +59,27 @@ public class OptionsManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates PlayerPrefs value and slider text when the slider value is changed.
+    /// Updates PlayerPrefs value and slider text when the NOP slider value is changed.
     /// </summary>
-    public void UpdateSliderText()
+    public void UpdateNOPSlider()
     {
-        // Saves the new value to PlayerPrefs
-        PlayerPrefs.SetInt("numberOfTiles", (int)slider.GetComponent<Slider>().value);
+        PlayerPrefs.SetInt("numberOfPlayers", (int)NOPSlider.GetComponent<Slider>().value);
 
-        // Updates the slider text
-        text.GetComponent<Text>().text = "Singleplayer tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
+        Text text = NOPSlider.transform.Find("SliderText").GetComponent<Text>();
+
+        text.GetComponent<Text>().text = "Number of players: " + PlayerPrefs.GetInt("numberOfPlayers").ToString();
+    }
+
+    /// <summary>
+    /// Updates PlayerPrefs value and slider text when the NOT slider value is changed.
+    /// </summary>
+    public void UpdateNOTSlider()
+    {
+        PlayerPrefs.SetInt("numberOfTiles", (int)NOTSlider.GetComponent<Slider>().value);
+
+        Text text = NOTSlider.transform.Find("SliderText").GetComponent<Text>();
+
+        text.GetComponent<Text>().text = "Number of Tiles: " + PlayerPrefs.GetInt("numberOfTiles").ToString();
     }
 
     /// <summary>

@@ -268,7 +268,7 @@ public class PuzzleTile : MonoBehaviour
             originalPosition = transform.position;
 
             // Lets other components know that a tile is being dragged (or just clicked)
-            Camera.main.GetComponent<PanZoom>().SetAnyTileDragging(true);
+            Camera.main.GetComponent<PanZoom>().SetHoldingTile(true);
 
             // Calculates offsets for all selected tiles, otherwise only for itself
             if (isSelected)
@@ -312,7 +312,7 @@ public class PuzzleTile : MonoBehaviour
     private void OnMouseUp()
     {
         // Lets other components know that the tile is not being dragged anymore
-        Camera.main.GetComponent<PanZoom>().SetAnyTileDragging(false);
+        Camera.main.GetComponent<PanZoom>().SetHoldingTile(false);
 
         // Triggers only when the tile was clicked without changing position
         if (transform.position == originalPosition)

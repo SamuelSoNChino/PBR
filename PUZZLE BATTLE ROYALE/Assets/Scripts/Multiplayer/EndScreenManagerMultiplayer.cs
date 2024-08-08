@@ -30,11 +30,11 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
     /// <summary>
     /// Loads the winning screen on the client specified by clientId. If clientId is not specified, targets all clients.
     /// </summary>
-    /// <param name="clientId">The ID of the client to display the winning screen. Defaults to all clients.</param>
+    /// <param name="clientId">The ID of the client to display the winning screen.</param>
     [Rpc(SendTo.ClientsAndHost)]
-    public void LoadWinningScreenRpc(ulong clientId = 1234567890)
+    public void LoadWinningScreenRpc(ulong clientId)
     {
-        if (clientId == NetworkManager.Singleton.LocalClientId || clientId == 1234567890)
+        if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             currentEndScreen = winningScreen;
             DisableRematchText();
@@ -45,11 +45,11 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
     /// <summary>
     /// Loads the losing screen on the client specified by clientId. If clientId is not specified, targets all clients.
     /// </summary>
-    /// <param name="clientId">The ID of the client to display the losing screen. Defaults to all clients.</param>
+    /// <param name="clientId">The ID of the client to display the losing screen.</param>
     [Rpc(SendTo.ClientsAndHost)]
-    public void LoadLosingScreenRpc(ulong clientId = 1234567890)
+    public void LoadLosingScreenRpc(ulong clientId)
     {
-        if (clientId == NetworkManager.Singleton.LocalClientId || clientId == 1234567890)
+        if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             currentEndScreen = losingScreen;
             DisableRematchText();
@@ -58,17 +58,13 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
     }
 
     /// <summary>
-    /// Unloads the current end screen on the client specified by clientId. If clientId is not specified, targets all clients.
+    /// Unloads the current end screen for all clients.
     /// </summary>
-    /// <param name="clientId">The ID of the client to unload the end screen. Defaults to all clients.</param>
     [Rpc(SendTo.ClientsAndHost)]
-    public void UnloadEndScreenRpc(ulong clientId = 1234567890)
+    public void UnloadEndScreenRpc()
     {
-        if (clientId == NetworkManager.Singleton.LocalClientId || clientId == 1234567890)
-        {
-            currentEndScreen.SetActive(false);
-            currentEndScreen = null;
-        }
+        currentEndScreen.SetActive(false);
+        currentEndScreen = null;
     }
 
     // -----------------------------------------------------------------------

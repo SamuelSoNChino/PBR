@@ -1,147 +1,221 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages the peeking functionality.
+/// </summary>
 public class PeekManager : NetworkBehaviour
 {
+    /// <summary>
+    /// Reference to the player manager.
+    /// </summary>
+    [SerializeField] private PlayerManager playerManager;
+
+    /// <summary>
+    /// Reference to the puzzle manager.
+    /// </summary>
     [SerializeField] private PuzzleManager puzzleManager;
-    [SerializeField] private TilesManagerMultiplayer tilesManager;
+
+    /// <summary>
+    /// Reference to the background manager for multiplayer.
+    /// </summary>
     [SerializeField] private BackgroundManagerMultiplayer backgroundManager;
+
+    /// <summary>
+    /// Button to initiate peeking.
+    /// </summary>
     [SerializeField] private Button peekButton;
+
+    /// <summary>
+    /// Button to stop peeking.
+    /// </summary>
     [SerializeField] private Button stopButton;
+
+    /// <summary>
+    /// Text to display the peeking status.
+    /// </summary>
     [SerializeField] private TextMeshProUGUI peekText;
+
+    /// <summary>
+    /// GameObject to indicate peeking.
+    /// </summary>
     [SerializeField] private GameObject peekIndicator;
+
+    /// <summary>
+    /// GameObject to indicate danger while peeking.
+    /// </summary>
     [SerializeField] private GameObject peekIndicatorDanger;
 
+    /// <summary>
+    /// List of players who are peeking.
+    /// </summary>
+    private List<Player> targetPlayers = new();
 
+    /// <summary>
+    /// List of players being peeked at.
+    /// </summary>
+    private List<Player> userPlayers = new();
 
-    private List<ulong> targetClientIds = new();
-    private List<ulong> userClientIds = new();
+    // -----------------------------------------------------------------------
+    // Peek buttons functionality
+    // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// Initiates a peek request from the client.
+    /// </summary>
     public void Peek()
     {
         Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting peek.");
         RequestPeekRpc(NetworkManager.Singleton.LocalClientId);
     }
 
+    /// <summary>
+    /// Requests to stop peeking from the client.
+    /// </summary>
     public void StopPeeking()
     {
         Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting to stop peeking.");
         RequestStopPeekingRpc(NetworkManager.Singleton.LocalClientId);
     }
 
+    // -----------------------------------------------------------------------
+    // Peek Requests
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// RPC to request a peek on the server.
+    /// </summary>
+    /// <param name="userClientId">The client ID of the user requesting the peek.</param>
     [Rpc(SendTo.Server)]
     private void RequestPeekRpc(ulong userClientId)
     {
-        Debug.Log($"[Server] Received peek request from Client {userClientId}");
+        Player userPlayer = playerManager.FindPlayerByClientId(userClientId);
 
-        if (!userClientIds.Contains(userClientId))
+        if (!userPlayer.IsPeeking && !userPlayer.PeekUseOnCooldown)
         {
+            StartCoroutine(PutPlayerOnExitCooldown(userPlayer));
+
             // Will be replaced with appropriate logic
-            ulong targetClientId = 0;
-            foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            Player targetPlayer = null;
+            foreach (Player player in playerManager.GetAllPlayers())
             {
-                if (clientId != userClientId)
+                if (player != userPlayer)
                 {
-                    targetClientId = clientId;
-                    break;
+                    targetPlayer = player;
+                    break;  
                 }
             }
 
-            Debug.Log($"[Server] Client {userClientId} is peeking at Client {targetClientId}.");
-            userClientIds.Add(userClientId);
-            targetClientIds.Add(targetClientId);
+            userPlayers.Add(userPlayer);
+            targetPlayers.Add(targetPlayer);
 
-            //int targetClientBackgroundSkin = backgroundManager.GetClientBackground(targetClientId);
-            //backgroundManager.SetClientBackgroundRpc(userClientId, targetClientBackgroundSkin);
+            userPlayer.IsPeeking = true;
+            userPlayer.TargetOfPeekPlayer = targetPlayer;
 
-            puzzleManager.DisableTileMovement(userClientId);
-            puzzleManager.DeselectAllClientTilesRpc(userClientId);
-            puzzleManager.SetOtherClientsPositions(userClientId, targetClientId);
+            puzzleManager.DisableTileMovement(userPlayer);
+            puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
 
-            bool targetAlsoPeeking = userClientIds.Contains(targetClientId);
+            int targetClientBackgroundId = playerManager.FindPlayerByClientId(targetPlayer.ClientId).BackgroundSkinId;
+            backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, targetClientBackgroundId);
+
+            bool targetAlsoPeeking = userPlayers.Contains(targetPlayer);
+            UpdatePeekIndicatorRpc(targetPlayer.ClientId, targetAlsoPeeking, true);
             if (targetAlsoPeeking)
             {
-                Debug.Log($"[Server] Target Client {targetClientId} is also peeking.");
-
-                puzzleManager.EnableTileMovement(userClientId);
-                puzzleManager.ResetClientsSnappedTilesRpc(userClientId);
+                puzzleManager.EnableTileMovement(userPlayer);
             }
-            UpdatePeekIndicatorRpc(targetClientId, targetAlsoPeeking, true);
 
-            bool userBeingPeeked = targetClientIds.Contains(userClientId);
+            bool userBeingPeeked = targetPlayers.Contains(userPlayer);
+            UpdatePeekIndicatorRpc(userPlayer.ClientId, true, userBeingPeeked);
             if (userBeingPeeked)
             {
-                Debug.Log($"[Server] User is also being peeked");
-                UpdatePeekIndicatorRpc(userClientId, true, true);
-
-                int peekSessionIndex = targetClientIds.IndexOf(userClientId);
-                ulong peekerClientId = userClientIds[peekSessionIndex];
-                puzzleManager.EnableTileMovement(peekerClientId);
-                puzzleManager.ResetClientsSnappedTilesRpc(peekerClientId);
+                foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
+                {
+                    puzzleManager.EnableTileMovement(peekerPlayer);
+                }
             }
 
-            StartPeekRoutineUserRpc(userClientId, targetClientId);
+            StartPeekRoutineUserRpc(userPlayer.ClientId, targetPlayer.Name);
         }
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void StartPeekRoutineUserRpc(ulong userClientId, ulong targetClientId)
-    {
-        if (NetworkManager.Singleton.LocalClientId == userClientId)
-        {
-            Debug.Log($"[Client] Starting peek routine as user. Target: {targetClientId}");
-
-            peekButton.gameObject.SetActive(false);
-            stopButton.gameObject.SetActive(true);
-
-            peekText.gameObject.SetActive(true);
-            peekText.text = $"You are peeking at: {targetClientId}";
-        }
-    }
-
-    // ------------------------------------------------------------------------------------------------------------------------
-
+    /// <summary>
+    /// RPC to request stopping peeking on the server.
+    /// </summary>
+    /// <param name="userClientId">The client ID of the user requesting to stop peeking.</param>
     [Rpc(SendTo.Server)]
     private void RequestStopPeekingRpc(ulong userClientId)
     {
-        Debug.Log($"[Server] Received stop peek request from Client {userClientId}");
+        Player userPlayer = playerManager.FindPlayerByClientId(userClientId);
 
-        if (userClientIds.Contains(userClientId))
+        if (userPlayers.Contains(userPlayer) && !userPlayer.PeekExitOnCooldown)
         {
-            int peekSessionIndex = userClientIds.IndexOf(userClientId);
+            StartCoroutine(PutPlayerOnUseCooldown(userPlayer));
 
-            ulong targetClientId = targetClientIds[peekSessionIndex];
-            bool targetPeeking = userClientIds.Contains(targetClientId);
-            UpdatePeekIndicatorRpc(targetClientId, targetPeeking, false);
+            int peekSessionIndex = userPlayers.IndexOf(userPlayer);
+            Player targetPlayer = targetPlayers[peekSessionIndex];
 
-            bool userBeingPeeked = targetClientIds.Contains(userClientId);
+            userPlayers.RemoveAt(peekSessionIndex);
+            targetPlayers.RemoveAt(peekSessionIndex);
+
+            userPlayer.IsPeeking = false;
+            userPlayer.TargetOfPeekPlayer = null;
+
+            bool targetPeeking = targetPlayer.IsPeeking;
+            bool targetStillBeingPeeked = targetPlayers.Contains(targetPlayer);
+            UpdatePeekIndicatorRpc(targetPlayer.ClientId, targetPeeking, targetStillBeingPeeked);
+
+            bool userBeingPeeked = targetPlayers.Contains(userPlayer);
+            UpdatePeekIndicatorRpc(userPlayer.ClientId, false, userBeingPeeked);
             if (userBeingPeeked)
             {
-                int userBeingPeekedSessionIndex = targetClientIds.IndexOf(userClientId);
-                ulong peekerClientId = userClientIds[userBeingPeekedSessionIndex];
-                puzzleManager.DisableTileMovement(peekerClientId);
-                puzzleManager.DeselectAllClientTilesRpc(peekerClientId);
-                UpdatePeekIndicatorRpc(userClientId, false, userBeingPeeked);
+                foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
+                {
+                    puzzleManager.DisableTileMovement(peekerPlayer);
+                }
             }
 
-            puzzleManager.SetOtherClientsPositions(userClientId, userClientId);
-            puzzleManager.UpdateGridForAllTiles(userClientId);
-            puzzleManager.DeselectAllClientTilesRpc(userClientId);
-            puzzleManager.EnableTileMovement(userClientId);
-            puzzleManager.ResetClientsSnappedTilesRpc(userClientId);
+            puzzleManager.SetOtherClientsPositions(userPlayer, userPlayer);
+            puzzleManager.EnableTileMovement(userPlayer);
 
-            //int originalBackground = backgroundManager.GetClientBackground(userClientId);
-            // backgroundManager.SetClientBackgroundRpc(userClientId, originalBackground);
-            StopPeekRoutineUserRpc(userClientId);
+            int userOriginalBackground = playerManager.FindPlayerByClientId(userPlayer.ClientId).BackgroundSkinId;
+            backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, userOriginalBackground);
 
-            userClientIds.RemoveAt(peekSessionIndex);
-            targetClientIds.RemoveAt(peekSessionIndex);
+            StopPeekRoutineUserRpc(userPlayer.ClientId);
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Peek User Routines
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// RPC to start the peek routine on the client.
+    /// </summary>
+    /// <param name="userClientId">The client ID of the user.</param>
+    /// <param name="targetName">The name of the target player being peeked at.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    private void StartPeekRoutineUserRpc(ulong userClientId, string targetName)
+    {
+        if (NetworkManager.Singleton.LocalClientId == userClientId)
+        {
+            peekButton.gameObject.SetActive(false);
+            stopButton.gameObject.SetActive(false);
+
+            peekText.gameObject.SetActive(true);
+            peekText.text = $"You are peeking at: {targetName}";
+        }
+    }
+
+
+    /// <summary>
+    /// RPC to stop the peek routine on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
     [Rpc(SendTo.ClientsAndHost)]
     private void StopPeekRoutineUserRpc(ulong clientId)
     {
@@ -149,14 +223,82 @@ public class PeekManager : NetworkBehaviour
         {
             Debug.Log($"[Client] Stopping peek routine as user.");
 
-            peekButton.gameObject.SetActive(true);
+            peekButton.gameObject.SetActive(false);
             stopButton.gameObject.SetActive(false);
             peekText.gameObject.SetActive(false);
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Cooldown functionality
+    // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// Coroutine to put a player on a usage cooldown.
+    /// </summary>
+    /// <param name="player">The player to be put on cooldown.</param>
+    /// <returns>An enumerator for the coroutine.</returns>
+    public IEnumerator PutPlayerOnUseCooldown(Player player)
+    {
+        float cooldownPeriod = 5; // Temporary fixed value
+
+        player.PeekUseOnCooldown = true;
+        yield return new WaitForSeconds(cooldownPeriod);
+        player.PeekUseOnCooldown = false;
+        EnablePeekButtonRpc(player.ClientId);
+    }
+
+    /// <summary>
+    /// RPC to enable the peek button on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void EnablePeekButtonRpc(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            peekButton.gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Coroutine to put a player on an exit cooldown.
+    /// </summary>
+    /// <param name="player">The player to be put on cooldown.</param>
+    /// <returns>An enumerator for the coroutine.</returns>
+    public IEnumerator PutPlayerOnExitCooldown(Player player)
+    {
+        float cooldownPeriod = 2; // Temporary fixed value
+
+        player.PeekExitOnCooldown = true;
+        yield return new WaitForSeconds(cooldownPeriod);
+        player.PeekExitOnCooldown = false;
+        EnableStopButtonRpc(player.ClientId);
+    }
+
+    /// <summary>
+    /// RPC to enable the stop button on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void EnableStopButtonRpc(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            stopButton.gameObject.SetActive(true);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Miscellaneous
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// RPC to update the peek indicator on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
+    /// <param name="isPeeking">Indicates if the user is peeking.</param>
+    /// <param name="isBeingPeeked">Indicates if the user is being peeked at.</param>
     [Rpc(SendTo.ClientsAndHost)]
     private void UpdatePeekIndicatorRpc(ulong clientId, bool isPeeking, bool isBeingPeeked)
     {
@@ -183,28 +325,37 @@ public class PeekManager : NetworkBehaviour
         }
     }
 
-    public bool IsClientPeeking(ulong clientId)
+    /// <summary>
+    /// Gets the list of players who are peeking at a specified target player.
+    /// </summary>
+    /// <param name="targetPlayer">The target player being peeked at.</param>
+    /// <returns>A list of players peeking at the target player.</returns>
+    public List<Player> GetPeekersOfTarget(Player targetPlayer)
     {
-        return userClientIds.Contains(clientId);
+        List<Player> peekers = new();
+        for (int i = 0; i < userPlayers.Count; i++)
+        {
+            if (targetPlayers[i] == targetPlayer)
+            {
+                peekers.Add(userPlayers[i]);
+            }
+        }
+        return peekers;
     }
 
-    public ulong GetTargetOfPeekUser(ulong userClientId)
-    {
-        int peekSessionIndex = userClientIds.IndexOf(userClientId);
-        return targetClientIds[peekSessionIndex];
-    }
-
+    /// <summary>
+    /// Updates the positions of other clients for players who are peeking.
+    /// </summary>
     private void Update()
     {
-        foreach (ulong userClientId in userClientIds)
+        foreach (Player userPlayer in userPlayers)
         {
-            int peekSessionIndex = userClientIds.IndexOf(userClientId);
-            ulong targetClientId = targetClientIds[peekSessionIndex];
-            bool targetAlsoPeeking = userClientIds.Contains(targetClientId);
-            if (!targetAlsoPeeking)
+            Player targetPlayer = userPlayer.TargetOfPeekPlayer;
+            if (!targetPlayer.IsPeeking)
             {
-                puzzleManager.SetOtherClientsPositions(userClientId, targetClientId);
+                puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
             }
         }
     }
 }
+

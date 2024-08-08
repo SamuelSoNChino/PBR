@@ -172,8 +172,7 @@ public class PuzzleGeneratorMultiplayer : NetworkBehaviour
             // Initializes information about individual players' puzzle tiles
             foreach (Player player in playerManager.GetAllPlayers())
             {
-                player.AddPuzzleTilePosition(tileId, new Vector3(0, 0, zPosition));
-                player.AddPuzzleTileSnappedGridTile(tileId);
+                player.InitializePuzzleTile(tileId, zPosition);
             }
 
             CreatePuzzleTileRpc(tileId, zPosition, tileTextureData);
@@ -249,7 +248,7 @@ public class PuzzleGeneratorMultiplayer : NetworkBehaviour
                 // Initializes information about individual players' grid tiles
                 foreach (Player player in playerManager.GetAllPlayers())
                 {
-                    player.AddGridTileCorrectlyOccupied(gridTileId);
+                    player.InitializeGridTile(gridTileId);
                 }
                 // Saves the fixed grid tile position to the server for later checking whether a puzzle tile is placed on it
                 puzzleManager.AddGridTileByPosition(new Vector2(x, y), gridTileId);

@@ -74,18 +74,17 @@ public class Player
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// PLayer's current percentual progress.
+    /// Player's current percentual progress.
     /// </summary>
     private int progress = 0;
 
     /// <summary>
-    /// Gets or sets pLayer's current percentual progress.
+    /// Gets or sets player's current percentual progress.
     /// </summary>
     public int Progress
     {
         get { return progress; }
         set { progress = value; }
-
     }
 
     // -----------------------------------------------------------------------
@@ -97,6 +96,17 @@ public class Player
     // -----------------------------------------------------------------------
     // Puzzle Tiles
     // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Initializes a puzzle tile with the specified ID and Z position.
+    /// </summary>
+    /// <param name="puzzleTileId">The ID of the puzzle tile.</param>
+    /// <param name="zPosition">The Z position of the puzzle tile.</param>
+    public void InitializePuzzleTile(int puzzleTileId, float zPosition)
+    {
+        AddPuzzleTilePosition(puzzleTileId, new Vector3(0, 0, zPosition));
+        AddPuzzleTileSnappedGridTile(puzzleTileId);
+    }
 
     /// <summary>
     /// Indicates whether the player has permission to move puzzle tiles.
@@ -197,9 +207,75 @@ public class Player
         puzzleTilesPositions = new();
     }
 
+    /// <summary>
+    /// The ID of the puzzle tile currently held by the player.
+    /// </summary>
+    private int heldPuzzleTileId = -1;
+
+    /// <summary>
+    /// Gets or sets the ID of the puzzle tile currently held by the player.
+    /// </summary>
+    public int HeldPuzzleTileId
+    {
+        get { return heldPuzzleTileId; }
+        set { heldPuzzleTileId = value; }
+    }
+
     // -----------------------------------------------------------------------
     // Grid Tiles
     // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Initializes a grid tile with the specified ID.
+    /// </summary>
+    /// <param name="gridTileId">The ID of the grid tile.</param>
+    public void InitializeGridTile(int gridTileId)
+    {
+        AddGridTileOccupied(gridTileId);
+        AddGridTileCorrectlyOccupied(gridTileId);
+    }
+
+    /// <summary>
+    /// A dictionary to store whether each grid tile is occupied.
+    /// </summary>
+    private Dictionary<int, bool> gridTilesOccupied = new();
+
+    /// <summary>
+    /// Adds a grid tile to the player's collection of occupied tiles.
+    /// </summary>
+    /// <param name="gridTileId">The ID of the grid tile.</param>
+    public void AddGridTileOccupied(int gridTileId)
+    {
+        gridTilesOccupied.Add(gridTileId, false);
+    }
+
+    /// <summary>
+    /// Modifies the occupancy state of a grid tile.
+    /// </summary>
+    /// <param name="gridTileId">The ID of the grid tile.</param>
+    /// <param name="newState">The new occupancy state of the grid tile.</param>
+    public void ModifyGridTileOccupied(int gridTileId, bool newState)
+    {
+        gridTilesOccupied[gridTileId] = newState;
+    }
+
+    /// <summary>
+    /// Gets the occupancy state of a specific grid tile.
+    /// </summary>
+    /// <param name="gridTileId">The ID of the grid tile.</param>
+    /// <returns>The occupancy state of the grid tile.</returns>
+    public bool GetGridTileOccupied(int gridTileId)
+    {
+        return gridTilesOccupied[gridTileId];
+    }
+
+    /// <summary>
+    /// Clears all grid tiles from the player's collection of occupied tiles.
+    /// </summary>
+    public void ClearGridTilesOccupied()
+    {
+        gridTilesOccupied = new();
+    }
 
     /// <summary>
     /// A dictionary to store whether each grid tile is correctly occupied by a puzzle tile.
@@ -247,5 +323,59 @@ public class Player
     // Peeking
     // -----------------------------------------------------------------------
 
-    // TODO: Implement peeking functionality for the player.
+    /// <summary>
+    /// Value of whether the player is currently peeking at other player.
+    /// </summary>
+    private bool isPeeking = false;
+
+    /// <summary>
+    /// Gets or sets the value of whether the player is currently peeking at other player.
+    /// </summary>
+    public bool IsPeeking
+    {
+        get { return isPeeking; }
+        set { isPeeking = value; }
+    }
+
+    /// <summary>
+    /// The target of the player's peek. Is null when player is not currently peeking.
+    /// </summary>
+    private Player targetOfPeekPlayer = null;
+
+    /// <summary>
+    /// Gets or sets the target of the player's peek. Is null when player is not currently peeking.
+    /// </summary>
+    public Player TargetOfPeekPlayer
+    {
+        get { return targetOfPeekPlayer; }
+        set { targetOfPeekPlayer = value; }
+    }
+
+    /// <summary>
+    /// Value of whether the player's peek use is on cooldown.
+    /// </summary>
+    private bool peekUseOnCooldown = false;
+
+    /// <summary>
+    /// Gets or sets the value of whether the player's peek use is on cooldown.
+    /// </summary>
+    public bool PeekUseOnCooldown
+    {
+        get { return peekUseOnCooldown; }
+        set { peekUseOnCooldown = value; }
+    }
+
+    /// <summary>
+    /// Value of whether the player's peek exit is on cooldown.
+    /// </summary>
+    private bool peekExitOnCooldown = false;
+
+    /// <summary>
+    /// Gets or sets the value of whether the player's peek exit is on cooldown.
+    /// </summary>
+    public bool PeekExitOnCooldown
+    {
+        get { return peekExitOnCooldown; }
+        set { peekExitOnCooldown = value; }
+    }
 }

@@ -51,7 +51,7 @@ public class PanZoom : MonoBehaviour
     /// <summary>
     /// Indicates whether any tile is currently being dragged (moved).
     /// </summary>
-    private bool anyTileDragging = false;
+    private bool holdingTile = false;
 
     /// <summary>
     /// Determines if player can Pan and Zoom. False by default, needs to be enabled before the start of the game.
@@ -127,7 +127,7 @@ public class PanZoom : MonoBehaviour
         if (touchInputEnabled)
         {
             // Triggers on MouseDown when the player isn't dragging a puzzle tile, stores the initial position for Pan
-            if (Input.GetMouseButtonDown(0) && !anyTileDragging)
+            if (Input.GetMouseButtonDown(0) && !holdingTile)
             {
                 touchStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             }
@@ -138,7 +138,7 @@ public class PanZoom : MonoBehaviour
                 Zoom(Input.GetTouch(0), Input.GetTouch(1));
             }
             // Triggers when the player is dragging without holding a puzzle tile
-            else if (Input.GetMouseButton(0) && !anyTileDragging)
+            else if (Input.GetMouseButton(0) && !holdingTile)
             {
                 // Pan using touchStart and current mouse position
                 Pan(touchStart, Camera.main.ScreenToWorldPoint(Input.mousePosition));
@@ -151,18 +151,18 @@ public class PanZoom : MonoBehaviour
     /// Checks if any tile is currently being dragged.
     /// </summary>
     /// <returns>True if any tile is being dragged, false otherwise.</returns>
-    public bool IsAnyTileDragging()
+    public bool IsHoldingTile()
     {
-        return anyTileDragging;
+        return holdingTile;
     }
 
     /// <summary>
     /// Sets the dragging state of any tile.
     /// </summary>
     /// <param name="newState">The new dragging state.</param>
-    public void SetAnyTileDragging(bool newState)
+    public void SetHoldingTile(bool newState)
     {
-        anyTileDragging = newState;
+        holdingTile = newState;
     }
 
     /// <summary>
