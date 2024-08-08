@@ -1,45 +1,104 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages the peeking functionality.
+/// </summary>
 public class PeekManager : NetworkBehaviour
 {
+    /// <summary>
+    /// Reference to the player manager.
+    /// </summary>
     [SerializeField] private PlayerManager playerManager;
+
+    /// <summary>
+    /// Reference to the puzzle manager.
+    /// </summary>
     [SerializeField] private PuzzleManager puzzleManager;
+
+    /// <summary>
+    /// Reference to the background manager for multiplayer.
+    /// </summary>
     [SerializeField] private BackgroundManagerMultiplayer backgroundManager;
+
+    /// <summary>
+    /// Button to initiate peeking.
+    /// </summary>
     [SerializeField] private Button peekButton;
+
+    /// <summary>
+    /// Button to stop peeking.
+    /// </summary>
     [SerializeField] private Button stopButton;
+
+    /// <summary>
+    /// Text to display the peeking status.
+    /// </summary>
     [SerializeField] private TextMeshProUGUI peekText;
+
+    /// <summary>
+    /// GameObject to indicate peeking.
+    /// </summary>
     [SerializeField] private GameObject peekIndicator;
+
+    /// <summary>
+    /// GameObject to indicate danger while peeking.
+    /// </summary>
     [SerializeField] private GameObject peekIndicatorDanger;
 
-
-
+    /// <summary>
+    /// List of players who are peeking.
+    /// </summary>
     private List<Player> targetPlayers = new();
+
+    /// <summary>
+    /// List of players being peeked at.
+    /// </summary>
     private List<Player> userPlayers = new();
 
+    // -----------------------------------------------------------------------
+    // Peek buttons functionality
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Initiates a peek request from the client.
+    /// </summary>
     public void Peek()
     {
         Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting peek.");
         RequestPeekRpc(NetworkManager.Singleton.LocalClientId);
     }
 
+    /// <summary>
+    /// Requests to stop peeking from the client.
+    /// </summary>
     public void StopPeeking()
     {
         Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting to stop peeking.");
         RequestStopPeekingRpc(NetworkManager.Singleton.LocalClientId);
     }
 
+    // -----------------------------------------------------------------------
+    // Peek Requests
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// RPC to request a peek on the server.
+    /// </summary>
+    /// <param name="userClientId">The client ID of the user requesting the peek.</param>
     [Rpc(SendTo.Server)]
     private void RequestPeekRpc(ulong userClientId)
     {
         Player userPlayer = playerManager.FindPlayerByClientId(userClientId);
 
-        if (!userPlayer.IsPeeking)
+        if (!userPlayer.IsPeeking && !userPlayer.PeekUseOnCooldown)
         {
+            StartCoroutine(PutPlayerOnExitCooldown(userPlayer));
+
             // Will be replaced with appropriate logic
             Player targetPlayer = null;
             foreach (Player player in playerManager.GetAllPlayers())
@@ -47,7 +106,7 @@ public class PeekManager : NetworkBehaviour
                 if (player != userPlayer)
                 {
                     targetPlayer = player;
-                    break;
+                    break;  
                 }
             }
 
@@ -84,28 +143,19 @@ public class PeekManager : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void StartPeekRoutineUserRpc(ulong userClientId, string targetName)
-    {
-        if (NetworkManager.Singleton.LocalClientId == userClientId)
-        {
-            peekButton.gameObject.SetActive(false);
-            stopButton.gameObject.SetActive(true);
-
-            peekText.gameObject.SetActive(true);
-            peekText.text = $"You are peeking at: {targetName}";
-        }
-    }
-
-    // ------------------------------------------------------------------------------------------------------------------------
-
+    /// <summary>
+    /// RPC to request stopping peeking on the server.
+    /// </summary>
+    /// <param name="userClientId">The client ID of the user requesting to stop peeking.</param>
     [Rpc(SendTo.Server)]
     private void RequestStopPeekingRpc(ulong userClientId)
     {
         Player userPlayer = playerManager.FindPlayerByClientId(userClientId);
 
-        if (userPlayers.Contains(userPlayer))
+        if (userPlayers.Contains(userPlayer) && !userPlayer.PeekExitOnCooldown)
         {
+            StartCoroutine(PutPlayerOnUseCooldown(userPlayer));
+
             int peekSessionIndex = userPlayers.IndexOf(userPlayer);
             Player targetPlayer = targetPlayers[peekSessionIndex];
 
@@ -139,6 +189,33 @@ public class PeekManager : NetworkBehaviour
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Peek User Routines
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// RPC to start the peek routine on the client.
+    /// </summary>
+    /// <param name="userClientId">The client ID of the user.</param>
+    /// <param name="targetName">The name of the target player being peeked at.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    private void StartPeekRoutineUserRpc(ulong userClientId, string targetName)
+    {
+        if (NetworkManager.Singleton.LocalClientId == userClientId)
+        {
+            peekButton.gameObject.SetActive(false);
+            stopButton.gameObject.SetActive(false);
+
+            peekText.gameObject.SetActive(true);
+            peekText.text = $"You are peeking at: {targetName}";
+        }
+    }
+
+
+    /// <summary>
+    /// RPC to stop the peek routine on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
     [Rpc(SendTo.ClientsAndHost)]
     private void StopPeekRoutineUserRpc(ulong clientId)
     {
@@ -146,14 +223,82 @@ public class PeekManager : NetworkBehaviour
         {
             Debug.Log($"[Client] Stopping peek routine as user.");
 
-            peekButton.gameObject.SetActive(true);
+            peekButton.gameObject.SetActive(false);
             stopButton.gameObject.SetActive(false);
             peekText.gameObject.SetActive(false);
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Cooldown functionality
+    // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// Coroutine to put a player on a usage cooldown.
+    /// </summary>
+    /// <param name="player">The player to be put on cooldown.</param>
+    /// <returns>An enumerator for the coroutine.</returns>
+    public IEnumerator PutPlayerOnUseCooldown(Player player)
+    {
+        float cooldownPeriod = 5; // Temporary fixed value
+
+        player.PeekUseOnCooldown = true;
+        yield return new WaitForSeconds(cooldownPeriod);
+        player.PeekUseOnCooldown = false;
+        EnablePeekButtonRpc(player.ClientId);
+    }
+
+    /// <summary>
+    /// RPC to enable the peek button on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void EnablePeekButtonRpc(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            peekButton.gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Coroutine to put a player on an exit cooldown.
+    /// </summary>
+    /// <param name="player">The player to be put on cooldown.</param>
+    /// <returns>An enumerator for the coroutine.</returns>
+    public IEnumerator PutPlayerOnExitCooldown(Player player)
+    {
+        float cooldownPeriod = 2; // Temporary fixed value
+
+        player.PeekExitOnCooldown = true;
+        yield return new WaitForSeconds(cooldownPeriod);
+        player.PeekExitOnCooldown = false;
+        EnableStopButtonRpc(player.ClientId);
+    }
+
+    /// <summary>
+    /// RPC to enable the stop button on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
+    [Rpc(SendTo.ClientsAndHost)]
+    public void EnableStopButtonRpc(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            stopButton.gameObject.SetActive(true);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Miscellaneous
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// RPC to update the peek indicator on the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the user.</param>
+    /// <param name="isPeeking">Indicates if the user is peeking.</param>
+    /// <param name="isBeingPeeked">Indicates if the user is being peeked at.</param>
     [Rpc(SendTo.ClientsAndHost)]
     private void UpdatePeekIndicatorRpc(ulong clientId, bool isPeeking, bool isBeingPeeked)
     {
@@ -180,6 +325,11 @@ public class PeekManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Gets the list of players who are peeking at a specified target player.
+    /// </summary>
+    /// <param name="targetPlayer">The target player being peeked at.</param>
+    /// <returns>A list of players peeking at the target player.</returns>
     public List<Player> GetPeekersOfTarget(Player targetPlayer)
     {
         List<Player> peekers = new();
@@ -193,6 +343,9 @@ public class PeekManager : NetworkBehaviour
         return peekers;
     }
 
+    /// <summary>
+    /// Updates the positions of other clients for players who are peeking.
+    /// </summary>
     private void Update()
     {
         foreach (Player userPlayer in userPlayers)
@@ -205,3 +358,4 @@ public class PeekManager : NetworkBehaviour
         }
     }
 }
+
