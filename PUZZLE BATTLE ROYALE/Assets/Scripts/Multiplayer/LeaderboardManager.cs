@@ -18,10 +18,10 @@ public class LeaderboardManager : NetworkBehaviour
     /// </summary>
     [SerializeField] private PuzzleManager puzzleManager;
 
-    /// <summary>
-    /// Reference to the TextMeshProUGUI component for displaying the leaderboard.
-    /// </summary>
-    [SerializeField] private TextMeshProUGUI leaderboardText;
+    [SerializeField] private List<Sprite> profilePicturesSprites;
+
+    [SerializeField] GameObject playerContainer;
+    [SerializeField] GameObject leaderboardEntryPrefab;
 
     /// <summary>
     /// List of players sorted by their rank.
@@ -38,18 +38,18 @@ public class LeaderboardManager : NetworkBehaviour
             ranking.Add(player);
         }
 
-        List<string> playerNames = new();
+        List<int> profilePictureIds = new();
 
         foreach (Player player2 in ranking)
         {
-            playerNames.Add(player2.Name);
+            profilePictureIds.Add(player2.ProfilePictureId);
         }
 
-        string serializedPlayerNames = string.Join(",", playerNames);
+        string serializedProfilePictureIds = string.Join(",", profilePictureIds);
 
         foreach (Player player1 in playerManager.GetAllPlayers())
         {
-            UpdatePlayerLeaderboardRpc(player1.ClientId, serializedPlayerNames, ranking.IndexOf(player1));
+            UpdatePlayerLeaderboardRpc(player1.ClientId, serializedProfilePictureIds, ranking.IndexOf(player1));
         }
     }
 
@@ -80,48 +80,58 @@ public class LeaderboardManager : NetworkBehaviour
             ranking.Add(player);
         }
 
-        List<string> playerNames = new();
+        List<int> profilePictureIds = new();
 
         foreach (Player player2 in ranking)
         {
-            playerNames.Add(player2.Name);
+            profilePictureIds.Add(player2.ProfilePictureId);
         }
 
-        string serializedPlayerNames = string.Join(",", playerNames);
+        string serializedProfilePictureIds = string.Join(",", profilePictureIds);
 
         foreach (Player player1 in playerManager.GetAllPlayers())
         {
-            UpdatePlayerLeaderboardRpc(player1.ClientId, serializedPlayerNames, ranking.IndexOf(player1));
+            UpdatePlayerLeaderboardRpc(player1.ClientId, serializedProfilePictureIds, ranking.IndexOf(player1));
         }
     }
 
-    /// <summary>
-    /// Updates the leaderboard display for a specific player using RPC.
-    /// </summary>
-    /// <param name="clientId">The ID of the client to update.</param>
-    /// <param name="serializedPlayerNames">The serialized list of player names.</param>
-    /// <param name="playerRank">The rank of the player to update.</param>
+
     [Rpc(SendTo.ClientsAndHost)]
-    public void UpdatePlayerLeaderboardRpc(ulong clientId, string serializedPlayerNames, int playerRank)
+    public void UpdatePlayerLeaderboardRpc(ulong clientId, string serializedProfilePictureIds, int playerRank)
     {
+        Debug.Log($"RPC Called for ClientID: {clientId} with Rank: {playerRank}");
+
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            string[] playerNames = serializedPlayerNames.Split(',');
-            string newLeaderboardText = "";
-
-            for (int i = 0; i < playerNames.Length; i++)
+            foreach (Transform child in playerContainer.transform)
             {
-                string leaderboardEntry = $"{i + 1}. {playerNames[i]}";
-
-                if (i == playerRank)
-                {
-                    leaderboardEntry = $"<color=#ff0000>{leaderboardEntry}</color>";
-                }
-
-                newLeaderboardText += $"{leaderboardEntry}\n";
+                Destroy(child.gameObject);
             }
 
-            leaderboardText.text = newLeaderboardText;
+            string[] profilePictureIds = serializedProfilePictureIds.Split(",");
+
+            for (int i = 0; i < profilePictureIds.Length; i++)
+            {
+                int profilePictureId = int.Parse(profilePictureIds[i]);
+
+                Debug.Log($"Creating entry for rank {i} with profile picture ID {profilePictureIds[i]}");
+                GameObject leaderboardEntry = Instantiate(leaderboardEntryPrefab);
+                leaderboardEntry.transform.parent = playerContainer.transform;
+
+                TextMeshProUGUI leaderboardEntryText = leaderboardEntry.transform.Find("RankingText").GetComponent<TextMeshProUGUI>();
+                if (i == playerRank)
+                {
+                    leaderboardEntryText.text = $"<color=#ff0000>{i + 1}.</color>";
+                }
+                else
+                {
+                    leaderboardEntryText.text = $"{i + 1}.";
+                }
+
+
+                UnityEngine.UI.Image leaderboardEntryImage = leaderboardEntry.transform.Find("ProfilePictureButton").GetComponent<UnityEngine.UI.Image>();
+                leaderboardEntryImage.sprite = profilePicturesSprites[profilePictureId];
+            }
         }
     }
 }
