@@ -12,11 +12,12 @@ public class Player
     /// <param name="name">The name of the player.</param>
     /// <param name="clientId">The client ID of the player.</param>
     /// <param name="backgroundSkinId">The index of the background skin.</param>
-    public Player(string name, ulong clientId, int backgroundSkinId)
+    public Player(string name, ulong clientId, int backgroundSkinId, int profilePictureId)
     {
         this.clientId = clientId;
         this.name = name;
         this.backgroundSkinId = backgroundSkinId;
+        this.profilePictureId = profilePictureId;
     }
 
     // -----------------------------------------------------------------------
@@ -67,6 +68,14 @@ public class Player
     {
         get { return backgroundSkinId; }
         set { backgroundSkinId = value; }
+    }
+
+    private int profilePictureId;
+
+    public int ProfilePictureId
+    {
+        get { return profilePictureId; }
+        set { profilePictureId = value; }
     }
 
     // -----------------------------------------------------------------------
