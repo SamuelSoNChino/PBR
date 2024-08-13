@@ -113,7 +113,7 @@ public class MultiplayerManager : NetworkBehaviour
 
         if (role == "HOST")
         {
-            playerManager.AddNewPlayer(new Player("Vajdik", NetworkManager.Singleton.LocalClientId, 0));
+            playerManager.AddNewPlayer(new Player("Vajdik", NetworkManager.Singleton.LocalClientId, 0, 0));
 
             await CreateRelay();
 
@@ -159,11 +159,11 @@ public class MultiplayerManager : NetworkBehaviour
         {
             if (NetworkManager.Singleton.ConnectedClients.Count == 2)
             {
-                playerManager.AddNewPlayer(new Player("Pepis", clientId, 1));
+                playerManager.AddNewPlayer(new Player("Pepis", clientId, 1, 1));
             }
             else
             {
-                playerManager.AddNewPlayer(new Player("Milan", clientId, 2));
+                playerManager.AddNewPlayer(new Player("Milan", clientId, 2, 2));
             }
 
 

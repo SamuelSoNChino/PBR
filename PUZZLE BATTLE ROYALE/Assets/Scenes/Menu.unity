@@ -1536,6 +1536,7 @@ MonoBehaviour:
   optionSets:
   - {fileID: 1046117610}
   - {fileID: 391497262}
+  setPlacements: []
   animationDuration: 0.5
 --- !u!4 &1262292117
 Transform:

@@ -26,11 +26,6 @@ public class PeekManager : NetworkBehaviour
     [SerializeField] private BackgroundManagerMultiplayer backgroundManager;
 
     /// <summary>
-    /// Button to initiate peeking.
-    /// </summary>
-    [SerializeField] private Button peekButton;
-
-    /// <summary>
     /// Button to stop peeking.
     /// </summary>
     [SerializeField] private Button stopButton;
@@ -50,6 +45,8 @@ public class PeekManager : NetworkBehaviour
     /// </summary>
     [SerializeField] private GameObject peekIndicatorDanger;
 
+    [SerializeField] private LeaderboardManager leaderboardManager;
+
     /// <summary>
     /// List of players who are peeking.
     /// </summary>
@@ -67,10 +64,10 @@ public class PeekManager : NetworkBehaviour
     /// <summary>
     /// Initiates a peek request from the client.
     /// </summary>
-    public void Peek()
+    public void Peek(ulong targetClientId)
     {
         Debug.Log($"[Client] Client {NetworkManager.Singleton.LocalClientId} requesting peek.");
-        RequestPeekRpc(NetworkManager.Singleton.LocalClientId);
+        RequestPeekRpc(NetworkManager.Singleton.LocalClientId, targetClientId);
     }
 
     /// <summary>
@@ -91,24 +88,15 @@ public class PeekManager : NetworkBehaviour
     /// </summary>
     /// <param name="userClientId">The client ID of the user requesting the peek.</param>
     [Rpc(SendTo.Server)]
-    private void RequestPeekRpc(ulong userClientId)
+    private void RequestPeekRpc(ulong userClientId, ulong targetClientId)
     {
         Player userPlayer = playerManager.FindPlayerByClientId(userClientId);
 
-        if (!userPlayer.IsPeeking && !userPlayer.PeekUseOnCooldown)
+        if (!userPlayer.IsPeeking && !userPlayer.PeekUseOnCooldown && userClientId != targetClientId)
         {
             StartCoroutine(PutPlayerOnExitCooldown(userPlayer));
 
-            // Will be replaced with appropriate logic
-            Player targetPlayer = null;
-            foreach (Player player in playerManager.GetAllPlayers())
-            {
-                if (player != userPlayer)
-                {
-                    targetPlayer = player;
-                    break;  
-                }
-            }
+            Player targetPlayer = playerManager.FindPlayerByClientId(targetClientId);
 
             userPlayers.Add(userPlayer);
             targetPlayers.Add(targetPlayer);
@@ -203,11 +191,13 @@ public class PeekManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId == userClientId)
         {
-            peekButton.gameObject.SetActive(false);
             stopButton.gameObject.SetActive(false);
 
             peekText.gameObject.SetActive(true);
             peekText.text = $"You are peeking at: {targetName}";
+
+            leaderboardManager.DisableAllPeekButtons = true;
+            leaderboardManager.RefreshLeaderboard();
         }
     }
 
@@ -221,9 +211,6 @@ public class PeekManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
-            Debug.Log($"[Client] Stopping peek routine as user.");
-
-            peekButton.gameObject.SetActive(false);
             stopButton.gameObject.SetActive(false);
             peekText.gameObject.SetActive(false);
         }
@@ -245,7 +232,7 @@ public class PeekManager : NetworkBehaviour
         player.PeekUseOnCooldown = true;
         yield return new WaitForSeconds(cooldownPeriod);
         player.PeekUseOnCooldown = false;
-        EnablePeekButtonRpc(player.ClientId);
+        EnablePeekRpc(player.ClientId);
     }
 
     /// <summary>
@@ -253,11 +240,12 @@ public class PeekManager : NetworkBehaviour
     /// </summary>
     /// <param name="clientId">The client ID of the user.</param>
     [Rpc(SendTo.ClientsAndHost)]
-    public void EnablePeekButtonRpc(ulong clientId)
+    public void EnablePeekRpc(ulong clientId)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            peekButton.gameObject.SetActive(true);
+            leaderboardManager.DisableAllPeekButtons = false;
+            leaderboardManager.RefreshLeaderboard();
         }
     }
 
@@ -273,7 +261,7 @@ public class PeekManager : NetworkBehaviour
         player.PeekExitOnCooldown = true;
         yield return new WaitForSeconds(cooldownPeriod);
         player.PeekExitOnCooldown = false;
-        EnableStopButtonRpc(player.ClientId);
+        EnablePeekStopRpc(player.ClientId);
     }
 
     /// <summary>
@@ -281,7 +269,7 @@ public class PeekManager : NetworkBehaviour
     /// </summary>
     /// <param name="clientId">The client ID of the user.</param>
     [Rpc(SendTo.ClientsAndHost)]
-    public void EnableStopButtonRpc(ulong clientId)
+    public void EnablePeekStopRpc(ulong clientId)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
