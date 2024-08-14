@@ -134,17 +134,17 @@ public class LeaderboardManager : NetworkBehaviour
     /// <summary>
     /// The button to hide the detailed leaderboard.
     /// </summary>
-    [SerializeField] private GameObject hideButton;
+    [SerializeField] private GameObject hideButtonPrefab;
 
     /// <summary>
     /// The button to show the detailed leaderboard.
     /// </summary>
-    [SerializeField] private GameObject showButton;
+    [SerializeField] private GameObject showButtonPrefab;
 
     /// <summary>
     /// Indicates whether the long-form leaderboard (detailed) is shown.
     /// </summary>
-    private bool longFormLeaderboard = true;
+    private bool longFormLeaderboard = false;
 
     /// <summary>
     /// Array of profile picture IDs received from the server.
@@ -265,6 +265,10 @@ public class LeaderboardManager : NetworkBehaviour
                 leaderboardEntryButton.colors = colorBlock;
             }
         }
+        GameObject hideButton = Instantiate(hideButtonPrefab);
+        hideButton.name = "HideButton";
+        hideButton.transform.SetParent(playerContainer.transform);
+        hideButton.GetComponent<Button>().onClick.AddListener(() => HideLongFormLeaderboard());
     }
 
     /// <summary>
@@ -294,6 +298,11 @@ public class LeaderboardManager : NetworkBehaviour
         disabledColor.r = 1f;
         colorBlock.disabledColor = disabledColor;
         leaderboardEntryButton.colors = colorBlock;
+
+        GameObject showButton = Instantiate(showButtonPrefab);
+        showButton.name = "ShowButton";
+        showButton.transform.SetParent(playerContainer.transform);
+        showButton.GetComponent<Button>().onClick.AddListener(() => ShowLongFormLeaderboard());
     }
 
     /// <summary>
@@ -320,8 +329,6 @@ public class LeaderboardManager : NetworkBehaviour
     {
         longFormLeaderboard = true;
         RefreshLeaderboard();
-        showButton.SetActive(false);
-        hideButton.SetActive(true);
     }
 
     /// <summary>
@@ -331,7 +338,5 @@ public class LeaderboardManager : NetworkBehaviour
     {
         longFormLeaderboard = false;
         RefreshLeaderboard();
-        showButton.SetActive(true);
-        hideButton.SetActive(false);
     }
 }
