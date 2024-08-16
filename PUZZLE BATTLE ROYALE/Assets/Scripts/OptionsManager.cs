@@ -14,11 +14,6 @@ public class OptionsManager : MonoBehaviour
     [SerializeField] private GameObject NOTSlider;
 
     /// <summary>
-    /// The slider object for selecting the number of players.
-    /// </summary>
-    [SerializeField] private GameObject NOPSlider;
-
-    /// <summary>
     /// The dropdown object for selecting the background.
     /// </summary>
     [SerializeField] private GameObject dropdown;
@@ -33,16 +28,8 @@ public class OptionsManager : MonoBehaviour
             PlayerPrefs.SetInt("numberOfTiles", 5);
         }
 
-        if (!PlayerPrefs.HasKey("numberOfPlayers"))
-        {
-            PlayerPrefs.SetInt("numberOfPlayers", 2);
-        }
-
         NOTSlider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfTiles");
         UpdateNOTSlider();
-
-        NOPSlider.GetComponent<Slider>().value = PlayerPrefs.GetInt("numberOfPlayers");
-        UpdateNOPSlider();
 
         if (PlayerPrefs.HasKey("backgroundSkin"))
         {
@@ -56,18 +43,6 @@ public class OptionsManager : MonoBehaviour
     public void ReturnToMenu()
     {
         SceneManager.LoadScene("Menu");
-    }
-
-    /// <summary>
-    /// Updates PlayerPrefs value and slider text when the NOP slider value is changed.
-    /// </summary>
-    public void UpdateNOPSlider()
-    {
-        PlayerPrefs.SetInt("numberOfPlayers", (int)NOPSlider.GetComponent<Slider>().value);
-
-        Text text = NOPSlider.transform.Find("SliderText").GetComponent<Text>();
-
-        text.GetComponent<Text>().text = "Number of players: " + PlayerPrefs.GetInt("numberOfPlayers").ToString();
     }
 
     /// <summary>
