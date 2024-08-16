@@ -97,10 +97,32 @@ public class Player
     }
 
     // -----------------------------------------------------------------------
-    // Abilities
+    // Powers
     // -----------------------------------------------------------------------
 
-    // TODO: Implement abilities for the player.
+    private List<Power> powers = new();
+
+    public List<Power> Powers { get; }
+
+    public void AddPower(Power power)
+    {
+        if (powers.Count == 3)
+        {
+            Debug.Log("Player already has 3 powers.");
+            return;
+        }
+        powers.Add(power);
+    }
+
+    public void ResetPowers()
+    {
+        powers = new();
+    }
+
+    public bool HasPower(Power power)
+    {
+        return powers.Contains(power);
+    }
 
     // -----------------------------------------------------------------------
     // Puzzle Tiles
