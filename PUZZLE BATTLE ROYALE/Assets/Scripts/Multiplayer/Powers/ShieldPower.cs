@@ -1,6 +1,6 @@
 public class ShieldPower : Power
 {
-    public ShieldPower() : base("Shield", 0, false, true, 1)
+    public ShieldPower() : base("Shield", 2, false, false, 0)
     {
 
     }
