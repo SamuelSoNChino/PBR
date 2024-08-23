@@ -102,7 +102,10 @@ public class Player
 
     private List<Power> powers = new();
 
-    public List<Power> Powers { get; }
+    public List<Power> Powers
+    {
+        get { return powers; }
+    }
 
     public void AddPower(Power power)
     {
