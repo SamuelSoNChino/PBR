@@ -56,6 +56,8 @@ public class MultiplayerManager : NetworkBehaviour
     /// </summary>
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
 
+    [SerializeField] private PowerManager powerManager;
+
     /// <summary>
     /// Number of tiles of the puzzle.
     /// </summary>    
@@ -373,6 +375,15 @@ public class MultiplayerManager : NetworkBehaviour
         backgroundManager.SetAllClientsDefaultBackgrounds();
 
         leaderboardManager.InitializeRanking();
+
+        powerManager.RequestEquippedPowersFromAllPlayersRpc();
+
+        TaskCompletionSource<bool> bufferForCommunication = new();
+        StartCoroutine(StartTimer(bufferForCommunication, 2));
+
+        yield return new WaitUntil(() => bufferForCommunication.Task.IsCompleted);
+
+        powerManager.InitializePowerButtonsForAllPlayers();
 
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 
