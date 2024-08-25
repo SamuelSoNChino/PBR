@@ -127,6 +127,33 @@ public class Player
         return powers.Contains(power);
     }
 
+    public int GetPowerIndex(Power power)
+    {
+        return powers.IndexOf(power);
+    }
+
+    public Power GetPowerAtIndex(int index)
+    {
+        return powers[index];
+    }
+
+    private List<Power> powersOnCooldown = new();
+
+    public void PutPowerOnCooldown(Power power)
+    {
+        powersOnCooldown.Add(power);
+    }
+
+    public void PutPowerOffCooldown(Power power)
+    {
+        powersOnCooldown.Remove(power);
+    }
+
+    public bool IsPowerOnCooldown(Power power)
+    {
+        return powersOnCooldown.Contains(power);
+    }
+
     // -----------------------------------------------------------------------
     // Puzzle Tiles
     // -----------------------------------------------------------------------
