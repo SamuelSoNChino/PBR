@@ -522,12 +522,12 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 551699697}
   - {fileID: 335868351}
   - {fileID: 447961151}
   - {fileID: 1832081629}
   - {fileID: 557488100}
   - {fileID: 972601262}
-  - {fileID: 551699697}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -884,7 +884,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 345372500}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1773418431}
+        m_TargetAssemblyTypeName: PowerManager, Assembly-CSharp
+        m_MethodName: UsePowerButton
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
 --- !u!114 &345372500
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -982,6 +994,7 @@ MonoBehaviour:
   leaderboardManager: {fileID: 447961152}
   startScreenManagerMultiplayer: {fileID: 557488105}
   endScreenManagerMultiplayer: {fileID: 972601263}
+  powerManager: {fileID: 1773418431}
   numberOfTiles: 3
 --- !u!4 &368472933
 Transform:
@@ -1016,7 +1029,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &381408772
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1421,7 +1434,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 427548245}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1773418431}
+        m_TargetAssemblyTypeName: PowerManager, Assembly-CSharp
+        m_MethodName: UsePowerButton
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
 --- !u!114 &427548245
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1684,6 +1709,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 551699697}
+  - component: {fileID: 551699699}
+  - component: {fileID: 551699698}
   m_Layer: 5
   m_Name: PowerButtons
   m_TagString: Untagged
@@ -1713,6 +1740,41 @@ RectTransform:
   m_AnchoredPosition: {x: -105, y: -500}
   m_SizeDelta: {x: 210, y: 600}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &551699698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 551699696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.50980395}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &551699699
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 551699696}
+  m_CullTransparentMesh: 1
 --- !u!1 &551972559
 GameObject:
   m_ObjectHideFlags: 0
@@ -3755,7 +3817,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1445287320}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1773418431}
+        m_TargetAssemblyTypeName: PowerManager, Assembly-CSharp
+        m_MethodName: UsePowerButton
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1445287320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4570,7 +4644,7 @@ MonoBehaviour:
   GlobalObjectIdHash: 3075406958
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
+  SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
@@ -4588,9 +4662,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 920208305d8256643a6edca70384e1d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  powerIconsSprites: []
-  loadoutManager: {fileID: 0}
-  playerManager: {fileID: 0}
+  playerManager: {fileID: 1562048576}
+  powerIconsSprites:
+  - {fileID: 21300000, guid: 3b472d5dac4bafb458760423c3ec7326, type: 3}
+  - {fileID: 21300000, guid: 735b2bf9a7a6e554a92f6722c1172973, type: 3}
+  - {fileID: 21300000, guid: 8af5a4d4c468b1847abf7c689613258e, type: 3}
+  - {fileID: 21300000, guid: f9c744fae50bd4d468753a465f274e96, type: 3}
+  powerButtons: {fileID: 551699696}
+  peekManager: {fileID: 1832081630}
 --- !u!4 &1773418432
 Transform:
   m_ObjectHideFlags: 0
