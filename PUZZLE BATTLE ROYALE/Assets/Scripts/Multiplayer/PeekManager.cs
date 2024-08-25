@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -57,6 +58,8 @@ public class PeekManager : NetworkBehaviour
     /// </summary>
     private List<Player> userPlayers = new();
 
+    public event Action<Player> OnPlayerPeekingStatusChanged;
+
     // -----------------------------------------------------------------------
     // Peek buttons functionality
     // -----------------------------------------------------------------------
@@ -103,6 +106,7 @@ public class PeekManager : NetworkBehaviour
 
             userPlayer.IsPeeking = true;
             userPlayer.TargetOfPeekPlayer = targetPlayer;
+            OnPlayerPeekingStatusChanged.Invoke(userPlayer);
 
             puzzleManager.DisableTileMovement(userPlayer);
             puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
@@ -152,6 +156,7 @@ public class PeekManager : NetworkBehaviour
 
             userPlayer.IsPeeking = false;
             userPlayer.TargetOfPeekPlayer = null;
+            OnPlayerPeekingStatusChanged.Invoke(userPlayer);
 
             bool targetPeeking = targetPlayer.IsPeeking;
             bool targetStillBeingPeeked = targetPlayers.Contains(targetPlayer);
