@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// MonoBehvaiour that manages the loadout scene and power selection there.
+/// </summary>
 public class LoadoutManager : MonoBehaviour
 {
     private void Start()
@@ -24,6 +27,9 @@ public class LoadoutManager : MonoBehaviour
     // Powers
     // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// List of available powers.
+    /// </summary>
     private readonly List<Power> powers = new()
     {
         new TornadoPower(),
@@ -32,11 +38,19 @@ public class LoadoutManager : MonoBehaviour
         new SlipperyGridPower()
     };
 
+    /// <summary>
+    /// Gets the list of available powers.
+    /// </summary>
     public List<Power> Powers
     {
         get { return powers; }
     }
 
+    /// <summary>
+    /// Finds a power by its unique ID.
+    /// </summary>
+    /// <param name="powerId">The ID of the power to find.</param>
+    /// <returns>The power with the specified ID, or null if not found.</returns>
     public Power FindPowerById(int powerId)
     {
         foreach (Power power in powers)
@@ -49,6 +63,11 @@ public class LoadoutManager : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Finds a power by its name.
+    /// </summary>
+    /// <param name="name">The name of the power to find.</param>
+    /// <returns>The power with the specified name, or null if not found.</returns>
     public Power FindPowerByName(string name)
     {
         foreach (Power power in powers)
@@ -61,8 +80,16 @@ public class LoadoutManager : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// List of sprites representing the power icons.
+    /// </summary>
     [SerializeField] private List<Sprite> powerIconsSprites;
 
+    /// <summary>
+    /// Gets the sprite associated with a specific power.
+    /// </summary>
+    /// <param name="power">The power to get the sprite for.</param>
+    /// <returns>The sprite representing the power.</returns>
     public Sprite GetPowerSprite(Power power)
     {
         return powerIconsSprites[power.Id];
@@ -72,14 +99,29 @@ public class LoadoutManager : MonoBehaviour
     // Equipped Powers
     // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// List of currently equipped powers.
+    /// </summary>
     private List<Power> equippedPowers = new();
+
+    /// <summary>
+    /// Gets the list of currently equipped powers.
+    /// </summary>
     public List<Power> EquippedPowers
     {
         get { return equippedPowers; }
     }
 
+    /// <summary>
+    /// The number of power slots available for equipping.
+    /// </summary>
     private readonly int numberOfPowerSlots = 3;
 
+    /// <summary>
+    /// Equips a new power in a specific slot.
+    /// </summary>
+    /// <param name="powerButtonIndex">The index of the power slot.</param>
+    /// <param name="newPower">The new power to equip.</param>
     public void EquipPower(int powerButtonIndex, Power newPower)
     {
         equippedPowers.RemoveAt(powerButtonIndex);
@@ -87,6 +129,9 @@ public class LoadoutManager : MonoBehaviour
         PlayerPrefs.SetInt($"equippedPower{powerButtonIndex}Id", newPower.Id);
     }
 
+    /// <summary>
+    /// Loads the equipped powers from saved preferences.
+    /// </summary>
     private void LoadEquippedPowers()
     {
         for (int i = 0; i < numberOfPowerSlots; i++)
@@ -120,11 +165,29 @@ public class LoadoutManager : MonoBehaviour
     // UI Functionality
     // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// UI element for selecting the number of players.
+    /// </summary>
     [SerializeField] private GameObject numberOfPlayersSlider;
+
+    /// <summary>
+    /// Prefab for creating power entry buttons.
+    /// </summary>
     [SerializeField] private GameObject powerEntryButtonPrefab;
+
+    /// <summary>
+    /// UI container for the power buttons.
+    /// </summary>
     [SerializeField] private GameObject powerButtons;
+
+    /// <summary>
+    /// UI container for the power selection screen.
+    /// </summary>
     [SerializeField] private GameObject powerSelection;
 
+    /// <summary>
+    /// Updates the number of players slider value and text.
+    /// </summary>
     public void UpdateNumberOfPlayersSlider()
     {
         PlayerPrefs.SetInt("numberOfPlayers", (int)numberOfPlayersSlider.GetComponent<Slider>().value);
@@ -134,6 +197,9 @@ public class LoadoutManager : MonoBehaviour
         text.GetComponent<Text>().text = "Number of players: " + PlayerPrefs.GetInt("numberOfPlayers").ToString();
     }
 
+    /// <summary>
+    /// Updates the loadout display with the equipped powers.
+    /// </summary>
     public void UpdateLoadout()
     {
         for (int i = 0; i < equippedPowers.Count; i++)
@@ -143,6 +209,10 @@ public class LoadoutManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Displays the power selection screen.
+    /// </summary>
+    /// <param name="powerButtonIndex">The index of the power button being selected.</param>
     public void ShowPowerSelection(int powerButtonIndex)
     {
         if (powerSelection.activeSelf)
@@ -176,6 +246,9 @@ public class LoadoutManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Hides the power selection screen.
+    /// </summary>
     public void HidePowerSelection()
     {
         foreach (Transform powerEntry in powerSelection.transform.GetChild(0).transform)
@@ -189,11 +262,17 @@ public class LoadoutManager : MonoBehaviour
         UpdateLoadout();
     }
 
+    /// <summary>
+    /// Starts the multiplayer puzzle scene.
+    /// </summary>
     public void Play()
     {
         SceneManager.LoadScene("PuzzleMultiplayer");
     }
 
+    /// <summary>
+    /// Returns to the main menu.
+    /// </summary>
     public void BackToMenu()
     {
         SceneManager.LoadScene("Menu");
