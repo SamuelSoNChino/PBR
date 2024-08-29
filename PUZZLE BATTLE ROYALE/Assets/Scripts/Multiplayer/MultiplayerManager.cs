@@ -376,13 +376,11 @@ public class MultiplayerManager : NetworkBehaviour
 
         leaderboardManager.InitializeRanking();
 
+        // There needs to be a small buffer for the time all the clients to send their powers to the server before initializing power buttons
         powerManager.RequestEquippedPowersFromAllPlayersRpc();
-
         TaskCompletionSource<bool> bufferForCommunication = new();
         StartCoroutine(StartTimer(bufferForCommunication, 2));
-
         yield return new WaitUntil(() => bufferForCommunication.Task.IsCompleted);
-
         powerManager.InitializePowerButtonsForAllPlayers();
 
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
@@ -403,7 +401,7 @@ public class MultiplayerManager : NetworkBehaviour
     }
 
     /// |---------------------------------|
-    /// |            REMATCH              |
+    /// |            REMATCH              | DOESNT WORK!!!!!!!!!
     /// |---------------------------------|
 
     /// <summary>
