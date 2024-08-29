@@ -56,6 +56,8 @@ public class MultiplayerManager : NetworkBehaviour
     /// </summary>
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
 
+    [SerializeField] private PowerManager powerManager;
+
     /// <summary>
     /// Number of tiles of the puzzle.
     /// </summary>    
@@ -374,6 +376,13 @@ public class MultiplayerManager : NetworkBehaviour
 
         leaderboardManager.InitializeRanking();
 
+        // There needs to be a small buffer for the time all the clients to send their powers to the server before initializing power buttons
+        powerManager.RequestEquippedPowersFromAllPlayersRpc();
+        TaskCompletionSource<bool> bufferForCommunication = new();
+        StartCoroutine(StartTimer(bufferForCommunication, 2));
+        yield return new WaitUntil(() => bufferForCommunication.Task.IsCompleted);
+        powerManager.InitializePowerButtonsForAllPlayers();
+
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 
         puzzleManager.EnableTileMovement();
@@ -392,7 +401,7 @@ public class MultiplayerManager : NetworkBehaviour
     }
 
     /// |---------------------------------|
-    /// |            REMATCH              |
+    /// |            REMATCH              | DOESNT WORK!!!!!!!!!
     /// |---------------------------------|
 
     /// <summary>

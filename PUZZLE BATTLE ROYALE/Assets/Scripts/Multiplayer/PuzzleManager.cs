@@ -821,7 +821,11 @@ public class PuzzleManager : NetworkBehaviour
         if (player.HeldPuzzleTileId == puzzleTileId)
         {
             player.HeldPuzzleTileId = -1;
-            SnapTileToGrid(player, puzzleTileId);
+
+            if (player.SnapToGridEnabled)
+            {
+                SnapTileToGrid(player, puzzleTileId);
+            }
 
             if (player.IsPeeking)
             {
@@ -884,7 +888,6 @@ public class PuzzleManager : NetworkBehaviour
     // Snapping to Grid
     // -----------------------------------------------------------------------
 
-
     /// <summary>
     /// Snaps a puzzle tile to the nearest grid tile if it fits within the boundaries and the grid tile is unoccupied.
     /// </summary>
@@ -939,7 +942,7 @@ public class PuzzleManager : NetworkBehaviour
     /// </summary>
     /// <param name="player">The player interacting with the puzzle tile.</param>
     /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
-    private void UnsnapTileFromGrid(Player player, int puzzleTileId)
+    public void UnsnapTileFromGrid(Player player, int puzzleTileId)
     {
         Player tileOwnerPlayer = player;
         if (player.IsPeeking)

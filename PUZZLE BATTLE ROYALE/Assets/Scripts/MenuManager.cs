@@ -37,7 +37,7 @@ public class MenuManager : MonoBehaviour
 
     void Update()
     {
-        #if UNITY_EDITOR || UNITY_STANDALONE
+#if UNITY_EDITOR || UNITY_STANDALONE
         // Simulace swipování myší pro editor a standalone
         if (Input.GetMouseButtonDown(0) && !moveInMutex && !moveOutMutex)
         {
@@ -60,7 +60,7 @@ public class MenuManager : MonoBehaviour
             isSwiping = false;
             HandleSwipe();
         }
-        #else
+#else
         // Dotykové ovládání pro mobilní zařízení
         if (Input.touchCount > 0)
         {
@@ -88,7 +88,7 @@ public class MenuManager : MonoBehaviour
                 HandleSwipe();
             }
         }
-        #endif
+#endif
     }
 
     private void MoveSets(float deltaX)
@@ -234,14 +234,14 @@ public class MenuManager : MonoBehaviour
     {
         switch (currentSetIndex)
         {
-        case 0:
-            StartSingleplayer();
-            break;
-        case 1:
-            StartMultiplayer();
-            break;
-        default:
-            break;
+            case 0:
+                StartSingleplayer();
+                break;
+            case 1:
+                StartMultiplayer();
+                break;
+            default:
+                break;
         }
     }
 
@@ -258,7 +258,7 @@ public class MenuManager : MonoBehaviour
     /// </summary>
     private void StartMultiplayer()
     {
-        SceneManager.LoadScene("PuzzleMultiplayer");
+        SceneManager.LoadScene("Loadout");
     }
 
     /// <summary>
