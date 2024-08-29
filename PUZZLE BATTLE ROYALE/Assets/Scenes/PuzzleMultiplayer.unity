@@ -4740,6 +4740,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerManager: {fileID: 1562048576}
   puzzleManager: {fileID: 637174950}
+  powerManager: {fileID: 1773418431}
   backgroundManager: {fileID: 551972563}
   stopButton: {fileID: 381408773}
   peekText: {fileID: 669191135}
