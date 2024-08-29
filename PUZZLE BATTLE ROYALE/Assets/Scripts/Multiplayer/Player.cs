@@ -57,12 +57,12 @@ public class Player
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// The ID of the background skin.
+    /// The ID of the background skin sprite.
     /// </summary>
     private int backgroundSkinId;
 
     /// <summary>
-    /// Gets or sets the ID of the background skin.
+    /// Gets or sets the ID of the background skin sprite.
     /// </summary>
     public int BackgroundSkinId
     {
@@ -70,8 +70,14 @@ public class Player
         set { backgroundSkinId = value; }
     }
 
+    /// <summary>
+    /// The ID of the profile picutre sprite.
+    /// </summary>
     private int profilePictureId;
 
+    /// <summary>
+    /// Gets or sets the ID of the profile picutre sprite.
+    /// </summary>
     public int ProfilePictureId
     {
         get { return profilePictureId; }
@@ -100,13 +106,23 @@ public class Player
     // Powers
     // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// List of all equipped powers of the player.
+    /// </summary>
     private List<Power> powers = new();
 
+    /// <summary>
+    /// Gets the list of all equipped powers of the player.
+    /// </summary>
     public List<Power> Powers
     {
         get { return powers; }
     }
 
+    /// <summary>
+    /// Adds a new power the list of equipped powers. Limit is 3.
+    /// </summary>
+    /// <param name="power">Power to add. </param>
     public void AddPower(Power power)
     {
         if (powers.Count == 3)
@@ -117,38 +133,72 @@ public class Player
         powers.Add(power);
     }
 
+    /// <summary>
+    /// Resets the lsit of player's equipped powers.
+    /// </summary>
     public void ResetPowers()
     {
         powers = new();
     }
 
+    /// <summary>
+    /// Checks whether the player has a specific power.
+    /// </summary>
+    /// <param name="power">Power to check.</param>
+    /// <returns>Bool value of whether player has the power.</returns>
     public bool HasPower(Power power)
     {
         return powers.Contains(power);
     }
 
+    /// <summary>
+    /// Gets the index of the power in player's equipped power list.
+    /// </summary>
+    /// <param name="power">Specific power</param>
+    /// <returns>Index of the specific power.</returns>
     public int GetPowerIndex(Power power)
     {
         return powers.IndexOf(power);
     }
 
+    /// <summary>
+    /// Gets the power from equipped power list at a specific index.
+    /// </summary>
+    /// <param name="index">Index of the power</param>
+    /// <returns>Power at the index</returns>
     public Power GetPowerAtIndex(int index)
     {
         return powers[index];
     }
 
+    /// <summary>
+    /// List that contains all powers currently on cooldown
+    /// </summary>
     private List<Power> powersOnCooldown = new();
 
+    /// <summary>
+    /// Puts the power on the powers on cooldown list.
+    /// </summary>
+    /// <param name="power">The power to put on the cooldown</param>
     public void PutPowerOnCooldown(Power power)
     {
         powersOnCooldown.Add(power);
     }
 
+    /// <summary>
+    /// Removes the power from the powers on cooldown list.
+    /// </summary>
+    /// <param name="power">The power to put off the cooldown</param>
     public void PutPowerOffCooldown(Power power)
     {
         powersOnCooldown.Remove(power);
     }
 
+    /// <summary>
+    /// Checks whether the power is currenly on cooldown.
+    /// </summary>
+    /// <param name="power">Power to check</param>
+    /// <returns>Bool value of whether the power is currenly on cooldown</returns>
     public bool IsPowerOnCooldown(Power power)
     {
         return powersOnCooldown.Contains(power);
@@ -378,6 +428,24 @@ public class Player
     public void ClearGridTilesCorrectlyOccupied()
     {
         gridTilesCorrectlyOccupied = new();
+    }
+
+    // -----------------------------------------------------------------------
+    // SnappingToGrid
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Flag that determines whether player's puzzle tiles will snap to grid.
+    /// </summary>
+    private bool snapToGridEnabled = true;
+
+    /// <summary>
+    /// Gets or sets the flag that determines whether player's puzzle tiles will snap to grid.
+    /// </summary>
+    public bool SnapToGridEnabled
+    {
+        get { return snapToGridEnabled; }
+        set { snapToGridEnabled = value; }
     }
 
     // -----------------------------------------------------------------------
