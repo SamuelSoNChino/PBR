@@ -122,7 +122,7 @@ public class PeekManager : NetworkBehaviour
             puzzleManager.DisableTileMovement(userPlayer);
             puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
 
-            int targetClientBackgroundId = playerManager.FindPlayerByClientId(targetPlayer.ClientId).BackgroundSkinId;
+            int targetClientBackgroundId = targetPlayer.BackgroundSkinId;
             backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, targetClientBackgroundId);
 
             bool targetAlsoPeeking = userPlayers.Contains(targetPlayer);
@@ -140,8 +140,13 @@ public class PeekManager : NetworkBehaviour
                 }
             }
 
+
+
             UpdatePeekIndicator(userPlayer);
-            UpdatePeekIndicator(targetPlayer);
+            if (!userPlayer.HasPower("Secret Peek"))
+            {
+                UpdatePeekIndicator(targetPlayer);
+            }
 
             StartPeekRoutineUserRpc(userPlayer.ClientId, targetPlayer.Name);
         }
@@ -179,13 +184,17 @@ public class PeekManager : NetworkBehaviour
                 }
             }
 
-            UpdatePeekIndicator(targetPlayer);
             UpdatePeekIndicator(userPlayer);
+            if (!userPlayer.HasPower("Secret Peek"))
+            {
+                UpdatePeekIndicator(targetPlayer);
+            }
+            
 
             puzzleManager.SetOtherClientsPositions(userPlayer, userPlayer);
             puzzleManager.EnableTileMovement(userPlayer);
 
-            int userOriginalBackground = playerManager.FindPlayerByClientId(userPlayer.ClientId).BackgroundSkinId;
+            int userOriginalBackground = userPlayer.BackgroundSkinId;
             backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, userOriginalBackground);
 
             StopPeekRoutineUserRpc(userPlayer.ClientId);
@@ -307,7 +316,7 @@ public class PeekManager : NetworkBehaviour
 
         foreach (Player peekingPlayer in GetPeekersOfTarget(player))
         {
-            if (!peekingPlayer.HasPower(powerManager.FindPowerByName("Secret Peek")))
+            if (!peekingPlayer.HasPower("Secret Peek"))
             {
                 playerBeingVisiblyPeeked = true;
                 break;
@@ -365,6 +374,27 @@ public class PeekManager : NetworkBehaviour
             }
         }
         return peekers;
+    }
+
+    public void InitializeUnpeekablePlayers()
+    {
+        List<Player> defaultlyUnpeekablePlayers = new();
+        foreach (Player player in playerManager.GetAllPlayers())
+        {
+            if (player.HasPower("Solo Leveling"))
+            {
+                defaultlyUnpeekablePlayers.Add(player);
+            }
+        }
+
+        foreach (Player player1 in playerManager.GetAllPlayers())
+        {
+            player1.AddUnpeekablePlayer(player1);
+            foreach (Player unpeekablePlayer in defaultlyUnpeekablePlayers)
+            {
+                player1.AddUnpeekablePlayer(unpeekablePlayer);
+            }
+        }
     }
 
     /// <summary>
