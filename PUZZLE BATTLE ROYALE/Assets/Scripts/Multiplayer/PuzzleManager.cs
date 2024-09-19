@@ -39,6 +39,7 @@ public class PuzzleManager : NetworkBehaviour
     /// Manages the peeking functionality.
     /// </summary>
     [SerializeField] private PeekManager peekManager;
+    [SerializeField] private PowerManager powerManager;
 
     // -----------------------------------------------------------------------
     // Tile IDs
@@ -710,7 +711,7 @@ public class PuzzleManager : NetworkBehaviour
 
         player.Progress = progress;
 
-        if (progressChanged)
+        if (progressChanged && !player.HasPower("Solo Leveling"))
         {
             leaderboardManager.UpdateRanking(player);
         }
@@ -720,7 +721,7 @@ public class PuzzleManager : NetworkBehaviour
 
     /// <summary>
     /// Updates the progress text display for the player using RPC.
-    /// </summary>
+    /// </summary> 
     /// <param name="clientId">The ID of the client to update.</param>
     /// <param name="progress">The progress percentage to display.</param>
     [Rpc(SendTo.ClientsAndHost)]
