@@ -152,6 +152,23 @@ public class Player
     }
 
     /// <summary>
+    /// Checks whether the player has a specific power by name.
+    /// </summary>
+    /// <param name="powerName">The name of the power to check.</param>
+    /// <returns>Bool value of whether player has the power.</returns>
+    public bool HasPower(string powerName)
+    {
+        foreach (Power power in powers)
+        {
+            if (power.Name == powerName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Gets the index of the power in player's equipped power list.
     /// </summary>
     /// <param name="power">Specific power</param>
@@ -506,5 +523,32 @@ public class Player
     {
         get { return peekExitOnCooldown; }
         set { peekExitOnCooldown = value; }
+    }
+
+    private List<Player> unpeekablePlayers = new();
+
+    public List<Player> UnpeekablePlayers
+    {
+        get { return unpeekablePlayers; }
+    }
+
+    public bool CanPeekOnPlayer(Player player)
+    {
+        return !unpeekablePlayers.Contains(player);
+    }
+
+    public void AddUnpeekablePlayer(Player player)
+    {
+        unpeekablePlayers.Add(player);
+    }
+
+    public void RemoveUnpeekablePlayer(Player player)
+    {
+        unpeekablePlayers.Remove(player);
+    }
+
+    public void ResetUnpeekablePlayers()
+    {
+        unpeekablePlayers = new();
     }
 }
