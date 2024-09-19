@@ -35,7 +35,8 @@ public class LoadoutManager : MonoBehaviour
         new TornadoPower(),
         new SecretPeekPower(),
         new ShieldPower(),
-        new SlipperyGridPower()
+        new SlipperyGridPower(),
+        new SoloLevelingPower(),
     };
 
     /// <summary>
