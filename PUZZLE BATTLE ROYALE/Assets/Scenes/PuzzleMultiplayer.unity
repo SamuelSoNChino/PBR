@@ -1538,15 +1538,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerManager: {fileID: 1562048576}
   peekManager: {fileID: 1832081630}
-  profilePicturesSprites:
+  profilePictureSprites:
   - {fileID: 21300000, guid: 08010bddd05c24d46a4edcce6f78b5dc, type: 3}
+  - {fileID: 21300000, guid: 4c69b05257d57514fa9d1ebe4625e914, type: 3}
   - {fileID: 21300000, guid: 8904cdec1e255b14b8ebcc0b196e38a2, type: 3}
   - {fileID: 21300000, guid: 8f845315ec400e942aa8eaa177d37e6b, type: 3}
-  - {fileID: 21300000, guid: 4c69b05257d57514fa9d1ebe4625e914, type: 3}
-  playerContainer: {fileID: 1300087958}
+  leaderboardEntryContainer: {fileID: 1300087958}
   leaderboardEntryPrefab: {fileID: 1376170745827451205, guid: 4d4921a9ce1ae3c4ba90b8cd6059ac34, type: 3}
-  hideButtonPrefab: {fileID: 8582207394649753148, guid: 5b2dcb2a034cdc0488745225d88eccb3, type: 3}
-  showButtonPrefab: {fileID: 522959341510704913, guid: 45158e494e5dfcc44baabd434c05f34b, type: 3}
+  hideLeaderboardButtonPrefab: {fileID: 8582207394649753148, guid: 5b2dcb2a034cdc0488745225d88eccb3, type: 3}
+  showLeaderboardButtonPrefab: {fileID: 522959341510704913, guid: 45158e494e5dfcc44baabd434c05f34b, type: 3}
 --- !u!114 &447961153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3502,7 +3502,7 @@ GameObject:
   - component: {fileID: 1300087960}
   - component: {fileID: 1300087962}
   m_Layer: 5
-  m_Name: PlayerContainer
+  m_Name: LeaderboardEntryContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
