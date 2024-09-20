@@ -56,7 +56,14 @@ public class MultiplayerManager : NetworkBehaviour
     /// </summary>
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
 
+    /// <summary>
+    /// Reference to the PowerManager script.
+    /// </summary>
     [SerializeField] private PowerManager powerManager;
+
+    /// <summary>
+    /// Reference to the PeekManager script.
+    /// </summary>
     [SerializeField] private PeekManager peekManager;
 
     /// <summary>
