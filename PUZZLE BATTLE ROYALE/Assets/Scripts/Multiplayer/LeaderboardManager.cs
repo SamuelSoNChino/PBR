@@ -50,14 +50,13 @@ public class LeaderboardManager : NetworkBehaviour
 
         foreach (Player player in playerManager.GetAllPlayers())
         {
-            var (profilePictureIds, clientIds, playerNames, unpeekableClientIds) = SerializePlayerDataForPlayer(player);
-            
+            var (profilePictureIds, clientIds, playerNames) = SerializePlayerDataForPlayer(player);
+
             UpdatePlayerLeaderboardRpc(
                 player.ClientId,
                 profilePictureIds,
                 clientIds,
                 playerNames,
-                unpeekableClientIds,
                 rankedPlayers.IndexOf(player),
                 numberOfUnrankedPlayers
             );
@@ -94,13 +93,12 @@ public class LeaderboardManager : NetworkBehaviour
 
         foreach (Player otherPlayer in playerManager.GetAllPlayers())
         {
-            var (profilePictureIds, clientIds, playerNames, unpeekableClientIds) = SerializePlayerDataForPlayer(otherPlayer);
+            var (profilePictureIds, clientIds, playerNames) = SerializePlayerDataForPlayer(otherPlayer);
             UpdatePlayerLeaderboardRpc(
                 otherPlayer.ClientId,
                 profilePictureIds,
                 clientIds,
                 playerNames,
-                unpeekableClientIds,
                 rankedPlayers.IndexOf(otherPlayer),
                 numberOfUnrankedPlayers
             );
@@ -112,32 +110,25 @@ public class LeaderboardManager : NetworkBehaviour
     /// This includes profile pictures, player names, and client IDs.
     /// </summary>
     /// <param name="targetPlayer">The player requesting the data.</param>
-    /// <returns>Serialized strings of profile pictures, client IDs, player names, and unpeekable client IDs.</returns>
-    private (string profilePictureIds, string clientIds, string playerNames, string unpeekableClientIds)
+    /// <returns>Serialized strings of profile pictures, client IDs, player names.</returns>
+    private (string profilePictureIds, string clientIds, string playerNames)
         SerializePlayerDataForPlayer(Player targetPlayer)
     {
         List<int> profilePictureIds = new();
         List<ulong> clientIds = new();
         List<string> playerNames = new();
-        List<ulong> unpeekableClientIds = new();
 
         foreach (Player player in rankedPlayers)
         {
             profilePictureIds.Add(player.ProfilePictureId);
             clientIds.Add(player.ClientId);
             playerNames.Add(player.Name);
-
-            if (!targetPlayer.CanPeekOnPlayer(player))
-            {
-                unpeekableClientIds.Add(player.ClientId);
-            }
         }
 
         return (
             string.Join(",", profilePictureIds),
             string.Join(",", clientIds),
-            string.Join(",", playerNames),
-            string.Join(",", unpeekableClientIds)
+            string.Join(",", playerNames)
         );
     }
 
@@ -196,11 +187,6 @@ public class LeaderboardManager : NetworkBehaviour
     private string[] receivedPlayerNames;
 
     /// <summary>
-    /// Array of client IDs that are unpeekable by the local player.
-    /// </summary>
-    private string[] unpeekableClientIds;
-
-    /// <summary>
     /// The local player's rank in the leaderboard.
     /// </summary>
     private int localPlayerRank;
@@ -224,6 +210,27 @@ public class LeaderboardManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// Array of client IDs that are unpeekable by the local player.
+    /// </summary>
+    private string[] unpeekableClientIds;
+
+    /// <summary>
+    /// Updates the list of unpeekable players and refreshes the leaderboard if initialized.
+    /// </summary>
+    /// <param name="newUnpeekableClientIds">Array of client IDs that are unpeekable.</param>
+
+    public void UpdateUnpeekablePlayers(string[] newUnpeekableClientIds)
+    {
+        unpeekableClientIds = newUnpeekableClientIds;
+
+        // To avoid refreshing before initializing the leaderboard
+        if (receivedClientIds != null)
+        {
+            RefreshLeaderboard();
+        }
+    }
+
+    /// <summary>
     /// RPC method to update the leaderboard for the specified client.
     /// This method is sent from the server to the client.
     /// </summary>
@@ -231,16 +238,15 @@ public class LeaderboardManager : NetworkBehaviour
     /// <param name="profilePictureIds">Serialized profile picture IDs.</param>
     /// <param name="clientIds">Serialized client IDs.</param>
     /// <param name="playerNames">Serialized player names.</param>
-    /// <param name="unpeekableClientIds">Serialized IDs of players that can't be peeked.</param>
     /// <param name="playerRank">The player's rank on the leaderboard.</param>
     /// <param name="unrankedPlayerCount">The number of unranked players.</param>
+
     [Rpc(SendTo.ClientsAndHost)]
     public void UpdatePlayerLeaderboardRpc(
         ulong clientId,
         string profilePictureIds,
         string clientIds,
         string playerNames,
-        string unpeekableClientIds,
         int playerRank,
         int unrankedPlayerCount)
     {
@@ -249,7 +255,6 @@ public class LeaderboardManager : NetworkBehaviour
             receivedProfilePictureIds = profilePictureIds.Split(",");
             receivedClientIds = clientIds.Split(",");
             receivedPlayerNames = playerNames.Split(",");
-            this.unpeekableClientIds = unpeekableClientIds.Split(",");
             localPlayerRank = playerRank;
             receivedUnrankedPlayerCount = unrankedPlayerCount;
 
@@ -342,7 +347,7 @@ public class LeaderboardManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Sets the color of a button in the UI.
+    /// Sets the color of the given button to the specified color.
     /// </summary>
     /// <param name="button">The button whose color will be set.</param>
     /// <param name="color">The color to apply to the button.</param>
