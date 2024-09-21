@@ -152,6 +152,23 @@ public class Player
     }
 
     /// <summary>
+    /// Checks whether the player has a specific power by name.
+    /// </summary>
+    /// <param name="powerName">The name of the power to check.</param>
+    /// <returns>Bool value of whether player has the power.</returns>
+    public bool HasPower(string powerName)
+    {
+        foreach (Power power in powers)
+        {
+            if (power.Name == powerName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Gets the index of the power in player's equipped power list.
     /// </summary>
     /// <param name="power">Specific power</param>
@@ -481,30 +498,65 @@ public class Player
     }
 
     /// <summary>
-    /// Value of whether the player's peek use is on cooldown.
-    /// </summary>
-    private bool peekUseOnCooldown = false;
-
-    /// <summary>
-    /// Gets or sets the value of whether the player's peek use is on cooldown.
-    /// </summary>
-    public bool PeekUseOnCooldown
-    {
-        get { return peekUseOnCooldown; }
-        set { peekUseOnCooldown = value; }
-    }
-
-    /// <summary>
-    /// Value of whether the player's peek exit is on cooldown.
+    /// The value of whether the player can exit peeking by using either sotp button or peeking at otehr players.
     /// </summary>
     private bool peekExitOnCooldown = false;
 
     /// <summary>
-    /// Gets or sets the value of whether the player's peek exit is on cooldown.
+    /// Gets or sets the value of whether the player can exit peeking by using either stop button or peeking at other players.
     /// </summary>
     public bool PeekExitOnCooldown
     {
         get { return peekExitOnCooldown; }
         set { peekExitOnCooldown = value; }
+    }
+
+    /// <summary>
+    /// List of players this player can't peek on (either due to cooldown or powers).
+    /// </summary>
+    private List<Player> unpeekablePlayers = new();
+
+    /// <summary>
+    /// Gets the list of players this player can't peek on (either due to cooldown or powers).
+    /// </summary>
+    public List<Player> UnpeekablePlayers
+    {
+        get { return unpeekablePlayers; }
+    }
+
+    /// <summary>
+    /// Determines if the player can peek on the specified player.
+    /// </summary>
+    /// <param name="player">The player to check if peeking is allowed.</param>
+    /// <returns>True if the player can peek, false otherwise.</returns>
+    public bool CanPeekOnPlayer(Player player)
+    {
+        return !unpeekablePlayers.Contains(player);
+    }
+
+    /// <summary>
+    /// Adds a player to the list of players that cannot be peeked on.
+    /// </summary>
+    /// <param name="player">The player to add to the unpeekable list.</param>
+    public void AddUnpeekablePlayer(Player player)
+    {
+        unpeekablePlayers.Add(player);
+    }
+
+    /// <summary>
+    /// Removes a player from the list of players that cannot be peeked on.
+    /// </summary>
+    /// <param name="player">The player to remove from the unpeekable list.</param>
+    public void RemoveUnpeekablePlayer(Player player)
+    {
+        unpeekablePlayers.Remove(player);
+    }
+
+    /// <summary>
+    /// Resets the list of unpeekable players, making all players peekable again.
+    /// </summary>
+    public void ResetUnpeekablePlayers()
+    {
+        unpeekablePlayers = new();
     }
 }

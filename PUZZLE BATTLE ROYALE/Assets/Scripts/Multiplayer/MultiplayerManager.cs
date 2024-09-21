@@ -56,7 +56,15 @@ public class MultiplayerManager : NetworkBehaviour
     /// </summary>
     [SerializeField] private EndScreenManagerMultiplayer endScreenManagerMultiplayer;
 
+    /// <summary>
+    /// Reference to the PowerManager script.
+    /// </summary>
     [SerializeField] private PowerManager powerManager;
+
+    /// <summary>
+    /// Reference to the PeekManager script.
+    /// </summary>
+    [SerializeField] private PeekManager peekManager;
 
     /// <summary>
     /// Number of tiles of the puzzle.
@@ -374,14 +382,15 @@ public class MultiplayerManager : NetworkBehaviour
 
         backgroundManager.SetAllClientsDefaultBackgrounds();
 
-        leaderboardManager.InitializeRanking();
-
         // There needs to be a small buffer for the time all the clients to send their powers to the server before initializing power buttons
         powerManager.RequestEquippedPowersFromAllPlayersRpc();
         TaskCompletionSource<bool> bufferForCommunication = new();
         StartCoroutine(StartTimer(bufferForCommunication, 2));
         yield return new WaitUntil(() => bufferForCommunication.Task.IsCompleted);
         powerManager.InitializePowerButtonsForAllPlayers();
+
+        peekManager.InitializeUnpeekablePlayers();
+        leaderboardManager.InitializeRanking();
 
         yield return new WaitUntil(() => countdownFinished.Task.IsCompleted);
 

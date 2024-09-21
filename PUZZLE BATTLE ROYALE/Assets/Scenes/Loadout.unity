@@ -514,10 +514,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1080, y: 2160}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -1566,6 +1566,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 735b2bf9a7a6e554a92f6722c1172973, type: 3}
   - {fileID: 21300000, guid: 8af5a4d4c468b1847abf7c689613258e, type: 3}
   - {fileID: 21300000, guid: f9c744fae50bd4d468753a465f274e96, type: 3}
+  - {fileID: 21300000, guid: ee2e29744116ad144b3ce796758a2ebb, type: 3}
   numberOfPlayersSlider: {fileID: 2130026760}
   powerEntryButtonPrefab: {fileID: 4280504018479648045, guid: 7f2638a9947b0024780764703fa43371, type: 3}
   powerButtons: {fileID: 1291344591}

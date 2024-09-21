@@ -35,7 +35,8 @@ public class PowerManager : NetworkBehaviour
         new TornadoPower(),
         new SecretPeekPower(),
         new ShieldPower(),
-        new SlipperyGridPower()
+        new SlipperyGridPower(),
+        new SoloLevelingPower()
     };
 
     /// <summary>

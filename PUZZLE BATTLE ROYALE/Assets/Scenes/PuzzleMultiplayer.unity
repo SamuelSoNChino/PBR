@@ -995,6 +995,7 @@ MonoBehaviour:
   startScreenManagerMultiplayer: {fileID: 557488105}
   endScreenManagerMultiplayer: {fileID: 972601263}
   powerManager: {fileID: 1773418431}
+  peekManager: {fileID: 1832081630}
   numberOfTiles: 3
 --- !u!4 &368472933
 Transform:
@@ -1537,15 +1538,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerManager: {fileID: 1562048576}
   peekManager: {fileID: 1832081630}
-  profilePicturesSprites:
+  profilePictureSprites:
   - {fileID: 21300000, guid: 08010bddd05c24d46a4edcce6f78b5dc, type: 3}
+  - {fileID: 21300000, guid: 4c69b05257d57514fa9d1ebe4625e914, type: 3}
   - {fileID: 21300000, guid: 8904cdec1e255b14b8ebcc0b196e38a2, type: 3}
   - {fileID: 21300000, guid: 8f845315ec400e942aa8eaa177d37e6b, type: 3}
-  - {fileID: 21300000, guid: 4c69b05257d57514fa9d1ebe4625e914, type: 3}
-  playerContainer: {fileID: 1300087958}
+  leaderboardEntryContainer: {fileID: 1300087958}
   leaderboardEntryPrefab: {fileID: 1376170745827451205, guid: 4d4921a9ce1ae3c4ba90b8cd6059ac34, type: 3}
-  hideButtonPrefab: {fileID: 8582207394649753148, guid: 5b2dcb2a034cdc0488745225d88eccb3, type: 3}
-  showButtonPrefab: {fileID: 522959341510704913, guid: 45158e494e5dfcc44baabd434c05f34b, type: 3}
+  hideLeaderboardButtonPrefab: {fileID: 8582207394649753148, guid: 5b2dcb2a034cdc0488745225d88eccb3, type: 3}
+  showLeaderboardButtonPrefab: {fileID: 522959341510704913, guid: 45158e494e5dfcc44baabd434c05f34b, type: 3}
 --- !u!114 &447961153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2187,6 +2188,7 @@ MonoBehaviour:
   multiplayerManager: {fileID: 368472932}
   panZoom: {fileID: 1619521031}
   peekManager: {fileID: 1832081630}
+  powerManager: {fileID: 0}
   leaderboardManager: {fileID: 447961152}
   topRightShuffleBound: {x: 1000, y: 0, z: 0}
   bottomLeftShuffleBound: {x: 0, y: -1000, z: 0}
@@ -3500,7 +3502,7 @@ GameObject:
   - component: {fileID: 1300087960}
   - component: {fileID: 1300087962}
   m_Layer: 5
-  m_Name: PlayerContainer
+  m_Name: LeaderboardEntryContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4668,6 +4670,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 735b2bf9a7a6e554a92f6722c1172973, type: 3}
   - {fileID: 21300000, guid: 8af5a4d4c468b1847abf7c689613258e, type: 3}
   - {fileID: 21300000, guid: f9c744fae50bd4d468753a465f274e96, type: 3}
+  - {fileID: 21300000, guid: ee2e29744116ad144b3ce796758a2ebb, type: 3}
   powerButtons: {fileID: 551699696}
   peekManager: {fileID: 1832081630}
 --- !u!4 &1773418432

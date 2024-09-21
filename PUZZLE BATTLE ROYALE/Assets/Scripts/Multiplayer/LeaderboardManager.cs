@@ -15,96 +15,121 @@ public class LeaderboardManager : NetworkBehaviour
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Reference to the PlayerManager to access player data.
+    /// Reference to the PlayerManager which handles all player-related operations.
     /// </summary>
     [SerializeField] private PlayerManager playerManager;
 
     /// <summary>
-    /// List that stores the current ranking of players.
+    /// List that stores the current ranking of players based on their progress.
     /// </summary>
-    private List<Player> ranking = new();
+    private List<Player> rankedPlayers = new();
 
     /// <summary>
-    /// Initializes the ranking by populating the leaderboard with all players.
+    /// Keeps track of the number of unranked players.
+    /// </summary>
+    private int numberOfUnrankedPlayers = 0;
+
+    /// <summary>
+    /// Initializes the ranking by adding players to the leaderboard.
+    /// Players with "Solo Leveling" power are handled differently.
     /// </summary>
     public void InitializeRanking()
     {
         foreach (Player player in playerManager.GetAllPlayers())
         {
-            ranking.Add(player);
+            if (player.HasPower("Solo Leveling"))
+            {
+                rankedPlayers.Add(player);
+                numberOfUnrankedPlayers++;
+            }
+            else
+            {
+                rankedPlayers.Insert(rankedPlayers.Count - numberOfUnrankedPlayers, player);
+            }
         }
 
-        List<int> profilePictureIds = new();
-        List<ulong> clientIdsInOrder = new();
-        List<string> playerNamesInOrder = new();
-        List<ulong> unpeekableClientIds = new();
-
-        foreach (Player player2 in ranking)
+        foreach (Player player in playerManager.GetAllPlayers())
         {
-            profilePictureIds.Add(player2.ProfilePictureId);
-            clientIdsInOrder.Add(player2.ClientId);
-            playerNamesInOrder.Add(player2.Name);
-        }
+            var (profilePictureIds, clientIds, playerNames) = SerializePlayerDataForPlayer(player);
 
-        string serializedProfilePictureIds = string.Join(",", profilePictureIds);
-        string serializedClientIdsInOrder = string.Join(",", clientIdsInOrder);
-        string serializedplayerNamesInOrder = string.Join(",", playerNamesInOrder);
-        string serializedUnpeekableClientIdsInOrder = string.Join(",", unpeekableClientIds);
-
-        foreach (Player player1 in playerManager.GetAllPlayers())
-        {
-            UpdatePlayerLeaderboardRpc(player1.ClientId, serializedProfilePictureIds, serializedClientIdsInOrder, serializedplayerNamesInOrder, serializedUnpeekableClientIdsInOrder, ranking.IndexOf(player1));
+            UpdatePlayerLeaderboardRpc(
+                player.ClientId,
+                profilePictureIds,
+                clientIds,
+                playerNames,
+                rankedPlayers.IndexOf(player),
+                numberOfUnrankedPlayers
+            );
         }
     }
 
     /// <summary>
-    /// Updates the ranking of a player and refreshes the leaderboard accordingly.
+    /// Updates the ranking of a specific player by comparing their progress with other players.
     /// </summary>
-    /// <param name="player">The player whose ranking needs to be updated.</param>
+    /// <param name="player">The player whose rank needs to be updated.</param>
     public void UpdateRanking(Player player)
     {
-        int currentRank = ranking.IndexOf(player);
-        ranking.RemoveAt(currentRank);
+        int currentRank = rankedPlayers.IndexOf(player);
+        rankedPlayers.RemoveAt(currentRank);
 
-        bool isLast = true;
+        bool placedAtEnd = true;
 
-        for (int i = 0; i < ranking.Count; i++)
+        // Insert player at the correct rank based on their progress
+        for (int i = 0; i < rankedPlayers.Count - numberOfUnrankedPlayers; i++)
         {
-            Player comparedPlayer = ranking[i];
+            Player comparedPlayer = rankedPlayers[i];
             if (player.Progress > comparedPlayer.Progress)
             {
-                isLast = false;
-                ranking.Insert(i, player);
+                placedAtEnd = false;
+                rankedPlayers.Insert(i, player);
                 break;
             }
         }
 
-        if (isLast)
+        if (placedAtEnd)
         {
-            ranking.Add(player);
+            rankedPlayers.Insert(rankedPlayers.Count - numberOfUnrankedPlayers, player);
         }
 
+        foreach (Player otherPlayer in playerManager.GetAllPlayers())
+        {
+            var (profilePictureIds, clientIds, playerNames) = SerializePlayerDataForPlayer(otherPlayer);
+            UpdatePlayerLeaderboardRpc(
+                otherPlayer.ClientId,
+                profilePictureIds,
+                clientIds,
+                playerNames,
+                rankedPlayers.IndexOf(otherPlayer),
+                numberOfUnrankedPlayers
+            );
+        }
+    }
+
+    /// <summary>
+    /// Serializes the necessary player data for the leaderboard display.
+    /// This includes profile pictures, player names, and client IDs.
+    /// </summary>
+    /// <param name="targetPlayer">The player requesting the data.</param>
+    /// <returns>Serialized strings of profile pictures, client IDs, player names.</returns>
+    private (string profilePictureIds, string clientIds, string playerNames)
+        SerializePlayerDataForPlayer(Player targetPlayer)
+    {
         List<int> profilePictureIds = new();
-        List<ulong> clientIdsInOrder = new();
-        List<string> playerNamesInOrder = new();
-        List<ulong> unpeekableClientIds = new();
+        List<ulong> clientIds = new();
+        List<string> playerNames = new();
 
-        foreach (Player player2 in ranking)
+        foreach (Player player in rankedPlayers)
         {
-            profilePictureIds.Add(player2.ProfilePictureId);
-            clientIdsInOrder.Add(player2.ClientId);
-            playerNamesInOrder.Add(player2.Name);
+            profilePictureIds.Add(player.ProfilePictureId);
+            clientIds.Add(player.ClientId);
+            playerNames.Add(player.Name);
         }
 
-        string serializedProfilePictureIds = string.Join(",", profilePictureIds);
-        string serializedClientIdsInOrder = string.Join(",", clientIdsInOrder);
-        string serializedplayerNamesInOrder = string.Join(",", playerNamesInOrder);
-        string serializedUnpeekableClientIdsInOrder = string.Join(",", unpeekableClientIds);
-
-        foreach (Player player1 in playerManager.GetAllPlayers())
-        {
-            UpdatePlayerLeaderboardRpc(player1.ClientId, serializedProfilePictureIds, serializedClientIdsInOrder, serializedplayerNamesInOrder, serializedUnpeekableClientIdsInOrder, ranking.IndexOf(player1));
-        }
+        return (
+            string.Join(",", profilePictureIds),
+            string.Join(",", clientIds),
+            string.Join(",", playerNames)
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -112,72 +137,72 @@ public class LeaderboardManager : NetworkBehaviour
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Reference to the PeekManager to handle peek actions.
+    /// Manages the peeking functionality between players on the leaderboard.
     /// </summary>
     [SerializeField] private PeekManager peekManager;
 
     /// <summary>
-    /// List of available profile picture sprites to display in the leaderboard.
+    /// List of available profile picture sprites that can be displayed on the leaderboard.
     /// </summary>
-    [SerializeField] private List<Sprite> profilePicturesSprites;
+    [SerializeField] private List<Sprite> profilePictureSprites;
 
     /// <summary>
-    /// The parent container that holds the leaderboard entries.
+    /// Container that holds the leaderboard entries in the UI.
     /// </summary>
-    [SerializeField] private GameObject playerContainer;
+    [SerializeField] private GameObject leaderboardEntryContainer;
 
     /// <summary>
-    /// The prefab used to create each leaderboard entry.
+    /// Prefab for creating individual leaderboard entries in the UI.
     /// </summary>
     [SerializeField] private GameObject leaderboardEntryPrefab;
 
     /// <summary>
-    /// The button to hide the detailed leaderboard.
+    /// Prefab for the button used to hide the long-form leaderboard.
     /// </summary>
-    [SerializeField] private GameObject hideButtonPrefab;
+    [SerializeField] private GameObject hideLeaderboardButtonPrefab;
 
     /// <summary>
-    /// The button to show the detailed leaderboard.
+    /// Prefab for the button used to show the long-form leaderboard.
     /// </summary>
-    [SerializeField] private GameObject showButtonPrefab;
+    [SerializeField] private GameObject showLeaderboardButtonPrefab;
 
     /// <summary>
-    /// Indicates whether the long-form leaderboard (detailed) is shown.
+    /// Boolean flag to indicate whether the long-form leaderboard is shown.
     /// </summary>
-    private bool longFormLeaderboard = false;
+    private bool isLongFormLeaderboardShown = false;
 
     /// <summary>
     /// Array of profile picture IDs received from the server.
     /// </summary>
-    private string[] profilePictureIdsFromServer;
+    private string[] receivedProfilePictureIds;
 
     /// <summary>
     /// Array of client IDs received from the server.
     /// </summary>
-    private string[] clientIdsFromServer;
+    private string[] receivedClientIds;
 
     /// <summary>
     /// Array of player names received from the server.
     /// </summary>
-    private string[] playerNamesFromSever;
+    private string[] receivedPlayerNames;
 
     /// <summary>
-    /// Array of client IDs that cannot be peeked, received from the server.
+    /// The local player's rank in the leaderboard.
     /// </summary>
-    private string[] unpeekableCliendIdsFromServer;
+    private int localPlayerRank;
 
     /// <summary>
-    /// Stores the current rank of the local player.
+    /// The number of unranked players in the received data.
     /// </summary>
-    private int myCurrentRank;
+    private int receivedUnrankedPlayerCount;
 
     /// <summary>
-    /// Indicates whether all peek buttons should be disabled.
+    /// Boolean flag to disable all peek buttons on the leaderboard.
     /// </summary>
     private bool disableAllPeekButtons = false;
 
     /// <summary>
-    /// Sets whether all peek buttons should be disabled.
+    /// Property to set the disable state of all peek buttons.
     /// </summary>
     public bool DisableAllPeekButtons
     {
@@ -185,134 +210,162 @@ public class LeaderboardManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// RPC method that updates the leaderboard for the specified client.
+    /// Array of client IDs that are unpeekable by the local player.
     /// </summary>
-    /// <param name="clientId">The client ID of the player to update the leaderboard for.</param>
-    /// <param name="serializedProfilePictureIds">Serialized string of profile picture IDs.</param>
-    /// <param name="serializedClientIdsInOrder">Serialized string of client IDs.</param>
-    /// <param name="serializedplayerNamesInOrder">Serialized string of player names.</param>
-    /// <param name="serializedUnpeekableClientIdsInOrder">Serialized string of unpeekable client IDs.</param>
-    /// <param name="playerRank">The rank of the player.</param>
+    private string[] unpeekableClientIds;
+
+    /// <summary>
+    /// Updates the list of unpeekable players and refreshes the leaderboard if initialized.
+    /// </summary>
+    /// <param name="newUnpeekableClientIds">Array of client IDs that are unpeekable.</param>
+
+    public void UpdateUnpeekablePlayers(string[] newUnpeekableClientIds)
+    {
+        unpeekableClientIds = newUnpeekableClientIds;
+
+        // To avoid refreshing before initializing the leaderboard
+        if (receivedClientIds != null)
+        {
+            RefreshLeaderboard();
+        }
+    }
+
+    /// <summary>
+    /// RPC method to update the leaderboard for the specified client.
+    /// This method is sent from the server to the client.
+    /// </summary>
+    /// <param name="clientId">The client ID of the target player.</param>
+    /// <param name="profilePictureIds">Serialized profile picture IDs.</param>
+    /// <param name="clientIds">Serialized client IDs.</param>
+    /// <param name="playerNames">Serialized player names.</param>
+    /// <param name="playerRank">The player's rank on the leaderboard.</param>
+    /// <param name="unrankedPlayerCount">The number of unranked players.</param>
+
     [Rpc(SendTo.ClientsAndHost)]
-    public void UpdatePlayerLeaderboardRpc(ulong clientId, string serializedProfilePictureIds, string serializedClientIdsInOrder, string serializedplayerNamesInOrder, string serializedUnpeekableClientIdsInOrder, int playerRank)
+    public void UpdatePlayerLeaderboardRpc(
+        ulong clientId,
+        string profilePictureIds,
+        string clientIds,
+        string playerNames,
+        int playerRank,
+        int unrankedPlayerCount)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            profilePictureIdsFromServer = serializedProfilePictureIds.Split(",");
-            clientIdsFromServer = serializedClientIdsInOrder.Split(",");
-            playerNamesFromSever = serializedplayerNamesInOrder.Split(",");
-            unpeekableCliendIdsFromServer = serializedUnpeekableClientIdsInOrder.Split(",");
-            myCurrentRank = playerRank;
+            receivedProfilePictureIds = profilePictureIds.Split(",");
+            receivedClientIds = clientIds.Split(",");
+            receivedPlayerNames = playerNames.Split(",");
+            localPlayerRank = playerRank;
+            receivedUnrankedPlayerCount = unrankedPlayerCount;
 
             RefreshLeaderboard();
         }
     }
 
     /// <summary>
-    /// Destroys all current leaderboard entries to prepare for a refresh.
+    /// Destroys all current leaderboard entries in the UI.
     /// </summary>
-    private void DestroyCurrentLeaderboard()
+    private void DestroyLeaderboardEntries()
     {
-        foreach (Transform child in playerContainer.transform)
+        foreach (Transform child in leaderboardEntryContainer.transform)
         {
             Destroy(child.gameObject);
         }
     }
 
     /// <summary>
-    /// Creates the long-form (detailed) leaderboard.
+    /// Creates the detailed (long-form) leaderboard, displaying all players' rankings.
     /// </summary>
     private void CreateLongFormLeaderboard()
     {
-        for (int i = 0; i < profilePictureIdsFromServer.Length; i++)
+        for (int i = 0; i < receivedProfilePictureIds.Length; i++)
         {
-            GameObject leaderboardEntry = Instantiate(leaderboardEntryPrefab);
-            leaderboardEntry.transform.SetParent(playerContainer.transform);
+            GameObject entry = Instantiate(leaderboardEntryPrefab, leaderboardEntryContainer.transform);
+            TextMeshProUGUI rankText = entry.transform.Find("RankingText").GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI nameText = entry.transform.Find("NameText").GetComponent<TextMeshProUGUI>();
 
-            TextMeshProUGUI leaderboardEntryRankingText = leaderboardEntry.transform.Find("RankingText").GetComponent<TextMeshProUGUI>();
-            TextMeshProUGUI leaderboardEntryNameText = leaderboardEntry.transform.Find("NameText").GetComponent<TextMeshProUGUI>();
-            if (i == myCurrentRank)
+            bool isUnranked = i >= receivedProfilePictureIds.Length - receivedUnrankedPlayerCount;
+            string rankDisplay = isUnranked ? "?" : $"{i + 1}.";
+
+            if (i == localPlayerRank)
             {
-                leaderboardEntryRankingText.text = $"<color=#ff0000>{i + 1}.</color>";
-                leaderboardEntryNameText.text = $"<color=#ff0000>You</color>";
+                rankText.text = $"<color=#ff0000>{rankDisplay}</color>";
+                nameText.text = $"<color=#ff0000>You</color>";
             }
             else
             {
-                leaderboardEntryRankingText.text = $"{i + 1}.";
-                leaderboardEntryNameText.text = playerNamesFromSever[i];
+                rankText.text = rankDisplay;
+                nameText.text = receivedPlayerNames[i];
             }
 
-            int profilePictureId = int.Parse(profilePictureIdsFromServer[i]);
-            Image leaderboardEntryImage = leaderboardEntry.transform.Find("ProfilePictureButton").GetComponent<Image>();
-            leaderboardEntryImage.sprite = profilePicturesSprites[profilePictureId];
+            int profilePicId = int.Parse(receivedProfilePictureIds[i]);
+            Image profilePicture = entry.transform.Find("ProfilePictureButton").GetComponent<Image>();
+            profilePicture.sprite = profilePictureSprites[profilePicId];
 
-            ulong clientId = ulong.Parse(clientIdsFromServer[i]);
-            Button leaderboardEntryButton = leaderboardEntry.transform.Find("ProfilePictureButton").GetComponent<Button>();
-            if (clientId != NetworkManager.Singleton.LocalClientId && !unpeekableCliendIdsFromServer.Contains(clientId.ToString()) && !disableAllPeekButtons)
+            string clientId = receivedClientIds[i];
+            Button profileButton = entry.transform.Find("ProfilePictureButton").GetComponent<Button>();
+
+            if (!unpeekableClientIds.Contains(clientId) && !disableAllPeekButtons)
             {
-                leaderboardEntryButton.onClick.AddListener(() => peekManager.Peek(clientId));
+                profileButton.onClick.AddListener(() => peekManager.Peek(ulong.Parse(clientId)));
             }
             else
             {
-                leaderboardEntryButton.interactable = false;
-
-                ColorBlock colorBlock = leaderboardEntryButton.colors;
-
-                Color disabledColor = colorBlock.disabledColor;
-                disabledColor.a = 1f;
-                disabledColor.r = 1f;
-                colorBlock.disabledColor = disabledColor;
-                leaderboardEntryButton.colors = colorBlock;
+                profileButton.interactable = false;
+                SetButtonColor(profileButton, Color.red);
             }
         }
-        GameObject hideButton = Instantiate(hideButtonPrefab);
-        hideButton.name = "HideButton";
-        hideButton.transform.SetParent(playerContainer.transform);
-        hideButton.GetComponent<Button>().onClick.AddListener(() => HideLongFormLeaderboard());
+
+        GameObject hideButton = Instantiate(hideLeaderboardButtonPrefab, leaderboardEntryContainer.transform);
+        hideButton.GetComponent<Button>().onClick.AddListener(HideLongFormLeaderboard);
     }
 
     /// <summary>
-    /// Creates the short-form (condensed) leaderboard, showing only the local player's ranking.
+    /// Creates the short-form leaderboard, showing only the local player's ranking.
     /// </summary>
     private void CreateShortFormLeaderboard()
     {
-        GameObject leaderboardEntry = Instantiate(leaderboardEntryPrefab);
-        leaderboardEntry.transform.SetParent(playerContainer.transform);
+        GameObject entry = Instantiate(leaderboardEntryPrefab, leaderboardEntryContainer.transform);
+        TextMeshProUGUI rankText = entry.transform.Find("RankingText").GetComponent<TextMeshProUGUI>();
+        bool isUnranked = localPlayerRank >= receivedProfilePictureIds.Length - receivedUnrankedPlayerCount;
+        rankText.text = isUnranked ? "<color=#ff0000>?</color>" : $"<color=#ff0000>{localPlayerRank + 1}.</color>";
 
-        TextMeshProUGUI leaderboardEntryText = leaderboardEntry.transform.Find("RankingText").GetComponent<TextMeshProUGUI>();
-        leaderboardEntryText.text = $"<color=#ff0000>{myCurrentRank + 1}.</color>";
+        TextMeshProUGUI nameText = entry.transform.Find("NameText").GetComponent<TextMeshProUGUI>();
+        nameText.text = "<color=#ff0000>You</color>";
 
-        TextMeshProUGUI leaderboardEntryNameText = leaderboardEntry.transform.Find("NameText").GetComponent<TextMeshProUGUI>();
-        leaderboardEntryNameText.text = $"<color=#ff0000>You</color>";
+        int profilePicId = int.Parse(receivedProfilePictureIds[localPlayerRank]);
+        Image profilePicture = entry.transform.Find("ProfilePictureButton").GetComponent<Image>();
+        profilePicture.sprite = profilePictureSprites[profilePicId];
 
-        int profilePictureId = int.Parse(profilePictureIdsFromServer[myCurrentRank]);
-        Image leaderboardEntryImage = leaderboardEntry.transform.Find("ProfilePictureButton").GetComponent<Image>();
-        leaderboardEntryImage.sprite = profilePicturesSprites[profilePictureId];
+        Button profileButton = entry.transform.Find("ProfilePictureButton").GetComponent<Button>();
+        profileButton.interactable = false;
 
-        Button leaderboardEntryButton = leaderboardEntry.transform.Find("ProfilePictureButton").GetComponent<Button>();
-        leaderboardEntryButton.interactable = false;
+        SetButtonColor(profileButton, Color.red);
 
-        ColorBlock colorBlock = leaderboardEntryButton.colors;
-        Color disabledColor = colorBlock.disabledColor;
-        disabledColor.a = 1f;
-        disabledColor.r = 1f;
-        colorBlock.disabledColor = disabledColor;
-        leaderboardEntryButton.colors = colorBlock;
-
-        GameObject showButton = Instantiate(showButtonPrefab);
-        showButton.name = "ShowButton";
-        showButton.transform.SetParent(playerContainer.transform);
-        showButton.GetComponent<Button>().onClick.AddListener(() => ShowLongFormLeaderboard());
+        GameObject showButton = Instantiate(showLeaderboardButtonPrefab, leaderboardEntryContainer.transform);
+        showButton.GetComponent<Button>().onClick.AddListener(ShowLongFormLeaderboard);
     }
 
     /// <summary>
-    /// Refreshes the leaderboard by destroying and recreating it based on the current leaderboard type (long or short form).
+    /// Sets the color of the given button to the specified color.
+    /// </summary>
+    /// <param name="button">The button whose color will be set.</param>
+    /// <param name="color">The color to apply to the button.</param>
+    private void SetButtonColor(Button button, Color color)
+    {
+        ColorBlock colorBlock = button.colors;
+        colorBlock.disabledColor = color;
+        button.colors = colorBlock;
+    }
+
+    /// <summary>
+    /// Refreshes the leaderboard UI by destroying old entries and creating new ones based on the current state.
     /// </summary>
     public void RefreshLeaderboard()
     {
-        DestroyCurrentLeaderboard();
+        DestroyLeaderboardEntries();
 
-        if (longFormLeaderboard)
+        if (isLongFormLeaderboardShown)
         {
             CreateLongFormLeaderboard();
         }
@@ -323,20 +376,20 @@ public class LeaderboardManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Shows the long-form leaderboard and updates the visibility of the show/hide buttons.
+    /// Displays the long-form leaderboard, showing detailed rankings for all players.
     /// </summary>
     public void ShowLongFormLeaderboard()
     {
-        longFormLeaderboard = true;
+        isLongFormLeaderboardShown = true;
         RefreshLeaderboard();
     }
 
     /// <summary>
-    /// Hides the long-form leaderboard and updates the visibility of the show/hide buttons.
+    /// Hides the long-form leaderboard, showing only the short-form leaderboard.
     /// </summary>
     public void HideLongFormLeaderboard()
     {
-        longFormLeaderboard = false;
+        isLongFormLeaderboardShown = false;
         RefreshLeaderboard();
     }
 }
