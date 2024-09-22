@@ -37,7 +37,6 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             currentEndScreen = winningScreen;
-            DisableRematchText();
             currentEndScreen.SetActive(true);
         }
     }
@@ -52,7 +51,6 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             currentEndScreen = losingScreen;
-            DisableRematchText();
             currentEndScreen.SetActive(true);
         }
     }
@@ -65,72 +63,6 @@ public class EndScreenManagerMultiplayer : NetworkBehaviour
     {
         currentEndScreen.SetActive(false);
         currentEndScreen = null;
-    }
-
-    // -----------------------------------------------------------------------
-    // Rematch Management
-    // -----------------------------------------------------------------------
-
-    /// <summary>
-    /// Reference to the MultiplayerManager script.
-    /// </summary>
-    [SerializeField] private MultiplayerManager multiplayerManager;
-
-    /// <summary>
-    /// Indicates if a rematch is currently pending.
-    /// </summary>
-    private bool rematchPending;
-
-    /// <summary>
-    /// Enables the rematch text on the current end screen.
-    /// </summary>
-    private void EnableRematchText()
-    {
-        currentEndScreen?.transform.Find("RematchText").gameObject.SetActive(true);
-    }
-
-    /// <summary>
-    /// Disables the rematch text on the current end screen.
-    /// </summary>
-    private void DisableRematchText()
-    {
-        currentEndScreen?.transform.Find("RematchText").gameObject.SetActive(false);
-    }
-
-    /// <summary>
-    /// Sets the rematch pending status to true and enables the rematch text.
-    /// </summary>
-    public void EnableRematchPending()
-    {
-        rematchPending = true;
-        EnableRematchText();
-    }
-
-    /// <summary>
-    /// Sets the rematch pending status to false and disables the rematch text.
-    /// </summary>
-    public void DisableRematchPending()
-    {
-        rematchPending = false;
-        DisableRematchText();
-    }
-
-    /// <summary>
-    /// Handles the rematch button functionality, either sending a rematch request or accepting a pending one.
-    /// </summary>
-    public void Rematch()
-    {
-        Debug.Log("Rematch pending status:" + rematchPending);
-
-        if (rematchPending)
-        {
-            DisableRematchPending();
-            multiplayerManager.AcceptRematchServerRpc();
-        }
-        else
-        {
-            multiplayerManager.RequestRematchServerRpc(NetworkManager.Singleton.LocalClientId);
-        }
     }
 
     // -----------------------------------------------------------------------
