@@ -37,6 +37,7 @@ public class LoadoutManager : MonoBehaviour
         new ShieldPower(),
         new SlipperyGridPower(),
         new SoloLevelingPower(),
+        new BerserkPower()
     };
 
     /// <summary>
