@@ -21,13 +21,16 @@ public class BerserkPower : Power
     /// <param name="targetPlayer">The player on whom the power is activated.</param>
     public override void Activate(Player userPlayer, Player targetPlayer)
     {
-        
+        UseTimer(userPlayer, targetPlayer, 5);
     }
 
-    private IEnumerator UseTimer(Player targetPlayer, float useDuration)
+    private IEnumerator UseTimer(Player userPlayer, Player targetPlayer, float useDuration)
     {
-        
+        userPlayer.OwnerOfPuzzleCurrentlyManipulating = targetPlayer;
+        targetPlayer.AddPlayerCurrenlyManipulatingPuzzle(userPlayer);
+        userPlayer.HasPuzzleTileMovementPermission = true;
         yield return new WaitForSeconds(useDuration);
-        
+        userPlayer.HasPuzzleTileMovementPermission = false;
+        targetPlayer.RemovePlayerCurrenlyManipulatingPuzzle(userPlayer);
     }
 }
