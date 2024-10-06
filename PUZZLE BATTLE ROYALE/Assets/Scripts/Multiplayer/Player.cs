@@ -19,7 +19,7 @@ public class Player
         this.backgroundSkinId = backgroundSkinId;
         this.profilePictureId = profilePictureId;
         ownerOfPuzzleCurrentlyManipulating = this;
-        playersCurrenlyManipulaingPuzzle = new(){this};
+        playersCurrenlyManipulaingPuzzle = new() { this };
     }
 
     // -----------------------------------------------------------------------
@@ -277,9 +277,20 @@ public class Player
     /// </summary>
     public void ResetPlayersCurrenlyManipulaingPuzzle()
     {
-        playersCurrenlyManipulaingPuzzle = new();
+        playersCurrenlyManipulaingPuzzle = new() { this };
     }
 
+    public bool IsTileHeldByAnotherPlayer(int puzzleTileId)
+    {
+        foreach (Player player in playersCurrenlyManipulaingPuzzle)
+        {
+            if (player.HeldPuzzleTileId == puzzleTileId)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /// <summary>
     /// Initializes a puzzle tile with the specified ID and Z position.
