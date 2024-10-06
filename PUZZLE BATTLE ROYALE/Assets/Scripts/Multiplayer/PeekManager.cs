@@ -138,49 +138,6 @@ public class PeekManager : NetworkBehaviour
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Stops the peek on the server for a specific player.
-    /// </summary>
-    /// <param name="userPlayer">The player stopping the peek.</param>
-    public void StopPeekServerRoutine(Player userPlayer)
-    {
-        int peekSessionIndex = userPlayers.IndexOf(userPlayer);
-        Player targetPlayer = targetPlayers[peekSessionIndex];
-
-        StartCoroutine(PutPlayerOnUseCooldown(userPlayer, targetPlayer));
-
-        userPlayers.RemoveAt(peekSessionIndex);
-        targetPlayers.RemoveAt(peekSessionIndex);
-
-        userPlayer.IsPeeking = false;
-        userPlayer.TargetOfPeekPlayer = null;
-        OnPlayerPeekingStatusChanged.Invoke(userPlayer);
-
-        bool userBeingPeeked = targetPlayers.Contains(userPlayer);
-        if (userBeingPeeked)
-        {
-            foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
-            {
-                puzzleManager.DisableTileMovement(peekerPlayer);
-            }
-        }
-
-        UpdatePeekIndicator(userPlayer);
-        if (!userPlayer.HasPower("Secret Peek"))
-        {
-            UpdatePeekIndicator(targetPlayer);
-        }
-
-
-        puzzleManager.SetOtherClientsPositions(userPlayer, userPlayer);
-        puzzleManager.EnableTileMovement(userPlayer);
-
-        int userOriginalBackground = userPlayer.BackgroundSkinId;
-        backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, userOriginalBackground);
-
-        StopPeekRoutineUserRpc(userPlayer.ClientId);
-    }
-
-    /// <summary>
     /// Starts the peek routine on the server for a specific player targeting another player.
     /// </summary>
     /// <param name="userPlayer">The player initiating the peek.</param>
@@ -208,6 +165,9 @@ public class PeekManager : NetworkBehaviour
         if (targetAlsoPeeking)
         {
             puzzleManager.EnableTileMovement(userPlayer);
+
+            targetPlayer.AddPlayerCurrenlyManipulatingPuzzle(userPlayer);
+            userPlayer.OwnerOfPuzzleCurrentlyManipulating = targetPlayer;
         }
 
         bool userBeingPeeked = targetPlayers.Contains(userPlayer);
@@ -216,6 +176,9 @@ public class PeekManager : NetworkBehaviour
             foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
             {
                 puzzleManager.EnableTileMovement(peekerPlayer);
+
+                userPlayer.AddPlayerCurrenlyManipulatingPuzzle(peekerPlayer);
+                peekerPlayer.OwnerOfPuzzleCurrentlyManipulating = userPlayer;
             }
         }
 
@@ -227,6 +190,56 @@ public class PeekManager : NetworkBehaviour
 
         StartPeekRoutineUserRpc(userPlayer.ClientId, targetPlayer.Name);
     }
+
+    /// <summary>
+    /// Stops the peek on the server for a specific player.
+    /// </summary>
+    /// <param name="userPlayer">The player stopping the peek.</param>
+    public void StopPeekServerRoutine(Player userPlayer)
+    {
+        int peekSessionIndex = userPlayers.IndexOf(userPlayer);
+        Player targetPlayer = targetPlayers[peekSessionIndex];
+
+        StartCoroutine(PutPlayerOnUseCooldown(userPlayer, targetPlayer));
+
+        userPlayers.RemoveAt(peekSessionIndex);
+        targetPlayers.RemoveAt(peekSessionIndex);
+
+        userPlayer.IsPeeking = false;
+        userPlayer.TargetOfPeekPlayer = null;
+        OnPlayerPeekingStatusChanged.Invoke(userPlayer);
+
+        userPlayer.OwnerOfPuzzleCurrentlyManipulating = userPlayer;
+        targetPlayer.RemovePlayerCurrenlyManipulatingPuzzle(userPlayer);
+
+        bool userBeingPeeked = targetPlayers.Contains(userPlayer);
+        if (userBeingPeeked)
+        {
+            foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
+            {
+                puzzleManager.DisableTileMovement(peekerPlayer);
+
+                userPlayer.RemovePlayerCurrenlyManipulatingPuzzle(peekerPlayer);
+                peekerPlayer.OwnerOfPuzzleCurrentlyManipulating = peekerPlayer;
+            }
+        }
+
+        UpdatePeekIndicator(userPlayer);
+        if (!userPlayer.HasPower("Secret Peek"))
+        {
+            UpdatePeekIndicator(targetPlayer);
+        }
+
+
+        puzzleManager.SetOtherClientsPositions(userPlayer, userPlayer);
+        puzzleManager.EnableTileMovement(userPlayer);
+
+        int userOriginalBackground = userPlayer.BackgroundSkinId;
+        backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, userOriginalBackground);
+
+        StopPeekRoutineUserRpc(userPlayer.ClientId);
+    }
+
 
     // -----------------------------------------------------------------------
     // Peek User Routines
