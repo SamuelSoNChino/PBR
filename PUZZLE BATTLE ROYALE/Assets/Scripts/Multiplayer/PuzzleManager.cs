@@ -251,40 +251,16 @@ public class PuzzleManager : NetworkBehaviour
     public void UpdateServerPositionRpc(ulong clientId, int puzzleTileId, Vector3 newPosition)
     {
         Player player = playerManager.FindPlayerByClientId(clientId);
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
 
-        if (player.IsPeeking)
+        if (player.HasPuzzleTileMovementPermission && player.HeldPuzzleTileId == puzzleTileId)
         {
-            Player targetPlayer = player.TargetOfPeekPlayer;
-
-            if (player.HasPuzzleTileMovementPermission && player.HeldPuzzleTileId == puzzleTileId)
-            {
-                targetPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-
-                List<Player> otherPeekUserPlayers = peekManager.GetPeekersOfTarget(targetPlayer);
-
-                foreach (Player otherPeekUserPlayer in otherPeekUserPlayers)
-                {
-                    if (otherPeekUserPlayer != player)
-                    {
-                        SetNewTilePositionRpc(otherPeekUserPlayer.ClientId, puzzleTileId, newPosition);
-                    }
-                }
-            }
-            else
-            {
-                SetNewTilePositionRpc(clientId, puzzleTileId, targetPlayer.GetPuzzleTilePosition(puzzleTileId));
-            }
+            tileOwnerPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
+            UpdateTilePositionForPlayers(player, puzzleTileId, newPosition);
         }
         else
         {
-            if (player.HasPuzzleTileMovementPermission && player.HeldPuzzleTileId == puzzleTileId)
-            {
-                player.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-            }
-            else
-            {
-                SetNewTilePositionRpc(clientId, puzzleTileId, player.GetPuzzleTilePosition(puzzleTileId));
-            }
+            SetNewTilePositionRpc(clientId, puzzleTileId, tileOwnerPlayer.GetPuzzleTilePosition(puzzleTileId));
         }
     }
 
@@ -323,17 +299,14 @@ public class PuzzleManager : NetworkBehaviour
     /// <param name="player">The player whose tile position is being updated.</param>
     /// <param name="puzzleTileId">The ID of the puzzle tile to update.</param>
     /// <param name="newPosition">The new position of the puzzle tile.</param>
-    public void UpdateTilePositionForPlayer(Player player, int puzzleTileId, Vector3 newPosition)
+    public void UpdateTilePositionForPlayers(Player player, int puzzleTileId, Vector3 newPosition)
     {
-        if (!player.IsPeeking)
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
+        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulaingPuzzle)
         {
-            SetNewTilePositionRpc(player.ClientId, puzzleTileId, newPosition);
-        }
-        else
-        {
-            foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
+            if (playerManipulating != player)
             {
-                SetNewTilePositionRpc(otherPeekUserPlayer.ClientId, puzzleTileId, newPosition);
+                SetNewTilePositionRpc(playerManipulating.ClientId, puzzleTileId, newPosition);
             }
         }
     }
@@ -449,33 +422,35 @@ public class PuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Disables the colliders of a specific puzzle tile for all players who are peeking on the target player, except the one initiating the action.
+    /// Disables the colliders of a specific puzzle tile for all players who are manipulating on the target player, except the one initiating the action.
     /// </summary>
     /// <param name="player">The player initiating the action, who is peeking.</param>
     /// <param name="puzzleTileId">The unique ID of the puzzle tile whose colliders are to be disabled.</param>
-    private void DisableCollidersForOtherPeekers(Player player, int puzzleTileId)
+    private void DisableColliderForOtherPlayerManipulating(Player player, int puzzleTileId)
     {
-        foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
+        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulaingPuzzle)
         {
-            if (otherPeekUserPlayer != player)
+            if (playerManipulating != player)
             {
-                DisablePuzzleTileColliderRpc(otherPeekUserPlayer.ClientId, puzzleTileId);
+                DisablePuzzleTileColliderRpc(playerManipulating.ClientId, puzzleTileId);
             }
         }
     }
 
     /// <summary>
-    /// Enables the colliders of a specific puzzle tile for all players who are peeking on the target player, except the one initiating the action.
+    /// Enables the colliders of a specific puzzle tile for all players who are manipulating on the target player, except the one initiating the action.
     /// </summary>
     /// <param name="player">The player initiating the action, who is peeking.</param>
     /// <param name="puzzleTileId">The unique ID of the puzzle tile whose colliders are to be enabled.</param>
-    private void EnableCollidersForOtherPeekers(Player player, int puzzleTileId)
+    private void EnableColliderForOtherPlayerManipulating(Player player, int puzzleTileId)
     {
-        foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
+        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulaingPuzzle)
         {
-            if (otherPeekUserPlayer != player)
+            if (playerManipulating != player)
             {
-                EnablePuzzleTileColliderRpc(otherPeekUserPlayer.ClientId, puzzleTileId);
+                DisablePuzzleTileColliderRpc(playerManipulating.ClientId, puzzleTileId);
             }
         }
     }
@@ -764,24 +739,14 @@ public class PuzzleManager : NetworkBehaviour
     /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     private void StartHoldingTile(Player player, int puzzleTileId)
     {
-        Player tileOwnerPlayer = player;
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
 
-        if (player.HeldPuzzleTileId != -1 && !player.HasPuzzleTileMovementPermission)
+        if (player.HeldPuzzleTileId != -1 || !player.HasPuzzleTileMovementPermission || tileOwnerPlayer.IsTileHeldByAnotherPlayer(puzzleTileId))
         {
             return;
         }
 
-        if (player.IsPeeking)
-        {
-            tileOwnerPlayer = player.TargetOfPeekPlayer;
-
-            if (IsTileHeldByOtherPeeker(player, puzzleTileId))
-            {
-                return;
-            }
-
-            DisableCollidersForOtherPeekers(player, puzzleTileId);
-        }
+        DisableColliderForOtherPlayerManipulating(player, puzzleTileId);
 
         player.HeldPuzzleTileId = puzzleTileId;
         MovePuzzleTileToFront(player, puzzleTileId);
@@ -822,15 +787,11 @@ public class PuzzleManager : NetworkBehaviour
         if (player.HeldPuzzleTileId == puzzleTileId)
         {
             player.HeldPuzzleTileId = -1;
-
-            if (player.SnapToGridEnabled)
-            {
-                SnapTileToGrid(player, puzzleTileId);
-            }
+            SnapTileToGrid(player, puzzleTileId);
 
             if (player.IsPeeking)
             {
-                EnableCollidersForOtherPeekers(player, puzzleTileId);
+                EnableColliderForOtherPlayerManipulating(player, puzzleTileId);
             }
         }
     }
@@ -842,12 +803,7 @@ public class PuzzleManager : NetworkBehaviour
     /// <param name="heldPuzzleTileId">The unique ID of the held puzzle tile.</param>
     public void MovePuzzleTileToFront(Player player, int heldPuzzleTileId)
     {
-        Player tileOwnerPlayer = player;
-
-        if (player.IsPeeking)
-        {
-            tileOwnerPlayer = player.TargetOfPeekPlayer;
-        }
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
 
         Vector3 currentPosition = tileOwnerPlayer.GetPuzzleTilePosition(heldPuzzleTileId);
         foreach (int puzzleTileId in puzzleTileIds)
@@ -856,33 +812,13 @@ public class PuzzleManager : NetworkBehaviour
             {
                 Vector3 newPosition = tileOwnerPlayer.GetPuzzleTilePosition(puzzleTileId) + new Vector3(0, 0, 1);
                 tileOwnerPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-
-                UpdateTilePositionForPlayer(player, puzzleTileId, newPosition);
+                UpdateTilePositionForPlayers(player, puzzleTileId, newPosition);
             }
         }
 
         Vector3 newHeldPosition = new(currentPosition.x, currentPosition.y, 1);
         tileOwnerPlayer.ModifyPuzzleTilePosition(heldPuzzleTileId, newHeldPosition);
-        UpdateTilePositionForPlayer(player, heldPuzzleTileId, newHeldPosition);
-    }
-
-
-    /// <summary>
-    /// Checks if a puzzle tile is currently held by any player who is peeking.
-    /// </summary>
-    /// <param name="player">The player whose peeking status is being checked.</param>
-    /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
-    /// <returns>True if the tile is held by another peeker; otherwise, false.</returns>
-    private bool IsTileHeldByOtherPeeker(Player player, int puzzleTileId)
-    {
-        foreach (Player otherPeekUserPlayer in peekManager.GetPeekersOfTarget(player.TargetOfPeekPlayer))
-        {
-            if (otherPeekUserPlayer.HeldPuzzleTileId == puzzleTileId)
-            {
-                return true;
-            }
-        }
-        return false;
+        UpdateTilePositionForPlayers(player, heldPuzzleTileId, newHeldPosition);
     }
 
     // -----------------------------------------------------------------------
@@ -896,10 +832,11 @@ public class PuzzleManager : NetworkBehaviour
     /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     private void SnapTileToGrid(Player player, int puzzleTileId)
     {
-        Player tileOwnerPlayer = player;
-        if (player.IsPeeking)
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
+
+        if (!tileOwnerPlayer.SnapToGridEnabled)
         {
-            tileOwnerPlayer = player.TargetOfPeekPlayer;
+            return;
         }
 
         Vector3 puzzleTilePosition = tileOwnerPlayer.GetPuzzleTilePosition(puzzleTileId);
@@ -932,7 +869,7 @@ public class PuzzleManager : NetworkBehaviour
                 UpdateGridForPuzzleTile(tileOwnerPlayer, puzzleTileId, gridTileId);
                 UpdatePlayerProgress(tileOwnerPlayer);
 
-                UpdateTilePositionForPlayer(player, puzzleTileId, newPosition);
+                UpdateTilePositionForPlayers(player, puzzleTileId, newPosition);
                 break;
             }
         }
@@ -945,11 +882,7 @@ public class PuzzleManager : NetworkBehaviour
     /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     public void UnsnapTileFromGrid(Player player, int puzzleTileId)
     {
-        Player tileOwnerPlayer = player;
-        if (player.IsPeeking)
-        {
-            tileOwnerPlayer = player.TargetOfPeekPlayer;
-        }
+        Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
 
         int snappedGridTileId = tileOwnerPlayer.GetPuzzleTileSnappedGridTile(puzzleTileId);
         tileOwnerPlayer.ModifyGridTileOccupied(snappedGridTileId, false);
