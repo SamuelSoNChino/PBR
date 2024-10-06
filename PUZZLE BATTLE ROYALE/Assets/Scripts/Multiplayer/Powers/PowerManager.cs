@@ -36,7 +36,8 @@ public class PowerManager : NetworkBehaviour
         new SecretPeekPower(),
         new ShieldPower(),
         new SlipperyGridPower(),
-        new SoloLevelingPower()
+        new SoloLevelingPower(),
+        new BerserkPower()
     };
 
     /// <summary>
