@@ -17,7 +17,7 @@ public class TornadoPower : Power
     /// Activates the Tornado power on the specified target player, displacing a random selection of their snapped puzzle tiles.
     /// </summary>
     /// <param name="targetPlayer">The player on whom the power is activated.</param>
-    public override void Activate(Player targetPlayer)
+    public override void Activate(Player userPlayer, Player targetPlayer)
     {
         PuzzleManager puzzleManager = GameObject.Find("Puzzle").GetComponent<PuzzleManager>();
 
