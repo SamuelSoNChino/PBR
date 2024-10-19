@@ -223,6 +223,14 @@ public class Player
         return powersOnCooldown.Contains(power);
     }
 
+    private bool isUsingBerserk = false;
+
+    public bool IsUsingBerserk
+    {
+        get { return isUsingBerserk; }
+        set { isUsingBerserk = value; }
+    }
+
     // -----------------------------------------------------------------------
     // Puzzle Tiles
     // -----------------------------------------------------------------------
