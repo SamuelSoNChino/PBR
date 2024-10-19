@@ -256,7 +256,7 @@ public class PuzzleManager : NetworkBehaviour
         if (player.HasPuzzleTileMovementPermission && player.HeldPuzzleTileId == puzzleTileId)
         {
             tileOwnerPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-            UpdateTilePositionForPlayers(player, puzzleTileId, newPosition);
+            UpdateTilePositionForPlayers(player, puzzleTileId, newPosition, false);
         }
         else
         {
@@ -294,17 +294,17 @@ public class PuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Updates the tile position for a player, either during normal gameplay or when peeking.
+    /// Updates the tile position for all players currently looking.
     /// </summary>
-    /// <param name="player">The player whose tile position is being updated.</param>
+    /// <param name="player">The player who manipualtedthe tile position.</param>
     /// <param name="puzzleTileId">The ID of the puzzle tile to update.</param>
     /// <param name="newPosition">The new position of the puzzle tile.</param>
-    public void UpdateTilePositionForPlayers(Player player, int puzzleTileId, Vector3 newPosition)
+    public void UpdateTilePositionForPlayers(Player player, int puzzleTileId, Vector3 newPosition, bool updateForManipulatorPlayer)
     {
         Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
         foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulaingPuzzle)
         {
-            if (playerManipulating != player)
+            if (player != playerManipulating || updateForManipulatorPlayer)
             {
                 SetNewTilePositionRpc(playerManipulating.ClientId, puzzleTileId, newPosition);
             }
@@ -812,13 +812,13 @@ public class PuzzleManager : NetworkBehaviour
             {
                 Vector3 newPosition = tileOwnerPlayer.GetPuzzleTilePosition(puzzleTileId) + new Vector3(0, 0, 1);
                 tileOwnerPlayer.ModifyPuzzleTilePosition(puzzleTileId, newPosition);
-                UpdateTilePositionForPlayers(player, puzzleTileId, newPosition);
+                UpdateTilePositionForPlayers(player, puzzleTileId, newPosition, true);
             }
         }
 
         Vector3 newHeldPosition = new(currentPosition.x, currentPosition.y, 1);
         tileOwnerPlayer.ModifyPuzzleTilePosition(heldPuzzleTileId, newHeldPosition);
-        UpdateTilePositionForPlayers(player, heldPuzzleTileId, newHeldPosition);
+        UpdateTilePositionForPlayers(player, heldPuzzleTileId, newHeldPosition, true);
     }
 
     // -----------------------------------------------------------------------
@@ -869,7 +869,7 @@ public class PuzzleManager : NetworkBehaviour
                 UpdateGridForPuzzleTile(tileOwnerPlayer, puzzleTileId, gridTileId);
                 UpdatePlayerProgress(tileOwnerPlayer);
 
-                UpdateTilePositionForPlayers(player, puzzleTileId, newPosition);
+                UpdateTilePositionForPlayers(player, puzzleTileId, newPosition, true);
                 break;
             }
         }
