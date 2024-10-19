@@ -339,12 +339,12 @@ public class PowerManager : NetworkBehaviour
         {
             if (player.IsPeeking)
             {
-                power.Activate(player.TargetOfPeekPlayer);
+                power.Activate(player, player.TargetOfPeekPlayer);
                 StartCoroutine(StartPowerCooldownTimer(player, power));
             }
             return;
         }
-        power.Activate();
+        power.Activate(player);
         StartCoroutine(StartPowerCooldownTimer(player, power));
     }
 
