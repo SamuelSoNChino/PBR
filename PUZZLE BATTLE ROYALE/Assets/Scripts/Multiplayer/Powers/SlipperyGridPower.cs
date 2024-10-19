@@ -24,7 +24,7 @@ public class SlipperyGridPower : Power
     /// Activates the Slippery Grid power on the specified target player.
     /// </summary>
     /// <param name="targetPlayer">The player on whom the power is activated.</param>
-    public override void Activate(Player targetPlayer)
+    public override void Activate(Player userPlayer, Player targetPlayer)
     {
         if (activeCoroutines.Keys.Contains(targetPlayer))
         {
