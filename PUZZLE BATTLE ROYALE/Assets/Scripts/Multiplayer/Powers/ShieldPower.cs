@@ -8,7 +8,7 @@ public class ShieldPower : Power
 
     }
 
-    public override void Activate()
+    public override void Activate(Player userPlayer)
     {
 
     }
