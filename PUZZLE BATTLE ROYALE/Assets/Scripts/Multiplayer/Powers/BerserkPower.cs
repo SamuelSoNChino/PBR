@@ -1,6 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -11,26 +10,36 @@ public class BerserkPower : Power
     /// <summary>
     /// Initializes a new instance of the <see cref="BerserkPower"/> class.
     /// </summary>
-    public BerserkPower() : base("Berserk", 5, false, true, 5)
+    public BerserkPower() : base("Berserk", 5, false, false, 5)
     {
     }
 
     /// <summary>
     /// Activates the Berserk power.
     /// </summary>
-    /// <param name="targetPlayer">The player on whom the power is activated.</param>
-    public override void Activate(Player userPlayer, Player targetPlayer)
+    public override void Activate(Player userPlayer)
     {
-        UseTimer(userPlayer, targetPlayer, 5);
+        float useDuration = 5;
+        UseTimer(userPlayer, useDuration);
     }
 
-    private IEnumerator UseTimer(Player userPlayer, Player targetPlayer, float useDuration)
+    private IEnumerator UseTimer(Player userPlayer, float useDuration)
     {
-        userPlayer.OwnerOfPuzzleCurrentlyManipulating = targetPlayer;
-        targetPlayer.AddPlayerCurrenlyManipulatingPuzzle(userPlayer);
-        userPlayer.HasPuzzleTileMovementPermission = true;
+        PuzzleManager puzzleManager = Object.FindAnyObjectByType<PuzzleManager>();
+        PeekManager peekManager = Object.FindAnyObjectByType<PeekManager>();
+
+        if (userPlayer.IsPeeking)
+        {
+            peekManager.UpdatePeekIndicator(userPlayer.TargetOfPeekPlayer);
+        }
+
+        puzzleManager.EnableTileMovement(userPlayer);
+
         yield return new WaitForSeconds(useDuration);
-        userPlayer.HasPuzzleTileMovementPermission = false;
-        targetPlayer.RemovePlayerCurrenlyManipulatingPuzzle(userPlayer);
+
+        if (userPlayer.IsPeeking)
+        {
+            puzzleManager.DisableTileMovement(userPlayer);
+        }
     }
 }
