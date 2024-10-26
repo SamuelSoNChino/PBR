@@ -20,13 +20,14 @@ public class BerserkPower : Power
     public override void Activate(Player userPlayer)
     {
         float useDuration = 5;
-        UseTimer(userPlayer, useDuration);
+        CoroutineHelper.Instance.StartHelperCoroutine(UseTimer(userPlayer, useDuration));
     }
 
     private IEnumerator UseTimer(Player userPlayer, float useDuration)
     {
-        PuzzleManager puzzleManager = Object.FindAnyObjectByType<PuzzleManager>();
-        PeekManager peekManager = Object.FindAnyObjectByType<PeekManager>();
+        PuzzleManager puzzleManager = GameObject.Find("Puzzle").GetComponent<PuzzleManager>();
+        PeekManager peekManager = GameObject.Find("PeekComponents").GetComponent<PeekManager>();
+
 
         if (userPlayer.IsPeeking)
         {
@@ -37,7 +38,7 @@ public class BerserkPower : Power
 
         yield return new WaitForSeconds(useDuration);
 
-        if (userPlayer.IsPeeking)
+        if (userPlayer.IsPeeking && !userPlayer.TargetOfPeekPlayer.IsPeeking)
         {
             puzzleManager.DisableTileMovement(userPlayer);
         }
