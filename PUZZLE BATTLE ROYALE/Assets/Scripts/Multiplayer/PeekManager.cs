@@ -156,9 +156,10 @@ public class PeekManager : NetworkBehaviour
         OnPlayerPeekingStatusChanged.Invoke(userPlayer);
 
         puzzleManager.DisableTileMovement(userPlayer);
-        puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
+        puzzleManager.SetOtherPlayersPositions(userPlayer, targetPlayer);
 
         targetPlayer.AddPlayerCurrenlyManipulatingPuzzle(userPlayer);
+        userPlayer.RemovePlayerCurrenlyManipulatingPuzzle(userPlayer);
         userPlayer.OwnerOfPuzzleCurrentlyManipulating = targetPlayer;
 
         int targetClientBackgroundId = targetPlayer.BackgroundSkinId;
@@ -180,7 +181,7 @@ public class PeekManager : NetworkBehaviour
         }
 
         UpdatePeekIndicator(userPlayer);
-        if (!userPlayer.HasPower("Secret Peek"))
+        if (!userPlayer.HasPower("Secret Peek") || userPlayer.IsUsingBerserk)
         {
             UpdatePeekIndicator(targetPlayer);
         }
@@ -207,6 +208,7 @@ public class PeekManager : NetworkBehaviour
         OnPlayerPeekingStatusChanged.Invoke(userPlayer);
 
         userPlayer.OwnerOfPuzzleCurrentlyManipulating = userPlayer;
+        userPlayer.AddPlayerCurrenlyManipulatingPuzzle(userPlayer);
         targetPlayer.RemovePlayerCurrenlyManipulatingPuzzle(userPlayer);
 
         if (!isPeekHopping)
@@ -227,7 +229,7 @@ public class PeekManager : NetworkBehaviour
             UpdatePeekIndicator(targetPlayer);
         }
 
-        puzzleManager.SetOtherClientsPositions(userPlayer, userPlayer);
+        puzzleManager.SetOtherPlayersPositions(userPlayer, userPlayer);
         puzzleManager.EnableTileMovement(userPlayer);
 
         int userOriginalBackground = userPlayer.BackgroundSkinId;
