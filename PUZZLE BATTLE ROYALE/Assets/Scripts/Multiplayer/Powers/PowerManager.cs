@@ -36,7 +36,8 @@ public class PowerManager : NetworkBehaviour
         new SecretPeekPower(),
         new ShieldPower(),
         new SlipperyGridPower(),
-        new SoloLevelingPower()
+        new SoloLevelingPower(),
+        new BerserkPower()
     };
 
     /// <summary>
@@ -338,12 +339,12 @@ public class PowerManager : NetworkBehaviour
         {
             if (player.IsPeeking)
             {
-                power.Activate(player.TargetOfPeekPlayer);
+                power.Activate(player, player.TargetOfPeekPlayer);
                 StartCoroutine(StartPowerCooldownTimer(player, power));
             }
             return;
         }
-        power.Activate();
+        power.Activate(player);
         StartCoroutine(StartPowerCooldownTimer(player, power));
     }
 

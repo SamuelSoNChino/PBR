@@ -18,6 +18,8 @@ public class Player
         this.name = name;
         this.backgroundSkinId = backgroundSkinId;
         this.profilePictureId = profilePictureId;
+        ownerOfPuzzleCurrentlyManipulating = this;
+        playersCurrenlyManipulatingPuzzle = new() { this };
     }
 
     // -----------------------------------------------------------------------
@@ -221,9 +223,82 @@ public class Player
         return powersOnCooldown.Contains(power);
     }
 
+    private bool isUsingBerserk = false;
+
+    public bool IsUsingBerserk
+    {
+        get { return isUsingBerserk; }
+        set { isUsingBerserk = value; }
+    }
+
     // -----------------------------------------------------------------------
     // Puzzle Tiles
     // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Holds the Player whose puzzle tiles is this player currenly manipulating. Is initialized in constructor.
+    /// </summary>
+    private Player ownerOfPuzzleCurrentlyManipulating;
+
+    /// <summary>
+    /// Gets or sets the Player whose puzzle tiles is this player currenly manipulating.
+    /// </summary>
+    public Player OwnerOfPuzzleCurrentlyManipulating
+    {
+        get { return ownerOfPuzzleCurrentlyManipulating; }
+        set { ownerOfPuzzleCurrentlyManipulating = value; }
+    }
+
+    /// <summary>
+    /// List of players who are currenly manipulating this player's puzzle tiles.
+    /// </summary>
+    private List<Player> playersCurrenlyManipulatingPuzzle;
+
+    /// <summary>
+    /// Gets the list of players who are currenly manipulating this player's puzzle tiles.
+    /// </summary>
+    public List<Player> PlayersCurrenlyManipulatingPuzzle
+    {
+        get { return playersCurrenlyManipulatingPuzzle; }
+    }
+
+    /// <summary>
+    /// Adds a player to the list of players who are currenly manipulating this player's puzzle tiles.
+    /// </summary>
+    /// <param name="player">Player to add.</param>
+    public void AddPlayerCurrenlyManipulatingPuzzle(Player player)
+    {
+        playersCurrenlyManipulatingPuzzle.Add(player);
+    }
+
+    /// <summary>
+    /// Removes a player from the list of players who are currenly manipulating this player's puzzle tiles.
+    /// </summary>
+    /// <param name="player">PLayer to remove</param>
+    public void RemovePlayerCurrenlyManipulatingPuzzle(Player player)
+    {
+        playersCurrenlyManipulatingPuzzle.Remove(player);
+    }
+
+    /// <summary>
+    /// Resets the list of players who are currenly manipulating this player's puzzle tiles.
+    /// </summary>
+    public void ResetPlayersCurrenlyManipulatingPuzzle()
+    {
+        playersCurrenlyManipulatingPuzzle = new() { this };
+    }
+
+    public bool IsTileHeldByAnotherPlayer(int puzzleTileId)
+    {
+        foreach (Player player in playersCurrenlyManipulatingPuzzle)
+        {
+            if (player.HeldPuzzleTileId == puzzleTileId)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /// <summary>
     /// Initializes a puzzle tile with the specified ID and Z position.

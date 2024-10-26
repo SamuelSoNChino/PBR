@@ -111,7 +111,7 @@ public class PeekManager : NetworkBehaviour
         {
             if (userPlayer.IsPeeking)
             {
-                StopPeekServerRoutine(userPlayer);
+                StopPeekServerRoutine(userPlayer, true);
             }
 
             StartPeekServerRoutine(userPlayer, targetPlayer);
@@ -129,56 +129,13 @@ public class PeekManager : NetworkBehaviour
 
         if (userPlayer.IsPeeking && !userPlayer.PeekExitOnCooldown)
         {
-            StopPeekServerRoutine(userPlayer);
+            StopPeekServerRoutine(userPlayer, false);
         }
     }
 
     // -----------------------------------------------------------------------
     // Peek Server Routines
     // -----------------------------------------------------------------------
-
-    /// <summary>
-    /// Stops the peek on the server for a specific player.
-    /// </summary>
-    /// <param name="userPlayer">The player stopping the peek.</param>
-    public void StopPeekServerRoutine(Player userPlayer)
-    {
-        int peekSessionIndex = userPlayers.IndexOf(userPlayer);
-        Player targetPlayer = targetPlayers[peekSessionIndex];
-
-        StartCoroutine(PutPlayerOnUseCooldown(userPlayer, targetPlayer));
-
-        userPlayers.RemoveAt(peekSessionIndex);
-        targetPlayers.RemoveAt(peekSessionIndex);
-
-        userPlayer.IsPeeking = false;
-        userPlayer.TargetOfPeekPlayer = null;
-        OnPlayerPeekingStatusChanged.Invoke(userPlayer);
-
-        bool userBeingPeeked = targetPlayers.Contains(userPlayer);
-        if (userBeingPeeked)
-        {
-            foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
-            {
-                puzzleManager.DisableTileMovement(peekerPlayer);
-            }
-        }
-
-        UpdatePeekIndicator(userPlayer);
-        if (!userPlayer.HasPower("Secret Peek"))
-        {
-            UpdatePeekIndicator(targetPlayer);
-        }
-
-
-        puzzleManager.SetOtherClientsPositions(userPlayer, userPlayer);
-        puzzleManager.EnableTileMovement(userPlayer);
-
-        int userOriginalBackground = userPlayer.BackgroundSkinId;
-        backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, userOriginalBackground);
-
-        StopPeekRoutineUserRpc(userPlayer.ClientId);
-    }
 
     /// <summary>
     /// Starts the peek routine on the server for a specific player targeting another player.
@@ -199,13 +156,17 @@ public class PeekManager : NetworkBehaviour
         OnPlayerPeekingStatusChanged.Invoke(userPlayer);
 
         puzzleManager.DisableTileMovement(userPlayer);
-        puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
+        puzzleManager.SetOtherPlayersPositions(userPlayer, targetPlayer);
+
+        targetPlayer.AddPlayerCurrenlyManipulatingPuzzle(userPlayer);
+        userPlayer.RemovePlayerCurrenlyManipulatingPuzzle(userPlayer);
+        userPlayer.OwnerOfPuzzleCurrentlyManipulating = targetPlayer;
 
         int targetClientBackgroundId = targetPlayer.BackgroundSkinId;
         backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, targetClientBackgroundId);
 
         bool targetAlsoPeeking = userPlayers.Contains(targetPlayer);
-        if (targetAlsoPeeking)
+        if (targetAlsoPeeking || userPlayer.IsUsingBerserk)
         {
             puzzleManager.EnableTileMovement(userPlayer);
         }
@@ -220,13 +181,63 @@ public class PeekManager : NetworkBehaviour
         }
 
         UpdatePeekIndicator(userPlayer);
-        if (!userPlayer.HasPower("Secret Peek"))
+        if (!userPlayer.HasPower("Secret Peek") || userPlayer.IsUsingBerserk)
         {
             UpdatePeekIndicator(targetPlayer);
         }
 
         StartPeekRoutineUserRpc(userPlayer.ClientId, targetPlayer.Name);
     }
+
+    /// <summary>
+    /// Stops the peek on the server for a specific player.
+    /// </summary>
+    /// <param name="userPlayer">The player stopping the peek.</param>
+    public void StopPeekServerRoutine(Player userPlayer, bool isPeekHopping)
+    {
+        int peekSessionIndex = userPlayers.IndexOf(userPlayer);
+        Player targetPlayer = targetPlayers[peekSessionIndex];
+
+        StartCoroutine(PutPlayerOnUseCooldown(userPlayer, targetPlayer));
+
+        userPlayers.RemoveAt(peekSessionIndex);
+        targetPlayers.RemoveAt(peekSessionIndex);
+
+        userPlayer.IsPeeking = false;
+        userPlayer.TargetOfPeekPlayer = null;
+        OnPlayerPeekingStatusChanged.Invoke(userPlayer);
+
+        userPlayer.OwnerOfPuzzleCurrentlyManipulating = userPlayer;
+        userPlayer.AddPlayerCurrenlyManipulatingPuzzle(userPlayer);
+        targetPlayer.RemovePlayerCurrenlyManipulatingPuzzle(userPlayer);
+
+        if (!isPeekHopping)
+        {
+            foreach (Player peekerPlayer in GetPeekersOfTarget(userPlayer))
+            {
+                if (peekerPlayer.IsUsingBerserk)
+                {
+                    continue;
+                }
+                puzzleManager.DisableTileMovement(peekerPlayer);
+            }
+        }
+
+        UpdatePeekIndicator(userPlayer);
+        if (!userPlayer.HasPower("Secret Peek"))
+        {
+            UpdatePeekIndicator(targetPlayer);
+        }
+
+        puzzleManager.SetOtherPlayersPositions(userPlayer, userPlayer);
+        puzzleManager.EnableTileMovement(userPlayer);
+
+        int userOriginalBackground = userPlayer.BackgroundSkinId;
+        backgroundManager.SetClientBackgroundRpc(userPlayer.ClientId, userOriginalBackground);
+
+        StopPeekRoutineUserRpc(userPlayer.ClientId);
+    }
+
 
     // -----------------------------------------------------------------------
     // Peek User Routines
@@ -387,21 +398,25 @@ public class PeekManager : NetworkBehaviour
     /// Updates the peek indicator for a given player.
     /// </summary>
     /// <param name="player">The player for whom the peek indicator is updated.</param>
-    private void UpdatePeekIndicator(Player player)
+    public void UpdatePeekIndicator(Player player)
     {
         bool playerPeeking = userPlayers.Contains(player);
         bool playerBeingVisiblyPeeked = false;
+        bool playerPeekedWithBerserk = false;
 
         foreach (Player peekingPlayer in GetPeekersOfTarget(player))
         {
             if (!peekingPlayer.HasPower("Secret Peek"))
             {
                 playerBeingVisiblyPeeked = true;
-                break;
+            }
+            if (peekingPlayer.IsUsingBerserk)
+            {
+                playerPeekedWithBerserk = true;
             }
         }
 
-        UpdatePeekIndicatorRpc(player.ClientId, playerPeeking, playerBeingVisiblyPeeked);
+        UpdatePeekIndicatorRpc(player.ClientId, playerPeeking, playerBeingVisiblyPeeked, playerPeekedWithBerserk);
     }
 
     /// <summary>
@@ -411,22 +426,20 @@ public class PeekManager : NetworkBehaviour
     /// <param name="isPeeking">Indicates if the user is peeking.</param>
     /// <param name="isBeingPeeked">Indicates if the user is being peeked at.</param>
     [Rpc(SendTo.ClientsAndHost)]
-    private void UpdatePeekIndicatorRpc(ulong clientId, bool isPeeking, bool isBeingPeeked)
+    private void UpdatePeekIndicatorRpc(ulong clientId, bool isPeeking, bool isBeingPeeked, bool beingPeekedWithBerserk)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            if (isBeingPeeked)
+            if (beingPeekedWithBerserk || (isBeingPeeked && isPeeking))
             {
-                if (isPeeking)
-                {
-                    peekIndicatorDanger.SetActive(true);
-                    peekIndicator.SetActive(false);
-                }
-                else
-                {
-                    peekIndicator.SetActive(true);
-                    peekIndicatorDanger.SetActive(false);
-                }
+                peekIndicatorDanger.SetActive(true);
+                peekIndicator.SetActive(false);
+            }
+
+            else if (isBeingPeeked)
+            {
+                peekIndicator.SetActive(true);
+                peekIndicatorDanger.SetActive(false);
             }
             else
             {
@@ -452,21 +465,6 @@ public class PeekManager : NetworkBehaviour
             }
         }
         return peekers;
-    }
-
-    /// <summary>
-    /// Updates the positions of other clients for players who are peeking.
-    /// </summary>
-    private void Update()
-    {
-        foreach (Player userPlayer in userPlayers)
-        {
-            Player targetPlayer = userPlayer.TargetOfPeekPlayer;
-            if (!targetPlayer.IsPeeking)
-            {
-                puzzleManager.SetOtherClientsPositions(userPlayer, targetPlayer);
-            }
-        }
     }
 }
 

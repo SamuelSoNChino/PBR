@@ -46,17 +46,20 @@ public abstract class Power
     }
 
     /// <summary>
-    /// Activates the power. This method can be overridden by derived classes to provide specific behavior.
+    /// Activates the power for a specific player. This method can be overridden by derived classes to provide specific behavior.
     /// </summary>
-    public virtual void Activate()
+    /// <param name="userPlayer">The player by who the power is activated.</param>
+    public virtual void Activate(Player userPlayer)
     {
     }
 
     /// <summary>
-    /// Activates the power on a specific player. This method can be overridden by derived classes to provide specific behavior.
+    /// Activates the power on a specific player by a specific player. 
+    /// This method can be overridden by derived classes to provide specific behavior.
     /// </summary>
-    /// <param name="player">The player on whom the power is activated.</param>
-    public virtual void Activate(Player player)
+    /// <param name="userPlayer">The player by who the power is activated.</param>
+    /// <param name="targetPlayer">The player on whom the power is activated.</param>
+    public virtual void Activate(Player userPlayer, Player targetPlayer)
     {
     }
 }

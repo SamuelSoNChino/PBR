@@ -10,12 +10,4 @@ public class SecretPeekPower : Power
     {
 
     }
-
-    /// <summary>
-    /// Overrides the base activation method. As this power is passive, this method does nothing.
-    /// </summary>
-    public override void Activate()
-    {
-        return;
-    }
 }
