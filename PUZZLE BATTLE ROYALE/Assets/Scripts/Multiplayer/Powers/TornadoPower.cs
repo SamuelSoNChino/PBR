@@ -21,18 +21,18 @@ public class TornadoPower : Power
     {
         PuzzleManager puzzleManager = GameObject.Find("Puzzle").GetComponent<PuzzleManager>();
 
-        // Collects the IDs of all snapped puzzle tiles that are not currently held by the target player.
+        // Collects the IDs of all snapped puzzle tiles.
         List<int> snappedPuzzleTilesIdsToDisplace = new();
         foreach (int puzzleTileId in puzzleManager.GetPuzzleTileIds())
         {
-            if (targetPlayer.GetPuzzleTileSnappedGridTile(puzzleTileId) != -1 && targetPlayer.HeldPuzzleTileId != puzzleTileId)
+            if (targetPlayer.GetPuzzleTileSnappedGridTile(puzzleTileId) != -1)
             {
                 snappedPuzzleTilesIdsToDisplace.Add(puzzleTileId);
             }
         }
 
         // Limits the number of tiles to be displaced to 6, removing random tiles if there are more.
-        int numberOfDisplacedTiles = 6;
+        int numberOfDisplacedTiles = 4;
         while (snappedPuzzleTilesIdsToDisplace.Count > numberOfDisplacedTiles)
         {
             int randomIndex = Random.Range(0, snappedPuzzleTilesIdsToDisplace.Count);
@@ -45,8 +45,8 @@ public class TornadoPower : Power
             puzzleManager.UnsnapTileFromGrid(targetPlayer, snappedPuzzleTileIdToDisplace);
             puzzleManager.MovePuzzleTileToFront(targetPlayer, snappedPuzzleTileIdToDisplace);
 
-            int minDisplacement = 300;
-            int maxDisplacement = 500;
+            int minDisplacement = 100;
+            int maxDisplacement = 300;
 
             // Randomly determines the direction of displacement along the X and Y axes.
             List<int> possiblePolarities = new() { 1, -1 };
