@@ -19,7 +19,7 @@ public class Player
         this.backgroundSkinId = backgroundSkinId;
         this.profilePictureId = profilePictureId;
         ownerOfPuzzleCurrentlyManipulating = this;
-        playersCurrenlyManipulaingPuzzle = new() { this };
+        playersCurrenlyManipulatingPuzzle = new() { this };
     }
 
     // -----------------------------------------------------------------------
@@ -252,14 +252,14 @@ public class Player
     /// <summary>
     /// List of players who are currenly manipulating this player's puzzle tiles.
     /// </summary>
-    private List<Player> playersCurrenlyManipulaingPuzzle;
+    private List<Player> playersCurrenlyManipulatingPuzzle;
 
     /// <summary>
     /// Gets the list of players who are currenly manipulating this player's puzzle tiles.
     /// </summary>
-    public List<Player> PlayersCurrenlyManipulaingPuzzle
+    public List<Player> PlayersCurrenlyManipulatingPuzzle
     {
-        get { return playersCurrenlyManipulaingPuzzle; }
+        get { return playersCurrenlyManipulatingPuzzle; }
     }
 
     /// <summary>
@@ -268,7 +268,7 @@ public class Player
     /// <param name="player">Player to add.</param>
     public void AddPlayerCurrenlyManipulatingPuzzle(Player player)
     {
-        playersCurrenlyManipulaingPuzzle.Add(player);
+        playersCurrenlyManipulatingPuzzle.Add(player);
     }
 
     /// <summary>
@@ -277,20 +277,20 @@ public class Player
     /// <param name="player">PLayer to remove</param>
     public void RemovePlayerCurrenlyManipulatingPuzzle(Player player)
     {
-        playersCurrenlyManipulaingPuzzle.Remove(player);
+        playersCurrenlyManipulatingPuzzle.Remove(player);
     }
 
     /// <summary>
     /// Resets the list of players who are currenly manipulating this player's puzzle tiles.
     /// </summary>
-    public void ResetPlayersCurrenlyManipulaingPuzzle()
+    public void ResetPlayersCurrenlyManipulatingPuzzle()
     {
-        playersCurrenlyManipulaingPuzzle = new() { this };
+        playersCurrenlyManipulatingPuzzle = new() { this };
     }
 
     public bool IsTileHeldByAnotherPlayer(int puzzleTileId)
     {
-        foreach (Player player in playersCurrenlyManipulaingPuzzle)
+        foreach (Player player in playersCurrenlyManipulatingPuzzle)
         {
             if (player.HeldPuzzleTileId == puzzleTileId)
             {
