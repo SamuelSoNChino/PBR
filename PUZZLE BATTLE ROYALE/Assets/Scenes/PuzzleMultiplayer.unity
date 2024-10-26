@@ -996,7 +996,7 @@ MonoBehaviour:
   endScreenManagerMultiplayer: {fileID: 972601263}
   powerManager: {fileID: 1773418431}
   peekManager: {fileID: 1832081630}
-  numberOfTiles: 3
+  numberOfTiles: 5
 --- !u!4 &368472933
 Transform:
   m_ObjectHideFlags: 0
