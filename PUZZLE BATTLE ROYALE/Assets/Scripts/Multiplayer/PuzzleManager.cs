@@ -285,7 +285,7 @@ public class PuzzleManager : NetworkBehaviour
     /// </summary>
     /// <param name="player">The player whose view is being updated.</param>
     /// <param name="otherPlayer">The other player whose tile positions are being synchronized.</param>
-    public void SetOtherClientsPositions(Player player, Player otherPlayer)
+    public void SetOtherPlayersPositions(Player player, Player otherPlayer)
     {
         foreach (int puzzleTileId in puzzleTileIds)
         {
@@ -302,7 +302,7 @@ public class PuzzleManager : NetworkBehaviour
     public void UpdateTilePositionForPlayers(Player player, int puzzleTileId, Vector3 newPosition, bool updateForManipulatorPlayer)
     {
         Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
-        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulaingPuzzle)
+        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulatingPuzzle)
         {
             if (player != playerManipulating || updateForManipulatorPlayer)
             {
@@ -327,14 +327,14 @@ public class PuzzleManager : NetworkBehaviour
             foreach (Player player in playerManager.GetAllPlayers())
             {
                 player.HasPuzzleTileMovementPermission = false;
-                player.HeldPuzzleTileId = -1;
+                StopHoldingTile(player, player.HeldPuzzleTileId);
                 DisableAllCollidersRpc(player.ClientId);
             }
         }
         else
         {
             targetPlayer.HasPuzzleTileMovementPermission = false;
-            targetPlayer.HeldPuzzleTileId = -1;
+            StopHoldingTile(targetPlayer, targetPlayer.HeldPuzzleTileId);
             DisableAllCollidersRpc(targetPlayer.ClientId);
         }
     }
@@ -429,7 +429,7 @@ public class PuzzleManager : NetworkBehaviour
     private void DisableColliderForOtherPlayerManipulating(Player player, int puzzleTileId)
     {
         Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
-        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulaingPuzzle)
+        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulatingPuzzle)
         {
             if (playerManipulating != player)
             {
@@ -446,11 +446,11 @@ public class PuzzleManager : NetworkBehaviour
     private void EnableColliderForOtherPlayerManipulating(Player player, int puzzleTileId)
     {
         Player tileOwnerPlayer = player.OwnerOfPuzzleCurrentlyManipulating;
-        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulaingPuzzle)
+        foreach (Player playerManipulating in tileOwnerPlayer.PlayersCurrenlyManipulatingPuzzle)
         {
             if (playerManipulating != player)
             {
-                DisablePuzzleTileColliderRpc(playerManipulating.ClientId, puzzleTileId);
+                EnablePuzzleTileColliderRpc(playerManipulating.ClientId, puzzleTileId);
             }
         }
     }
@@ -784,7 +784,7 @@ public class PuzzleManager : NetworkBehaviour
     /// <param name="puzzleTileId">The unique ID of the puzzle tile.</param>
     public void StopHoldingTile(Player player, int puzzleTileId)
     {
-        if (player.HeldPuzzleTileId == puzzleTileId)
+        if (player.HeldPuzzleTileId == puzzleTileId && puzzleTileId != -1)
         {
             player.HeldPuzzleTileId = -1;
             SnapTileToGrid(player, puzzleTileId);
