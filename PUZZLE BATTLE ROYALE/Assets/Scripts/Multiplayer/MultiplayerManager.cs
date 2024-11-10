@@ -173,7 +173,7 @@ public class MultiplayerManager : NetworkBehaviour
             }
             else
             {
-                playerManager.AddNewPlayer(new Player("Milan", clientId, 2, 2));
+                playerManager.AddNewPlayer(new Player("Milan", clientId, 2, 3));
             }
 
 
