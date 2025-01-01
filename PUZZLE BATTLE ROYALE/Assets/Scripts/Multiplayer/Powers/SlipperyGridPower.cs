@@ -11,7 +11,7 @@ public class SlipperyGridPower : Power
     /// <summary>
     /// Initializes a new instance of the <see cref="SlipperyGridPower"/> class.
     /// </summary>
-    public SlipperyGridPower() : base("Slippery Grid", 3, false, true, 20)
+    public SlipperyGridPower() : base("Slippery Grid", 3, false, true, 15)
     {
     }
 
@@ -31,7 +31,7 @@ public class SlipperyGridPower : Power
             CoroutineHelper.Instance.StopHelperCoroutine(activeCoroutines[targetPlayer]);
         }
 
-        int useDuration = 5;
+        int useDuration = 3;
         Coroutine newCoroutine = CoroutineHelper.Instance.StartHelperCoroutine(UseTimer(targetPlayer, useDuration));
         activeCoroutines[targetPlayer] = newCoroutine;
     }
