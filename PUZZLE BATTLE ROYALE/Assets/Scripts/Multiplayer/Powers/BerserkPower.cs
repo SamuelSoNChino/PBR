@@ -10,7 +10,7 @@ public class BerserkPower : Power
     /// <summary>
     /// Initializes a new instance of the <see cref="BerserkPower"/> class.
     /// </summary>
-    public BerserkPower() : base("Berserk", 5, false, false, 5)
+    public BerserkPower() : base("Berserk", 5, false, false, 15)
     {
     }
 
@@ -19,7 +19,7 @@ public class BerserkPower : Power
     /// </summary>
     public override void Activate(Player userPlayer)
     {
-        float useDuration = 5;
+        float useDuration = 3;
         CoroutineHelper.Instance.StartHelperCoroutine(UseTimer(userPlayer, useDuration));
     }
 

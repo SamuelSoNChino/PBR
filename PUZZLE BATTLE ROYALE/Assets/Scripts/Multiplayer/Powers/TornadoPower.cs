@@ -9,7 +9,7 @@ public class TornadoPower : Power
     /// <summary>
     /// Initializes a new instance of the <see cref="TornadoPower"/> class.
     /// </summary>
-    public TornadoPower() : base("Tornado", 0, false, true, 5)
+    public TornadoPower() : base("Tornado", 0, false, true, 10)
     {
     }
 
