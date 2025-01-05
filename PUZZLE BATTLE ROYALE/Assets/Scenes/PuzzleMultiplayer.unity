@@ -686,7 +686,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &335868351
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1405,10 +1405,16 @@ MonoBehaviour:
   playerManager: {fileID: 1562048576}
   peekManager: {fileID: 1832081630}
   profilePictureSprites:
-  - {fileID: 21300000, guid: 08010bddd05c24d46a4edcce6f78b5dc, type: 3}
-  - {fileID: 21300000, guid: 4c69b05257d57514fa9d1ebe4625e914, type: 3}
-  - {fileID: 21300000, guid: 8904cdec1e255b14b8ebcc0b196e38a2, type: 3}
-  - {fileID: 21300000, guid: 8f845315ec400e942aa8eaa177d37e6b, type: 3}
+  - {fileID: 21300000, guid: cbba9de3ba5933b42813523340f4fc55, type: 3}
+  - {fileID: 21300000, guid: 91df6989aed5036459a5c41a1ddfb521, type: 3}
+  - {fileID: 21300000, guid: 15aca72d5ad760b4eaf42d49785a6008, type: 3}
+  - {fileID: 21300000, guid: 98f5e04dc86a98346ab08a10eaf0f1b2, type: 3}
+  - {fileID: 21300000, guid: 0957ac4afb279ca4ba5d0a01a35c28b9, type: 3}
+  - {fileID: 21300000, guid: 7333da5b3f687ee43a307c7e19a7db14, type: 3}
+  - {fileID: 21300000, guid: b2426390b8b0d344a82358527ac80903, type: 3}
+  - {fileID: 21300000, guid: fc5aba209c927a945bba6270882c829b, type: 3}
+  - {fileID: 21300000, guid: 1a3b2c8281500fa4aa05f4f6eed25b94, type: 3}
+  - {fileID: 21300000, guid: 3ae3a16b777876b42b95b3db4f5f2ecb, type: 3}
   leaderboardEntryContainer: {fileID: 1300087958}
   leaderboardEntryPrefab: {fileID: 1376170745827451205, guid: 4d4921a9ce1ae3c4ba90b8cd6059ac34, type: 3}
   hideLeaderboardButtonPrefab: {fileID: 8582207394649753148, guid: 5b2dcb2a034cdc0488745225d88eccb3, type: 3}
