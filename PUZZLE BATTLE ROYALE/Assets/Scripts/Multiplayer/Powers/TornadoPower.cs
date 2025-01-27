@@ -58,7 +58,7 @@ public class TornadoPower : Power
             Vector3 oldPosition = targetPlayer.GetPuzzleTilePosition(snappedPuzzleTileIdToDisplace);
             Vector3 newPosition = oldPosition + displacementVector;
             targetPlayer.ModifyPuzzleTilePosition(snappedPuzzleTileIdToDisplace, newPosition);
-            puzzleManager.SetNewTilePositionRpc(targetPlayer.ClientId, snappedPuzzleTileIdToDisplace, newPosition);
+            puzzleManager.UpdateTilePositionForPlayers(targetPlayer, snappedPuzzleTileIdToDisplace, newPosition, true);
         }
 
         // Ensures that the tile the player is currently holding (if any) is moved to the front.
