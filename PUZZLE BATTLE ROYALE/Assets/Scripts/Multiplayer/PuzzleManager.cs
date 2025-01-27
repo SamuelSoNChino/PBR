@@ -691,7 +691,8 @@ public class PuzzleManager : NetworkBehaviour
             leaderboardManager.UpdateRanking(player);
         }
 
-        UpdateProgressTextRpc(player.ClientId, progress);
+        // Progress text can be enabled by uncommenting the next line and enabling its object in the editor
+        // UpdateProgressTextRpc(player.ClientId, progress);
     }
 
     /// <summary>
