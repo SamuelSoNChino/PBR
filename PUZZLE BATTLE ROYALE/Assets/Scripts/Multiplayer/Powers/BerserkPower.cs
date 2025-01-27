@@ -28,6 +28,7 @@ public class BerserkPower : Power
         PuzzleManager puzzleManager = GameObject.Find("Puzzle").GetComponent<PuzzleManager>();
         PeekManager peekManager = GameObject.Find("PeekComponents").GetComponent<PeekManager>();
 
+        userPlayer.IsUsingBerserk = true;
 
         if (userPlayer.IsPeeking)
         {
@@ -37,6 +38,13 @@ public class BerserkPower : Power
         puzzleManager.EnableTileMovement(userPlayer);
 
         yield return new WaitForSeconds(useDuration);
+
+        userPlayer.IsUsingBerserk = false;
+
+        if (userPlayer.IsPeeking)
+        {
+            peekManager.UpdatePeekIndicator(userPlayer.TargetOfPeekPlayer);
+        }
 
         if (userPlayer.IsPeeking && !userPlayer.TargetOfPeekPlayer.IsPeeking)
         {
