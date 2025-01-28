@@ -1,6 +1,6 @@
 # Puzzle Battle Royale (PBR)
 
-Puzzle Battle Royale (PBR) is an innovative multiplayer puzzle game designed for Android and made in Unity. Players compete in real-time matches (2-10 players) to solve a challenging puzzle with a unique twist: abilities. These abilities let players sabotage others, peek at their progress, or gain advantages to secure victory.
+Puzzle Battle Royale (PBR) is a multiplayer puzzle game designed for Android and made in Unity. Players compete in real-time matches (2-10 players) to solve a puzzle with a unique twist: abilities. These abilities let players sabotage others, peek at their progress, or gain advantages to secure victory.
 
 The game is built with two main components:
 
@@ -12,7 +12,6 @@ The game is built with two main components:
 ## Features
 
 - **Multiplayer Gameplay**: Engage in real-time matches with 2-10 players.
-
 
 - **Unique Abilities**: Use powers to sabotage opponents, peek at their progress, or protect your own.
 
