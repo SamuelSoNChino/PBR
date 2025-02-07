@@ -27,31 +27,49 @@ The game is built with two main components:
 
 The core gameplay loop of PBR revolves around solving puzzles as quickly as possible while navigating the chaos introduced by player abilities:
 
-1. **Starting a Match**:
+### 1. **Starting a Match**:
 
-    - Players select a loadout of abilities before the match begins.
+- Players select a loadout of abilities before the match begins.
 
-    - All players receive the same randomly generated puzzle to solve.
+- All players receive the same randomly generated puzzle to solve.
 
-2. **Real-Time Strategy**:
+- **Showcase**:
 
-    - As players solve pieces of the puzzle, a leaderboard dynamically updates to show progress.
+    ![Starting a match](readme_assets/start.gif)
 
-    - Players can peek at the puzzle of a leading opponent, seeing their current progress.
+---
 
-    - Peeking introduces a vulnerability: if another player peeks at you during this time, they can rearrange your puzzle, setting you back.
+### 2. **Real-Time Strategy**:
 
-3. **Abilities and Cooldowns**:
+- As players solve pieces of the puzzle, a leaderboard dynamically updates to show progress.
 
-    - Powers are split into three categories:
+- Players can peek at the puzzle of a leading opponent, seeing their current progress.
 
-        - **Passive**: Always active, granting constant benefits.
+- Peeking introduces a vulnerability: if another player peeks at you during this time, they can rearrange your puzzle, setting you back.
 
-        - **Targetable**: Used when peeking to sabotage specific players.
+- **Showcase**:
 
-        - **Active**: Can be triggered anytime to gain an advantage.
+    ![Gameplay](readme_assets/gameplay.gif)
 
-    - All abilities have cooldowns, requiring strategic timing.
+---
+
+### 3. **Abilities and Cooldowns**:
+
+- Powers are split into three categories:
+
+    - **Passive**: Always active, granting constant benefits.
+
+    - **Targetable**: Used when peeking to sabotage specific players.
+
+    - **Active**: Can be triggered anytime to gain an advantage.
+
+- All abilities have cooldowns, requiring strategic timing.
+
+- **Showcase**:
+
+    ![Abilites](readme_assets/powers.gif)
+
+---
 
 4. **Winning Conditions**:
 
@@ -59,7 +77,11 @@ The core gameplay loop of PBR revolves around solving puzzles as quickly as poss
 
     - Games are designed for fast-paced competition, keeping players engaged from start to finish.
 
-    
+    - **Showcase**:
+
+    ![Winning conditions](readme_assets/winning.gif)
+
+   
 ## Core Structure
 
 The core structure of PBR is built around the `Assets/Scripts` folder, which houses the majority of the game's logic. This folder is meticulously organized to separate various functionalities:
